@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration">
+
+  <!-- 寄せ字機能の設定 -->
+  <!-- FormatterFactoryの設定 -->
+  <component name="fixedLengthConvertorSetting"
+      class="nablarch.core.dataformat.convertor.FixedLengthConvertorSetting">
+      <property name="convertorTable">
+	      <map>
+	          <entry key="Test" value="nablarch.core.dataformat.convertor.datatype.SingleByteCharacter"/>
+	          <entry key="Hoge" value="nablarch.core.dataformat.convertor.datatype.Bytes"/>
+	      </map>
+      </property>
+  </component>
+
+</component-configuration>
