@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration component-configuration.xsd">
+
+  <import file="nablarch/core/dataformat/convertor/DefaultConvertorSetting.xml" />
+
+  <component name="characterReplacementManager" class="nablarch.core.dataformat.CharacterReplacementManager">
+    <property name="configList">
+      <list>
+        <component class="nablarch.core.dataformat.CharacterReplacementConfig">
+          <property name="typeName" value="charconverter" />
+          <property name="filePath" value="classpath:charconverter.properties" />
+          <property name="encoding" value="UTF-8" />
+        </component>
+      </list>
+    </property>
+  </component>
+  
+  <component name="initializer" class="nablarch.core.repository.initialization.BasicApplicationInitializer">
+    <property name="initializeList">
+      <list>
+        <component-ref name="characterReplacementManager" />
+      </list>
+    </property>
+  </component>
+</component-configuration>

@@ -39,6 +39,8 @@ dependencies {
   testRuntime 'com.oracle:ojdbc6:11.2.0.2.0'
   testRuntime 'com.oracle:ucp:11.2.0.3.0'
 
+  testCompile 'org.xmlunit:xmlunit-core:2.2.1'
+  testCompile 'org.xmlunit:xmlunit-matchers:2.2.1'
 }
 
 task wrapper(type: Wrapper) {
