@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration">
+
+  <!-- 寄せ字機能の設定 -->
+  <component name="equivalentCharNormalizeUtil"
+      class="nablarch.core.util.EquivalentCharNormalizeUtil">
+    <property name="patternA" value="classpath:sample/normalize/patternA.properties" />
+    <property name="patternB" value="classpath:sample/normalize/patternB.properties" />
+    <property name="patternC" value="classpath:sample/normalize/patternC.properties" />
+    <property name="patternD" value="classpath:sample/normalize/patternD.properties" />
+    <property name="patternE" value="classpath:sample/normalize/patternE.properties" />
+  </component>
+
+</component-configuration>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-configuration
+    xmlns="http://tis.co.jp/nablarch/component-configuration"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration">
+
+  <!-- FormatterFactoryの設定 -->
+  <component name="fixedLengthConvertorSetting"
+      class="nablarch.core.dataformat.convertor.FixedLengthConvertorSetting">
+      <property name="convertorTable">
+	      <map>
+	          <entry key="Test" value="nablarch.core.dataformat.convertor.datatype.SingleByteCharacterString"/>
+	          <entry key="Hoge" value="nablarch.core.dataformat.convertor.datatype.Bytes"/>
+	      </map>
+      </property>
+  </component>
+  <component name="variableLengthConvertorSetting"
+      class="nablarch.core.dataformat.convertor.VariableLengthConvertorSetting">
+      <property name="convertorTable">
+	      <map>
+	          <entry key="Test" value="nablarch.core.dataformat.convertor.datatype.SingleByteCharacterString"/>
+	          <entry key="Hoge" value="nablarch.core.dataformat.convertor.datatype.Bytes"/>
+	      </map>
+      </property>
+  </component>
+  <component name="xmlDataConvertorSetting"
+      class="nablarch.core.dataformat.convertor.XmlDataConvertorSetting">
+      <property name="convertorTable">
+	      <map>
+	          <entry key="Test" value="nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString"/>
+	          <entry key="Hoge" value="nablarch.core.dataformat.convertor.datatype.Bytes"/>
+	          <entry key="Error" value="nablarch.core.dataformat.StructuredDataParserSupportTest$ErrorConverter"/>
+	      </map>
+      </property>
+  </component>
+  <component name="jsonDataConvertorSetting"
+      class="nablarch.core.dataformat.convertor.JsonDataConvertorSetting">
+      <property name="convertorTable">
+	      <map>
+	          <entry key="Test" value="nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString"/>
+	          <entry key="Hoge" value="nablarch.core.dataformat.convertor.datatype.Bytes"/>
+	          <entry key="Error" value="nablarch.core.dataformat.StructuredDataParserSupportTest$ErrorConverter"/>
+	      </map>
+      </property>
+  </component>
+</component-configuration>
