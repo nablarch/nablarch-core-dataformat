@@ -39,7 +39,7 @@ public class XmlDataBuilderTest {
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
-    private StructuredDataBuilder sut = new XmlDataBuilder();
+    private XmlDataBuilder sut = new XmlDataBuilder();
 
     /**
      * テストケースごとにデフォルト設定でリポジトリを再構築します。
@@ -170,16 +170,15 @@ public class XmlDataBuilderTest {
     }
 
     @Test
-    @Ignore("テストが落ちる:現状使用できないパターン")
     public void ルートタグにコンテンツが出力できること() throws Exception {
         createFormatFile(
                 "UTF-8",
                 "[root]",
-                "1 content X"
+                "1 body X"
         );
 
         final HashMap<String, Object> input = new HashMap<String, Object>();
-        input.put("content", "データ");
+        input.put("body", "データ");
         final ByteArrayOutputStream actual = new ByteArrayOutputStream();
         sut.buildData(input, getLayoutDefinition(), actual);
 
@@ -188,6 +187,122 @@ public class XmlDataBuilderTest {
                 isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
                         + "<root>データ</root>"));
     }
+    
+    @Test
+    public void ルートタグのコンテンツが任意の場合に出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 body [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("body", "任意項目でも問題ない");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+                        + "<root>任意項目でも問題ない</root>"));
+    }
+
+    @Test
+    public void ルートタグのコンテンツが任意の場合で値を指定しなかった場合空で出力されること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 body [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+                        + "<root></root>"));
+    }
+
+    @Test
+    public void コンテンツ名を変更した場合その名前の要素がコンテンツ部に出力されること() throws Exception {
+        sut.setContentName("content");
+
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 content [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("content", "この値がコンテンツ部に出力される");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+                        + "<root>この値がコンテンツ部に出力される</root>"));
+    }
+
+    @Test
+    public void ルートのコンテンツが必須で指定しなかった場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 body X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("body is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void ルートに属性とコンテンツの組み合わせが使えること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 @attr X",
+                "2 body X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("attr", "属性");
+        input.put("body", "コンテンツ");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        sut.buildData(input, getLayoutDefinition(), actual);
+        
+        System.out.println(actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root attr=\"属性\">コンテンツ</root>"));
+    }
+
+    @Test
+    public void ルートに属性とコンテンツの組み合わせがあって必須のコンテンツの値を指定しない場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 @attr X",
+                "2 body X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("attr", "属性");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("body is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+    
+    
 
     @Test
     public void ネストしたタグが出力できること() throws Exception {
@@ -962,52 +1077,6 @@ public class XmlDataBuilderTest {
     }
 
     @Test
-    @Ignore("現状だせない")
-    public void 任意子要素を指定しない配列を出力出来ること() throws Exception {
-        createFormatFile(
-                "UTF-8",
-                "[parent]",
-                "1 children [1..*] OB",
-                "[children]",
-                "1 data [0..1] X"
-        );
-
-        final HashMap<String, Object> input = new HashMap<String, Object>();
-        input.put("children[0]", "");
-        input.put("children[1]", "");
-        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
-        sut.buildData(input, getLayoutDefinition(), actual);
-
-        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
-        assertThat(actual.toString("utf-8"),
-                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
-                        + "<parent>\n"
-                        + "  <children></children>\n"
-                        + "  <children></children>\n"
-                        + "</parent>").ignoreWhitespace());
-    }
-
-    @Test
-    @Ignore("現状だせない")
-    public void 必須子要素を指定しない配列はエラーになること() throws Exception {
-        createFormatFile(
-                "UTF-8",
-                "[parent]",
-                "1 children [1..*] OB",
-                "[children]",
-                "1 data  X"
-        );
-
-        final HashMap<String, Object> input = new HashMap<String, Object>();
-        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
-
-        expectedException.expect(InvalidDataFormatException.class);
-        expectedException.expectMessage("data is required");
-        sut.buildData(input, getLayoutDefinition(), actual);
-
-    }
-
-    @Test
     public void 配列の子要素として配列要素を出力できること() throws Exception {
         createFormatFile(
                 "UTF-8",
@@ -1096,7 +1165,6 @@ public class XmlDataBuilderTest {
         expectedException.expectMessage("mail is required");
         sut.buildData(input, getLayoutDefinition(), actual);
     }
-
     @Test
     public void 出力対象にnullを指定した場合で子要素を持つ場合ルート要素だけが出力されること() throws Exception {
         createFormatFile(
@@ -1360,6 +1428,50 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void コンテンツ要素にデータタイプが使用できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 body BL"
+        );
+
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        final DataRecord input = new DataRecord();
+        input.put("body", true);
+
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root>"
+                        + "  true"
+                        + "</root>").ignoreWhitespace());
+    }
+
+    @Test
+    public void コンテンツ要素にコンバータが指定できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 body X9 number"
+        );
+
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        final DataRecord input = new DataRecord();
+        input.put("body", new BigDecimal("1.0003"));
+
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root>"
+                        + "  1.0003"
+                        + "</root>").ignoreWhitespace());
+    }
+
+    @Test
     public void OBタイプで項目名を属性とした場合エラーになること() throws Exception {
         createFormatFile(
                 "UTF-8",
@@ -1375,6 +1487,25 @@ public class XmlDataBuilderTest {
 
         expectedException.expect(InvalidDataFormatException.class);
         expectedException.expectMessage("child is Object but specified by Attribute");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void コンテンツを配列としてフォーマット定義した場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 child OB",
+                "[child]",
+                "1 body [0..2] X"
+        );
+
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        final DataRecord input = new DataRecord();
+        input.put("child.body", new String[] {"値"});
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("Array type can not be specified in the content. parent name: child,field name: body");
         sut.buildData(input, getLayoutDefinition(), actual);
     }
 

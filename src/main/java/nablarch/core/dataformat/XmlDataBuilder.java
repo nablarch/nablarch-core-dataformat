@@ -24,12 +24,24 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
 
     /** 作成対象XMLのバージョン */
     private static final String TARGET_XML_VERSION = "1.0";
+
+    /** 属性あり要素のコンテンツ名(デフォルトはbody) */
+    private String contentName = "body";
     
     /**
      * コンストラクタ
      */
     public XmlDataBuilder() {
         super();
+    }
+
+    /**
+     * 属性ありコンテンツの要素名を設定する。
+     *
+     * @param contentName 属性ありコンテンツの要素名
+     */
+    public void setContentName(final String contentName) {
+        this.contentName = contentName;
     }
 
     /**
@@ -104,6 +116,11 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
             // 項目が配列の時
             if (fd.isArray()) {
                 // レコード定義を取得
+                if (fd.getName().equals(contentName)) {
+                    // コンテンツを表す項目の場合は配列を許容しない
+                    throw new InvalidDataFormatException("Array type can not be specified in the content." 
+                            + " parent name: " + currentKeyBase + ",field name: " + fd.getName());
+                }
                 if (nrd != null) {
                     // ObjectArray
                     writeObjectArray(writer, ld, nrd, fd, currentKeyBase, mapKey, map);
@@ -257,6 +274,10 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
         if (map != null && map.containsKey(mapKey) || writeVal != null) {
             if (fd.isAttribute()) {
                 writer.writeAttribute(fd.getName(), StringUtil.toString(writeVal));
+            } else if (fd.getName().equals(contentName)) {
+                if (writeVal != null) {
+                    writer.writeCharacters(StringUtil.toString(writeVal));
+                }
             } else {
                 writer.writeStartElement(fd.getName());
                 if (writeVal != null) {
