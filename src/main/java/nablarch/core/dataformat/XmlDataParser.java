@@ -23,6 +23,9 @@ import org.xml.sax.SAXException;
  */
 public class XmlDataParser extends StructuredDataEditorSupport implements StructuredDataParser {
 
+    /** 属性あり要素のコンテンツの項目名 */
+    private String contentName = "body";
+
     /**
      * フラットマップを作成します。
      *
@@ -128,6 +131,9 @@ public class XmlDataParser extends StructuredDataEditorSupport implements Struct
                         // 属性
                         Node attr = parent.getAttributes().getNamedItem(fieldName);
                         childNodeVal = toString(attr);
+                    } else if (fieldName.equals(contentName)) {
+                        // コンテンツ
+                        childNodeVal = parent.getFirstChild() == null ? null : toString(parent);
                     } else {
                         // ノード
                         Element child = getChildElement(fieldName, parent);

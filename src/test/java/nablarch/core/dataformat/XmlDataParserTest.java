@@ -6,7 +6,6 @@ import nablarch.core.dataformat.convertor.datatype.DataType;
 import nablarch.core.dataformat.convertor.value.ValueConvertor;
 import nablarch.core.dataformat.convertor.value.ValueConvertorSupport;
 import nablarch.test.support.SystemRepositoryResource;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -145,7 +144,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("attr", null));
     }
 
-    @Ignore
     @Test
     public void ルート要素の必須コンテンツに値が設定されているXMLを読み込めること() throws Exception {
 
@@ -170,7 +168,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("body", (Object) "value"));
     }
 
-    @Ignore
     @Test
     public void ルート要素の必須コンテンツに値が設定されていないためエラーとなること() throws Exception {
         exception.expect(InvalidDataFormatException.class);
@@ -194,7 +191,6 @@ public class XmlDataParserTest  {
         sut.parseData(input, definition);
     }
 
-    @Ignore
     @Test
     public void ルート要素の任意コンテンツに値が設定されているXMLを読み込めること() throws Exception {
 
@@ -219,7 +215,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("body", (Object) "value"));
     }
 
-    @Ignore
     @Test
     public void ルート要素の任意コンテンツに値が設定されていないXMLを読み込めること() throws Exception {
 
@@ -244,7 +239,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("body", null));
     }
 
-    @Ignore
     @Test
     public void ルート要素の必須属性と必須コンテンツに値が設定されているXMLを読み込めること() throws Exception {
 
@@ -271,7 +265,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("body", (Object) "value2"));
     }
 
-    @Ignore
     @Test
     public void ルート要素の必須属性と必須コンテンツに値が設定されていないためエラーとなること() throws Exception {
         exception.expect(InvalidDataFormatException.class);
@@ -296,7 +289,6 @@ public class XmlDataParserTest  {
         sut.parseData(input, definition);
     }
 
-    @Ignore
     @Test
     public void ルート要素の任意属性と任意コンテンツに値が設定されているXMLを読み込めること() throws Exception {
 
@@ -323,7 +315,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("body", (Object) "value2"));
     }
 
-    @Ignore
     @Test
     public void ルート要素の任意属性と任意コンテンツに値が設定されていないXMLを読み込めること() throws Exception {
 
@@ -669,7 +660,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("child.attr", null));
     }
 
-    @Ignore
     @Test
     public void 子要素の必須属性と必須コンテンツに値が設定されているXMLを読み込めること() throws Exception {
 
@@ -701,7 +691,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("child.body", (Object) "value2"));
     }
 
-    @Ignore
     @Test
     public void 子要素の必須属性と必須コンテンツに値が設定されていないためエラーとなること() throws Exception {
         exception.expect(InvalidDataFormatException.class);
@@ -731,7 +720,6 @@ public class XmlDataParserTest  {
         sut.parseData(input, definition);
     }
 
-    @Ignore
     @Test
     public void 子要素の任意属性と任意コンテンツに値が設定されているXMLを読み込めること() throws Exception {
 
@@ -763,7 +751,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("child.body", (Object) "value2"));
     }
 
-    @Ignore
     @Test
     public void 子要素の任意属性と任意コンテンツに値が設定されていないXMLを読み込めること() throws Exception {
 
@@ -1285,7 +1272,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("child[2].attr", null));
     }
 
-    @Ignore
     @Test
     public void 子要素の配列の必須属性と必須コンテンツに値が設定されているXMLを読み込めること() throws Exception {
 
@@ -1323,7 +1309,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("child[2].body", (Object) "value6"));
     }
 
-    @Ignore
     @Test
     public void 子要素の配列の必須属性と必須コンテンツに値が設定されていないためエラーとなること() throws Exception {
         exception.expect(InvalidDataFormatException.class);
@@ -1355,7 +1340,6 @@ public class XmlDataParserTest  {
         sut.parseData(input, definition);
     }
 
-    @Ignore
     @Test
     public void 子要素の配列の任意属性と任意コンテンツに値が設定されているXMLを読み込めること() throws Exception {
 
@@ -1393,7 +1377,6 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("child[2].body", (Object) "value6"));
     }
 
-    @Ignore
     @Test
     public void 子要素の配列の任意属性と任意コンテンツに値が設定されていないXMLを読み込めること() throws Exception {
 
@@ -2941,6 +2924,64 @@ public class XmlDataParserTest  {
 
         // テスト実行
         sut.parseData(input, definition);
+    }
+
+    @Test
+    public void bodyを配列として定義した場合はタグとして読み込むこと() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"XML\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 body [0..2] X"
+        );
+
+        // XML
+        InputStream input = createInputStream(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<root>",
+                "  <body>value1</body>",
+                "  <body>value2</body>",
+                "</root>"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        String[] body = (String[]) result.get("body");
+        assertThat(body, hasItemInArray("value1"));
+        assertThat(body, hasItemInArray("value2"));
+    }
+
+    @Test
+    public void bodyをオブジェクトとして定義した場合はタグとして読み込むこと() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"XML\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 body OB",
+                "",
+                "[body]",
+                "1 body X"
+        );
+
+        // XML
+        InputStream input = createInputStream(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<root>",
+                "  <body>value</body>",
+                "</root>"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("body.body", (Object) "value"));
     }
 
     private LayoutDefinition createLayoutDefinition(String... records) throws Exception {
