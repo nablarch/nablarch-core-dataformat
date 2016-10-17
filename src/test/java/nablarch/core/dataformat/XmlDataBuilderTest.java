@@ -1134,7 +1134,7 @@ public class XmlDataBuilderTest {
     }
 
     @Test
-    public void 出力対象がnullで任意項目の場合その要素のコンテンツはからになること() throws Exception {
+    public void 出力対象がnullで任意項目の場合その要素のコンテンツは空になること() throws Exception {
         createFormatFile(
                 "UTF-8",
                 "[root]",
