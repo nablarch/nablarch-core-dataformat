@@ -1006,7 +1006,97 @@ public class XmlDataBuilderTest {
         sut.buildData(input, getLayoutDefinition(), actual);
 
     }
-    
+
+    @Test
+    public void 配列の子要素として配列要素を出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 @name X",
+                "2 mail [1..*] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].name", "child1");
+        input.put("children[0].mail", new String[] {"mail1@child1.com", "mail2@child1.com"});
+        input.put("children[1].name", "child2");
+        input.put("children[1].mail", new String[] {"mail1@child2.com"});
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children name=\"child1\">\n"
+                        + "    <mail>mail1@child1.com</mail>\n"
+                        + "    <mail>mail2@child1.com</mail>\n"
+                        + "  </children>\n"
+                        + "  <children name=\"child2\">\n"
+                        + "    <mail>mail1@child2.com</mail>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列の子要素の任意配列を省略できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 @name X",
+                "2 mail [0..*] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].name", "child1");
+        input.put("children[0].mail", new String[] {"mail1@child1.com", "mail2@child1.com"});
+        input.put("children[1].name", "child2");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children name=\"child1\">\n"
+                        + "    <mail>mail1@child1.com</mail>\n"
+                        + "    <mail>mail2@child1.com</mail>\n"
+                        + "  </children>\n"
+                        + "  <children name=\"child2\">\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列の子要素の必須配列を指定しなかった場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 @name X",
+                "2 mail [1..*] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].name", "child1");
+        input.put("children[0].mail", new String[] {"mail1@child1.com", "mail2@child1.com"});
+        input.put("children[1].name", "child2");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("mail is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
     @Test
     public void 出力対象にnullを指定した場合で子要素を持つ場合ルート要素だけが出力されること() throws Exception {
         createFormatFile(
