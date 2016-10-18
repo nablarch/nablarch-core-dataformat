@@ -665,6 +665,79 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void 子要素に属性とコンテンツが出力出来ること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 child OB",
+                "[child]",
+                "1 @attr X",
+                "2 body X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("child.attr", "属性値");
+        input.put("child.body", "属性値とセットで出力されるコンテンツ");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root>\n"
+                        + "  <child attr='属性値'>\n"
+                        + "    属性値とセットで出力されるコンテンツ\n"
+                        + "  </child>\n"
+                        + "</root>").ignoreWhitespace());
+    }
+
+    @Test
+    public void 子要素の属性ありのコンテンツを省略できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 child OB",
+                "[child]",
+                "1 @attr X",
+                "2 body [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("child.attr", "属性値");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root>\n"
+                        + "  <child attr='属性値'>\n"
+                        + "  </child>\n"
+                        + "</root>").ignoreWhitespace());
+    }
+    
+    @Test
+    public void 子要素の属性ありの必須コンテンツ指定しなかった場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 child OB",
+                "[child]",
+                "1 @attr X",
+                "2 body X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("child.attr", "属性値");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("body is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+    }
+
+    @Test
     public void 配列の子要素を出力出来ること() throws Exception {
         createFormatFile(
                 "UTF-8",
@@ -866,6 +939,58 @@ public class XmlDataBuilderTest {
 
     }
 
+    @Test
+    public void 配列に属性とコンテンツを出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 child [1..10]OB",
+                "[child]",
+                "1 @name X",
+                "2 body [0..1] X9"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("child[0].name", "子供1");
+        input.put("child[0].body", "コンテンツ");
+        input.put("child[1].name", "子供2");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <child name='子供1'>\n"
+                        + "    コンテンツ\n"
+                        + "  </child>\n"
+                        + "  <child name='子供2'>\n"
+                        + "  </child>\n"
+                        + "</parent>").ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列に属性とコンテンツがある場合で必須のコンテンツを指定しなかった場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 child [1..10]OB",
+                "[child]",
+                "1 @name X",
+                "2 body X9"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("child[0].name", "子供1");
+        input.put("child[1].name", "子供2");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("body is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+    }
+    
     @Test
     public void 属性を持つ要素に配列子要素を出力出来ること() throws Exception {
         createFormatFile(
