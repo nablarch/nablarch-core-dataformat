@@ -1291,6 +1291,116 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void オブジェクトの孫要素を出力出来ること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 name X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children.child.name", "子供");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <child><name>子供</name></child>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
+    @Test
+    public void オブジェクトの任意の孫要素を省略できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 name [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children.child", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <child></child>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+    
+    @Test
+    public void オブジェクトの必須の孫要素を指定しなかった場合エラーになること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 name X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children.child", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("name is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void オブジェクトの孫要素に属性とコンテンツを出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 @name  X",
+                "2 body   X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children.child.name", "属性");
+        input.put("children.child.body", "コンテンツ");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <child name='属性'>コンテンツ</child>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+    
+    @Test
     public void 配列の孫要素を出力出来ること() throws Exception {
         createFormatFile(
                 "UTF-8",
