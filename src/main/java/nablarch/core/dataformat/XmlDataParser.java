@@ -138,6 +138,12 @@ public class XmlDataParser extends StructuredDataEditorSupport implements Struct
                         Node attr = parent.getAttributes().getNamedItem(fieldName);
                         childNodeVal = toString(attr);
                     } else if (fieldName.equals(contentName)) {
+
+                        if (isElementNode(parent)) {
+                            throw new InvalidDataFormatException("Element node can not be specified in the content."
+                                    + " parent name: " + currentKeyBase + ",field name: " + fieldName);
+                        }
+
                         // コンテンツ
                         childNodeVal = parent.getFirstChild() == null ? null : toString(parent);
                     } else {
@@ -154,6 +160,22 @@ public class XmlDataParser extends StructuredDataEditorSupport implements Struct
                 }
             }
         }
+    }
+
+    /**
+     * 指定した要素の子要素に{@link Node#ELEMENT_NODE}が含まれるか判定する。
+     *
+     * @param element 要素
+     * @return 子要素に {@link Node#ELEMENT_NODE} が含まれていれば{@code true}
+     */
+    private boolean isElementNode(final Element element) {
+        final NodeList nodes = element.getChildNodes();
+        for (int i = 0; i < nodes.getLength(); i++) {
+            if (nodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

@@ -2981,6 +2981,58 @@ public class XmlDataParserTest  {
         assertThat(result, hasEntry("body.body", (Object) "value"));
     }
 
+    @Test
+    public void コンテンツ名を変更した場合は変更した名前でコンテンツを読み込めること() throws Exception {
+
+        // コンテンツ名を変更
+        sut.setContentName("custom");
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"XML\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 custom X"
+        );
+
+        // XML
+        InputStream input = createInputStream(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<root>value</root>"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("custom", (Object) "value"));
+    }
+
+    @Test
+    public void コンテンツがテキストではなくタグである場合にエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(containsString("Element node can not be specified in the content."));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"XML\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 body X"
+        );
+
+        // XML
+        InputStream input = createInputStream(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<root>",
+                "    <test>value</test>",
+                "</root>"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
     private LayoutDefinition createLayoutDefinition(String... records) throws Exception {
         File file = folder.newFile();
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
