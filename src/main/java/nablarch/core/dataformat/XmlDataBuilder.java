@@ -162,7 +162,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
             for (FieldDefinition nfd : nrd.getFields()) {
                 String tmpSubKey = FieldDefinitionUtil.normalizeWithNonWordChar(nfd.getName().replaceAll("@|\\[.*\\]", ""));
                 String tmpkey = String.format("%s[%s].%s", mapKey, i, tmpSubKey);
-                if (map != null && map.containsKey(tmpkey)) {
+                if (startsWithKey(map, tmpkey)) {
                     isOut = true;
                     break;
                 }
@@ -180,7 +180,27 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
         // 配列の長さチェック実施
         checkArrayLength(fd, objectCount, currentKeyBase);
     }
-    
+
+    /**
+     * Map内に指定のキーから始まっている要素があるかどうか
+     * @param map Map
+     * @param prefix キー
+     * @return 存在している場合はtrue
+     */
+    private boolean startsWithKey(final Map<String, ?> map, final String prefix) {
+        if (map == null) {
+            return false;
+        }
+
+        final String withSeparator = prefix + '.';
+        for (final String key : map.keySet()) {
+            if (key.equals(prefix) || key.startsWith(withSeparator)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * 文字列配列の出力処理です
      * @param writer XMLライタ

@@ -16,7 +16,6 @@ import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
 import nablarch.core.util.FilePathSetting;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -1290,6 +1289,243 @@ public class XmlDataBuilderTest {
         expectedException.expectMessage("mail is required");
         sut.buildData(input, getLayoutDefinition(), actual);
     }
+
+    @Test
+    public void オブジェクトの孫要素を出力出来ること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 name X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children.child.name", "子供");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <child><name>子供</name></child>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
+    @Test
+    public void オブジェクトの任意の孫要素を省略できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 name [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children.child", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <child></child>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+    
+    @Test
+    public void オブジェクトの必須の孫要素を指定しなかった場合エラーになること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 name X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children.child", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("name is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void オブジェクトの孫要素に属性とコンテンツを出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 @name  X",
+                "2 body   X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children.child.name", "属性");
+        input.put("children.child.body", "コンテンツ");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <child name='属性'>コンテンツ</child>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+    
+    @Test
+    public void 配列の孫要素を出力出来ること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 name X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].child.name", "子供1");
+        input.put("children[1].child.name", "子供2");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <child><name>子供1</name></child>\n"
+                        + "  </children>\n"
+                        + "  <children>\n"
+                        + "    <child><name>子供2</name></child>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列の任意の孫要素を省略できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 name [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].child", null);
+        input.put("children[1].child.name", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <child></child>\n"
+                        + "  </children>\n"
+                        + "  <children>\n"
+                        + "    <child><name></name></child>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+    
+
+    @Test
+    public void 配列の必須の孫要素を指定しなかった場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 name  X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].child", null);
+        input.put("children[1].child.name", "子供2");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("name is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+    }
+
+    @Test
+    public void 配列の子要素に属性が出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 @name [0..1] X",
+                "2 body X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].child.name", "子供1");
+        input.put("children[0].child.body", "子供1のコンテンツ");
+        input.put("children[1].child.name", "子供2");
+        input.put("children[1].child.body", "子供2のコンテンツ");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <child name='子供1'>子供1のコンテンツ</child>\n"
+                        + "  </children>\n"
+                        + "  <children>\n"
+                        + "    <child name='子供2'>子供2のコンテンツ</child>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
     @Test
     public void 出力対象にnullを指定した場合で子要素を持つ場合ルート要素だけが出力されること() throws Exception {
         createFormatFile(
