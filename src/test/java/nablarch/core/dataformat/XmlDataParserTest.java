@@ -2927,7 +2927,9 @@ public class XmlDataParserTest  {
     }
 
     @Test
-    public void bodyを配列として定義した場合はタグとして読み込むこと() throws Exception {
+    public void bodyを配列として定義した場合はエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(containsString("Array type can not be specified in the content."));
 
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(
@@ -2947,12 +2949,7 @@ public class XmlDataParserTest  {
         );
 
         // テスト実行
-        Map<String, ?> result = sut.parseData(input, definition);
-
-        // 検証
-        String[] body = (String[]) result.get("body");
-        assertThat(body, hasItemInArray("value1"));
-        assertThat(body, hasItemInArray("value2"));
+        sut.parseData(input, definition);
     }
 
     @Test

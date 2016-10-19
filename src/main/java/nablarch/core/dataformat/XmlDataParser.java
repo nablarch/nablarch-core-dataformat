@@ -23,7 +23,7 @@ import org.xml.sax.SAXException;
  */
 public class XmlDataParser extends StructuredDataEditorSupport implements StructuredDataParser {
 
-    /** 属性あり要素のコンテンツの項目名 */
+    /** 属性あり要素のコンテンツ名(デフォルトはbody) */
     private String contentName = "body";
 
     /**
@@ -85,6 +85,12 @@ public class XmlDataParser extends StructuredDataEditorSupport implements Struct
             String mapKey = buildMapKey(currentKeyBase, fieldName);
 
             if (fieldDef.isArray()) {
+
+                if (fieldName.equals(contentName)) {
+                    throw new InvalidDataFormatException("Array type can not be specified in the content."
+                            + " parent name: " + currentKeyBase + ",field name: " + fieldName);
+                }
+
                 // 子ノード
                 NodeList childNodes = parent.getElementsByTagName(fieldName);
 
@@ -193,5 +199,14 @@ public class XmlDataParser extends StructuredDataEditorSupport implements Struct
             array[i] = nodeList.item(i).getTextContent();
         }
         return array;
+    }
+
+    /**
+     * 属性あり要素のコンテンツ名を設定する。
+     *
+     * @param contentName 属性あり要素のコンテンツ名
+     */
+    public void setContentName(String contentName) {
+        this.contentName = contentName;
     }
 }
