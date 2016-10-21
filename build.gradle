@@ -47,6 +47,10 @@ dependencies {
   cobertura ("net.sourceforge.cobertura:cobertura:1.9.4") 
 }
 
+tasks.sonarRunner {
+  dependsOn = ['coverage']
+}
+
 task wrapper(type: Wrapper) {
   gradleVersion = '2.13'
 }
