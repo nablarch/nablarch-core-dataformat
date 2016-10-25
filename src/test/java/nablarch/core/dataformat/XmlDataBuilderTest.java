@@ -282,6 +282,28 @@ public class XmlDataBuilderTest {
                 isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
                         + "<root attr=\"属性\">コンテンツ</root>"));
     }
+    
+    @Test
+    public void ルートに属性とコンテンツの組み合わせがあってコンテンツがnullの場合コンテンツは空となること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 @attr X",
+                "2 body [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("attr", "属性");
+        input.put("body", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root attr=\"属性\"></root>"));
+    }
 
     @Test
     public void ルートに属性とコンテンツの組み合わせがあって必須のコンテンツの値を指定しない場合エラーとなること() throws Exception {
