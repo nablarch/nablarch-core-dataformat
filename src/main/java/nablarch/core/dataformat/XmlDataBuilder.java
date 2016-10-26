@@ -193,8 +193,9 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
         }
 
         final String withSeparator = prefix + '.';
+        final String withArray = prefix + '[';
         for (final String key : map.keySet()) {
-            if (key.equals(prefix) || key.startsWith(withSeparator)) {
+            if (key.equals(prefix) || key.startsWith(withSeparator) || key.startsWith(withArray)) {
                 return true;
             }
         }
