@@ -1549,6 +1549,108 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void 配列の子要素に配列オブジェクトが出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 grandchildren [1..*] OB",
+                "[grandchildren]",
+                "1 name X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].grandchildren[0].name", "孫1-1");
+        input.put("children[0].grandchildren[1].name", "孫1-2");
+        input.put("children[1].grandchildren[0].name", "孫2-1");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <grandchildren>\n"
+                        + "      <name>孫1-1</name>\n"
+                        + "    </grandchildren>\n"
+                        + "    <grandchildren>\n"
+                        + "      <name>孫1-2</name>\n"
+                        + "    </grandchildren>\n"
+                        + "  </children>\n"
+                        + "  <children>\n"
+                        + "    <grandchildren>\n"
+                        + "      <name>孫2-1</name>\n"
+                        + "    </grandchildren>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列の子要素の任意配列オブジェクトが省略できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 grandchildren [0..*] OB",
+                "[grandchildren]",
+                "1 name X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].grandchildren", null);
+        input.put("children[1].grandchildren[0].name", "孫2-1");
+        input.put("children[1].grandchildren[1].name", "孫2-2");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "  </children>\n"
+                        + "  <children>\n"
+                        + "    <grandchildren>\n"
+                        + "      <name>孫2-1</name>\n"
+                        + "    </grandchildren>\n"
+                        + "    <grandchildren>\n"
+                        + "      <name>孫2-2</name>\n"
+                        + "    </grandchildren>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列の子要素の必須配列オブジェクトを指定しなかった場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 grandchildren [1..*] OB",
+                "[grandchildren]",
+                "1 name X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].grandchildren[0].name", "孫1-1");
+        input.put("children[0].grandchildren[1].name", "孫1-2");
+        input.put("children[1].grandchildren", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("Out of range array length BaseKey = children[1],FieldName=grandchildren");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
     public void 出力対象にnullを指定した場合で子要素を持つ場合ルート要素だけが出力されること() throws Exception {
         createFormatFile(
                 "UTF-8",
