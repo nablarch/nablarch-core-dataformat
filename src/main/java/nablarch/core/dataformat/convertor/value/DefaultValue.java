@@ -16,8 +16,11 @@ public class DefaultValue extends ValueConvertorSupport<Object, Object> {
     /** デフォルト値 */
     private Object defaultValue = null;
     
-    /** {@inheritDoc} */
+    @Override
     public DefaultValue initialize(FieldDefinition field, Object... args) {
+        if (args == null) {
+            throw new IllegalArgumentException("args must not be null");
+        }
         super.initialize(field, args);
         
         if (args.length != 1) {
@@ -39,6 +42,7 @@ public class DefaultValue extends ValueConvertorSupport<Object, Object> {
     /** {@inheritDoc}
      * この実装では、入力時に、引数のオブジェクトをそのまま返却する。
      */
+    @Override
     public Object convertOnRead(Object data) {
         return data;
     }
@@ -47,6 +51,7 @@ public class DefaultValue extends ValueConvertorSupport<Object, Object> {
      * この実装では、出力時に、引数の値が未設定（null）の場合、デフォルト値を返却して返却する
      * @return 値が未設定の場合はデフォルト値、値が設定されている場合は引数のオブジェクト
      */
+    @Override
     public Object convertOnWrite(Object data) {
         return (data == null) ? defaultValue
                               : data;
