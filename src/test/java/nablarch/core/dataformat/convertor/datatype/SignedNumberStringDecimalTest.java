@@ -8,7 +8,9 @@ import nablarch.core.dataformat.InvalidDataFormatException;
 import nablarch.core.dataformat.SyntaxErrorException;
 import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -32,6 +34,9 @@ import static org.junit.Assert.fail;
  * @author Masato Inoue
  */
 public class SignedNumberStringDecimalTest {
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     /**
      * 符号位置固定かつ符号非必須の場合の読み込みテスト。トリムが正常に行われることを確認。
@@ -395,6 +400,23 @@ public class SignedNumberStringDecimalTest {
         convertor.setRequiredPlusSign(true);
         assertThat(new String(convertor.convertOnWrite("+1234"), "ms932"), is("0000■1234"));
         assertThat(new String(convertor.convertOnWrite("-1234"), "ms932"), is("0000▲1234"));
+    }
+
+    /**
+     * 出力時にパラメータがnullの場合のテスト。
+     */
+    @Test
+    public void testWriteNull() throws Exception {
+        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+
+        SignedNumberStringDecimal convertor = (SignedNumberStringDecimal)new SignedNumberStringDecimal().init(field, new Object[]{10, ""});
+        convertor.setFixedSignPosition(true);
+        convertor.setRequiredPlusSign(false);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. parameter must not be null.");
+
+        convertor.convertOnWrite(null);
     }
 
     /**
