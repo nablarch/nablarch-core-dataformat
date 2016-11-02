@@ -43,6 +43,8 @@ dependencies {
 
   testCompile 'org.xmlunit:xmlunit-core:2.2.1'
   testCompile 'org.xmlunit:xmlunit-matchers:2.2.1'
+
+  testCompile 'com.jayway.jsonpath:json-path-assert:2.2.0'
   
   cobertura ("net.sourceforge.cobertura:cobertura:1.9.4") 
 }
