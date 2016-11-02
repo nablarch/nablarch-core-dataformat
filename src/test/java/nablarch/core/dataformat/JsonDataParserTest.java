@@ -1400,6 +1400,384 @@ public class JsonDataParserTest {
         sut.parseData(input, definition);
     }
 
+    @Test
+    public void 必須項目にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("key is required"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"key\":null",
+                "}"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    @Test
+    public void 任意項目にnullが設定されているJSONを読み込めること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key [0..1] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"key\":null",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("key", null));
+    }
+
+    @Test
+    public void 必須配列にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("FieldName=key:MinCount=1:MaxCount=10:Actual=0"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key [1..10] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"key\":null",
+                "}"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    @Test
+    public void 任意配列にnullが設定されているJSONを読み込めること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key [0..10] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"key\":null",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("key", (Object) new String[]{}));
+    }
+
+    @Test
+    public void 必須オブジェクトにnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("Field parent is required"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent OB",
+                "",
+                "[parent]",
+                "1 child X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"parent\":null",
+                "}"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    @Test
+    public void 任意オブジェクトにnullが設定されているJSONを読み込めること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..1] OB",
+                "",
+                "[parent]",
+                "1 child [0..1] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"parent\":null",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result.size(), is(0));
+    }
+
+    @Test
+    public void オブジェクトの必須項目にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("BaseKey = parent,Field child is required"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..1] OB",
+                "",
+                "[parent]",
+                "1 child X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"parent\":{",
+                "    \"child\":null",
+                "}"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    @Test
+    public void オブジェクトの任意項目にnullが設定されているJSONを読み込めること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..1] OB",
+                "",
+                "[parent]",
+                "1 child [0..1] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"parent\":{",
+                "    \"child\":null",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("parent.child", null));
+    }
+
+    @Test
+    public void オブジェクトの必須配列にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("BaseKey = parent,FieldName=child:MinCount=1:MaxCount=10:Actual=0"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..1] OB",
+                "",
+                "[parent]",
+                "1 child [1..10] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"parent\":{",
+                "    \"child\":null",
+                "}"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    @Test
+    public void オブジェクトの任意配列にnullが設定されているJSONを読み込めること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..1] OB",
+                "",
+                "[parent]",
+                "1 child [0..10] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"parent\":{",
+                "    \"child\":null",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("parent.child", (Object) new String[]{}));
+    }
+
+    @Test
+    public void 必須オブジェクト配列にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("FieldName=parent:MinCount=1:MaxCount=10:Actual=0"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [1..10] OB",
+                "",
+                "[parent]",
+                "1 child X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"parent\":null",
+                "}"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    @Test
+    public void 任意オブジェクト配列にnullが設定されているJSONを読み込めること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..10] OB",
+                "",
+                "[parent]",
+                "1 child [0..1] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"parent\":null",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("parentSize", (Object) "0"));
+    }
+
+    @Test
+    public void オブジェクト配列内の必須項目にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("BaseKey = parent[0],Field child is required"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..10] OB",
+                "",
+                "[parent]",
+                "1 child X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"parent\":[",
+                "    {",
+                "      \"child\":null",
+                "    }",
+                "}"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    @Test
+    public void オブジェクト配列内の任意項目にnullが設定されているJSONを読み込めること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..10] OB",
+                "",
+                "[parent]",
+                "1 child [0..1] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"parent\":[",
+                "    {",
+                "      \"child\":null",
+                "    }",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("parent[0].child", null));
+    }
+
     private LayoutDefinition createLayoutDefinition(String... records) throws Exception {
         File file = folder.newFile();
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));

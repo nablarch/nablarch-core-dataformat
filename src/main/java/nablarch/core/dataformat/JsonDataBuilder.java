@@ -202,7 +202,7 @@ public class JsonDataBuilder extends StructuredDataEditorSupport implements Stru
     private int writeStringArray(StringBuilder sb, FieldDefinition fd, String currentKeyBase, String mapKey, Map<String, ?> map) {
         int outCount = 0;
         int arraySize = 0;
-        if (map != null && map.containsKey(mapKey)) {
+        if (map != null && map.get(mapKey) != null) {
             String[] arr = (String[]) map.get(mapKey);
             arraySize = arr.length;
             sb.append(editJsonKey(fd.getName()) + ":[");

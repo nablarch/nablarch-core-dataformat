@@ -24,7 +24,6 @@ import java.util.Map;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -1221,7 +1220,30 @@ public class JsonDataBuilderTest {
     }
 
     @Test
-    public void nullが出力されること() throws Exception {
+    public void 必須項目にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("key is required"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("key", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+    }
+
+    @Test
+    public void 任意項目にnullが設定されているJSONを出力できること() throws Exception {
 
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(
@@ -1242,7 +1264,269 @@ public class JsonDataBuilderTest {
 
         // 検証
         String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("key", is(nullValue())));
+        assertThat(result, hasNoJsonPath("key"));
+    }
+
+    @Test
+    public void 必須配列にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("FieldName=key:MinCount=1:MaxCount=10:Actual=0"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key [1..10] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("key", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+    }
+
+    @Test
+    public void 任意配列にnullが設定されているJSONを読み込めること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key [0..10] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("key", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String result = actual.toString("utf-8");
+        assertThat(result, hasNoJsonPath("key"));
+    }
+
+    @Test
+    public void オブジェクトの必須項目にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("BaseKey = parent,Field child is required"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..1] OB",
+                "",
+                "[parent]",
+                "1 child X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("parent.child", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+    }
+
+    @Test
+    public void オブジェクトの任意項目にnullが設定されているJSONを読み込めること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..1] OB",
+                "",
+                "[parent]",
+                "1 child [0..1] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("parent.child", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String result = actual.toString("utf-8");
+        assertThat(result, hasNoJsonPath("parent.child"));
+    }
+
+    @Test
+    public void オブジェクトの必須配列にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("BaseKey = parent,FieldName=child:MinCount=1:MaxCount=10:Actual=0"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..1] OB",
+                "",
+                "[parent]",
+                "1 child [1..10] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("parent.child", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+    }
+
+    @Test
+    public void オブジェクトの任意配列にnullが設定されているJSONを読み込めること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..1] OB",
+                "",
+                "[parent]",
+                "1 child [0..10] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("parent.child", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String result = actual.toString("utf-8");
+        assertThat(result, hasNoJsonPath("parent.child"));
+    }
+
+    @Test
+    public void 必須オブジェクト配列にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("FieldName=parent:MinCount=1:MaxCount=10:Actual=0"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [1..10] OB",
+                "",
+                "[parent]",
+                "1 child X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("parent", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+    }
+
+    @Test
+    public void 任意オブジェクト配列にnullが設定されているJSONを読み込めること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..10] OB",
+                "",
+                "[parent]",
+                "1 child [0..1] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("parent", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String result = actual.toString("utf-8");
+        assertThat(result, hasNoJsonPath("parent[0]"));
+    }
+
+    @Ignore("オブジェクト配列内の項目に対する必須チェックが実施されない不具合により、このテストは落ちる")
+    @Test
+    public void オブジェクト配列内の必須項目にnullが設定されているためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("BaseKey = parent[0],Field child is required"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [1..10] OB",
+                "",
+                "[parent]",
+                "1 child X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("parent[0].child", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+    }
+
+    @Test
+    public void オブジェクト配列内の任意項目にnullが設定されているJSONを読み込めること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..10] OB",
+                "",
+                "[parent]",
+                "1 child [0..1] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("parent[0].child", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String result = actual.toString("utf-8");
+        assertThat(result, hasNoJsonPath("parent[0].child"));
     }
 
     private LayoutDefinition createLayoutDefinition(String... records) throws Exception {
