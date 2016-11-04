@@ -19,6 +19,9 @@ public class Padding extends ValueConvertorSupport<Object, Object> {
      * パディング/トリム処理で使用する値をフィールド定義に設定する。
      */
     public Padding initialize(FieldDefinition field, Object... args) {
+        if (args == null) {
+            throw new IllegalArgumentException("args must not be null");
+        }
         super.initialize(field, args);
         if (args.length != 1) {
             throw new SyntaxErrorException(String.format(
