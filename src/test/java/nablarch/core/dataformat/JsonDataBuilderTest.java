@@ -13,6 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -22,11 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
-import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * {@link JsonDataParser}のテストを行います。
@@ -68,7 +65,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        assertThat(actual.toString("utf-8"), hasJsonPath("key", is("value")));
+        String expected = "{" +
+                "  \"key\":\"value\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -113,7 +114,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        assertThat(actual.toString("utf-8"), hasJsonPath("key", is("value")));
+        String expected = "{" +
+                "  \"key\":\"value\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -135,7 +140,7 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        assertThat(actual.toString("utf-8"), hasNoJsonPath("key"));
+        JSONAssert.assertEquals("{}", actual.toString("utf-8"), true);
     }
 
     @Test
@@ -162,7 +167,13 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        assertThat(actual.toString("utf-8"), hasJsonPath("parent.child", is("value")));
+        String expected = "{" +
+                "  \"parent\":{" +
+                "    \"child\":\"value\"" +
+                "  }" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -215,7 +226,13 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        assertThat(actual.toString("utf-8"), hasJsonPath("parent.child", is("value")));
+        String expected = "{" +
+                "  \"parent\":{" +
+                "    \"child\":\"value\"" +
+                "  }" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -242,8 +259,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        assertThat(actual.toString("utf-8"), hasJsonPath("parent"));
-        assertThat(actual.toString("utf-8"), hasNoJsonPath("parent.child"));
+        String expected = "{" +
+                "  \"parent\":{}" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -267,9 +287,15 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        assertThat(actual.toString("utf-8"), hasJsonPath("array[0]", is("value1")));
-        assertThat(actual.toString("utf-8"), hasJsonPath("array[1]", is("value2")));
-        assertThat(actual.toString("utf-8"), hasJsonPath("array[2]", is("value3")));
+        String expected = "{" +
+                "  \"array\":[" +
+                "    \"value1\"," +
+                "    \"value2\"," +
+                "    \"value3\"" +
+                "  ]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -314,9 +340,15 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        assertThat(actual.toString("utf-8"), hasJsonPath("array[0]", is("value1")));
-        assertThat(actual.toString("utf-8"), hasJsonPath("array[1]", is("value2")));
-        assertThat(actual.toString("utf-8"), hasJsonPath("array[2]", is("value3")));
+        String expected = "{" +
+                "  \"array\":[" +
+                "    \"value1\"," +
+                "    \"value2\"," +
+                "    \"value3\"" +
+                "  ]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -338,7 +370,7 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        assertThat(actual.toString("utf-8"), hasNoJsonPath("array"));
+        JSONAssert.assertEquals("{}", actual.toString("utf-8"), true);
     }
 
     @Test
@@ -367,17 +399,33 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("parent[0].child[0]", is("value1")));
-        assertThat(result, hasJsonPath("parent[0].child[1]", is("value2")));
-        assertThat(result, hasJsonPath("parent[0].child[2]", is("value3")));
-        assertThat(result, hasJsonPath("parent[1].child[0]", is("value4")));
-        assertThat(result, hasJsonPath("parent[1].child[1]", is("value5")));
-        assertThat(result, hasJsonPath("parent[1].child[2]", is("value6")));
-        assertThat(result, hasJsonPath("parent[2].child[0]", is("value7")));
-        assertThat(result, hasJsonPath("parent[2].child[1]", is("value8")));
-        assertThat(result, hasJsonPath("parent[2].child[2]", is("value9")));
+        String expected = "{" +
+                "  \"parent\":[" +
+                "    {" +
+                "      \"child\":[" +
+                "        \"value1\"," +
+                "        \"value2\"," +
+                "        \"value3\"" +
+                "      ]" +
+                "    }," +
+                "    {" +
+                "      \"child\":[" +
+                "        \"value4\"," +
+                "        \"value5\"," +
+                "        \"value6\"" +
+                "      ]" +
+                "    }," +
+                "    {" +
+                "      \"child\":[" +
+                "        \"value7\"," +
+                "        \"value8\"," +
+                "        \"value9\"" +
+                "      ]" +
+                "    }" +
+                "  ]" +
+                "}";
 
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -432,16 +480,33 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("parent[0].child[0]", is("value1")));
-        assertThat(result, hasJsonPath("parent[0].child[1]", is("value2")));
-        assertThat(result, hasJsonPath("parent[0].child[2]", is("value3")));
-        assertThat(result, hasJsonPath("parent[1].child[0]", is("value4")));
-        assertThat(result, hasJsonPath("parent[1].child[1]", is("value5")));
-        assertThat(result, hasJsonPath("parent[1].child[2]", is("value6")));
-        assertThat(result, hasJsonPath("parent[2].child[0]", is("value7")));
-        assertThat(result, hasJsonPath("parent[2].child[1]", is("value8")));
-        assertThat(result, hasJsonPath("parent[2].child[2]", is("value9")));
+        String expected = "{" +
+                "  \"parent\":[" +
+                "    {" +
+                "      \"child\":[" +
+                "        \"value1\"," +
+                "        \"value2\"," +
+                "        \"value3\"" +
+                "      ]" +
+                "    }," +
+                "    {" +
+                "      \"child\":[" +
+                "        \"value4\"," +
+                "        \"value5\"," +
+                "        \"value6\"" +
+                "      ]" +
+                "    }," +
+                "    {" +
+                "      \"child\":[" +
+                "        \"value7\"," +
+                "        \"value8\"," +
+                "        \"value9\"" +
+                "      ]" +
+                "    }" +
+                "  ]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -468,8 +533,7 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("parent[0].child"));
+        JSONAssert.assertEquals("{}", actual.toString("utf-8"), true);
     }
 
     @Test
@@ -495,10 +559,15 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("key1[0]", is("value1")));
-        assertThat(result, hasJsonPath("key1[1]", is("value2")));
-        assertThat(result, hasJsonPath("key2", is("value3")));
+        String expected = "{" +
+                "  \"key1\":[" +
+                "    \"value1\"," +
+                "    \"value2\"" +
+                "  ]," +
+                "  \"key2\":\"value3\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -548,10 +617,15 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("key1[0]", is("value1")));
-        assertThat(result, hasJsonPath("key1[1]", is("value2")));
-        assertThat(result, hasJsonPath("key2", is("value3")));
+        String expected = "{" +
+                "  \"key1\":[" +
+                "    \"value1\"," +
+                "    \"value2\"" +
+                "  ]," +
+                "  \"key2\":\"value3\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -576,9 +650,7 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("key1"));
-        assertThat(result, hasNoJsonPath("key2"));
+        JSONAssert.assertEquals("{}", actual.toString("utf-8"), true);
     }
 
     @Test
@@ -605,10 +677,17 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("parent.child[0]", is("value1")));
-        assertThat(result, hasJsonPath("parent.child[1]", is("value2")));
-        assertThat(result, hasJsonPath("parent.child[2]", is("value3")));
+        String expected = "{" +
+                "  \"parent\":{" +
+                "    \"child\":[" +
+                "      \"value1\"," +
+                "      \"value2\"," +
+                "      \"value3\"" +
+                "    ]" +
+                "  }" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -661,10 +740,17 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("parent.child[0]", is("value1")));
-        assertThat(result, hasJsonPath("parent.child[1]", is("value2")));
-        assertThat(result, hasJsonPath("parent.child[2]", is("value3")));
+        String expected = "{" +
+                "  \"parent\":{" +
+                "    \"child\":[" +
+                "      \"value1\"," +
+                "      \"value2\"," +
+                "      \"value3\"" +
+                "    ]" +
+                "  }" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -691,8 +777,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("parent.child"));
+        String expected = "{" +
+                "  \"parent\":{}" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -725,13 +814,24 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("parent[0].child1", is("value1")));
-        assertThat(result, hasJsonPath("parent[1].child1", is("value2")));
-        assertThat(result, hasJsonPath("parent[2].child1", is("value3")));
-        assertThat(result, hasJsonPath("parent[0].child2", is("value4")));
-        assertThat(result, hasJsonPath("parent[1].child2", is("value5")));
-        assertThat(result, hasJsonPath("parent[2].child2", is("value6")));
+        String expected = "{" +
+                "  \"parent\":[" +
+                "    {" +
+                "      \"child1\":\"value1\"," +
+                "      \"child2\":\"value4\"" +
+                "    }," +
+                "    {" +
+                "      \"child1\":\"value2\"," +
+                "      \"child2\":\"value5\"" +
+                "    }," +
+                "    {" +
+                "      \"child1\":\"value3\"," +
+                "      \"child2\":\"value6\"" +
+                "    }" +
+                "  ]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Ignore("オブジェクト配列内の項目に対する必須チェックが実施されない不具合により、このテストは落ちる")
@@ -792,13 +892,24 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("parent[0].child1", is("value1")));
-        assertThat(result, hasJsonPath("parent[1].child1", is("value2")));
-        assertThat(result, hasJsonPath("parent[2].child1", is("value3")));
-        assertThat(result, hasJsonPath("parent[0].child2", is("value4")));
-        assertThat(result, hasJsonPath("parent[1].child2", is("value5")));
-        assertThat(result, hasJsonPath("parent[2].child2", is("value6")));
+        String expected = "{" +
+                "  \"parent\":[" +
+                "    {" +
+                "      \"child1\":\"value1\"," +
+                "      \"child2\":\"value4\"" +
+                "    }," +
+                "    {" +
+                "      \"child1\":\"value2\"," +
+                "      \"child2\":\"value5\"" +
+                "    }," +
+                "    {" +
+                "      \"child1\":\"value3\"," +
+                "      \"child2\":\"value6\"" +
+                "    }" +
+                "  ]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -826,13 +937,19 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("parent[0].child1"));
-        assertThat(result, hasJsonPath("parent[0].child2", is("value")));
+        String expected = "{" +
+                "  \"parent\":[" +
+                "    {" +
+                "      \"child2\":\"value\"" +
+                "    }" +
+                "  ]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
-    public void ルート要素のオブジェクト配列に値が設定されていないJSONを出力できること() throws Exception {
+    public void オブジェクト配列に値が設定されていないJSONを出力できること() throws Exception {
 
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(
@@ -854,8 +971,7 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("parent"));
+        JSONAssert.assertEquals("{}", actual.toString("utf-8"), true);
     }
 
     @Test
@@ -880,9 +996,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("key", is("value1")));
-        assertThat(result, hasNoJsonPath("undefined"));
+        String expected = "{" +
+                "  \"key\":\"value1\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -939,10 +1057,17 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("child", is("value1")));
-        assertThat(result, hasJsonPath("parent1.child", is("value2")));
-        assertThat(result, hasJsonPath("parent2.child", is("value3")));
+        String expected = "{" +
+                "  \"child\":\"value1\"," +
+                "  \"parent1\":{" +
+                "    \"child\":\"value2\"" +
+                "  }," +
+                "  \"parent2\":{" +
+                "    \"child\":\"value3\"" +
+                "  }" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -991,19 +1116,24 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("type1", is("value1")));
-        assertThat(result, hasJsonPath("type2", is("value2")));
-        assertThat(result, hasJsonPath("type3", is("value3")));
-        assertThat(result, hasJsonPath("type4", is("value4")));
-        assertThat(result, hasJsonPath("type5", is("value5")));
-        assertThat(result, hasJsonPath("type6", is("value6")));
-        assertThat(result, hasJsonPath("type7.type1", is("value1")));
-        assertThat(result, hasJsonPath("type7.type2", is("value2")));
-        assertThat(result, hasJsonPath("type7.type3", is("value3")));
-        assertThat(result, hasJsonPath("type7.type4", is("value4")));
-        assertThat(result, hasJsonPath("type7.type5", is("value5")));
-        assertThat(result, hasJsonPath("type7.type6", is("value6")));
+        String expected = "{" +
+                "  \"type1\":\"value1\"," +
+                "  \"type2\":\"value2\"," +
+                "  \"type3\":\"value3\"," +
+                "  \"type4\":\"value4\"," +
+                "  \"type5\":\"value5\"," +
+                "  \"type6\":\"value6\"," +
+                "  \"type7\":{" +
+                "    \"type1\":\"value1\"," +
+                "    \"type2\":\"value2\"," +
+                "    \"type3\":\"value3\"," +
+                "    \"type4\":\"value4\"," +
+                "    \"type5\":\"value5\"," +
+                "    \"type6\":\"value6\"" +
+                "  }" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1027,8 +1157,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("number", is(123456)));
+        String expected = "{" +
+                "  \"number\":123456" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1075,8 +1208,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("number", is(-123456)));
+        String expected = "{" +
+                "  \"number\":-123456" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1133,8 +1269,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("key", is("高崎■")));
+        String expected = "{" +
+                "  \"key\":\"高崎■\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1161,8 +1300,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("key", is("custom")));
+        String expected = "{" +
+                "  \"key\":\"custom\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1189,8 +1331,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasJsonPath("key", is("custom")));
+        String expected = "{" +
+                "  \"key\":\"custom\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1263,8 +1408,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("key"));
+        String expected = "{" +
+                "  \"key\":null" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1311,8 +1459,7 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("key"));
+        JSONAssert.assertEquals("{}", actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1364,8 +1511,13 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("parent.child"));
+        String expected = "{" +
+                "  \"parent\":{" +
+                "    \"child\":null" +
+                "  }" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1418,8 +1570,11 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("parent.child"));
+        String expected = "{" +
+                "  \"parent\":{}" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1471,8 +1626,7 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("parent[0]"));
+        JSONAssert.assertEquals("{}", actual.toString("utf-8"), true);
     }
 
     @Ignore("オブジェクト配列内の項目に対する必須チェックが実施されない不具合により、このテストは落ちる")
@@ -1525,8 +1679,15 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        String result = actual.toString("utf-8");
-        assertThat(result, hasNoJsonPath("parent[0].child"));
+        String expected = "{" +
+                "  \"parent\":[" +
+                "    {" +
+                "      \"child\":null" +
+                "    }" +
+                "  ]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     private LayoutDefinition createLayoutDefinition(String... records) throws Exception {
