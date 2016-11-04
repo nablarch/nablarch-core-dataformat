@@ -1439,7 +1439,7 @@ public class JsonDataBuilderTest {
     }
 
     @Test
-    public void 任意配列にnullが設定されているJSONを読み込めること() throws Exception {
+    public void 任意配列にnullが設定されているJSONを出力できること() throws Exception {
 
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(
@@ -1489,7 +1489,7 @@ public class JsonDataBuilderTest {
     }
 
     @Test
-    public void オブジェクトの任意項目にnullが設定されているJSONを読み込めること() throws Exception {
+    public void オブジェクトの任意項目にnullが設定されているJSONを出力できること() throws Exception {
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(
                 "file-type:        \"JSON\"",
@@ -1547,7 +1547,7 @@ public class JsonDataBuilderTest {
     }
 
     @Test
-    public void オブジェクトの任意配列にnullが設定されているJSONを読み込めること() throws Exception {
+    public void オブジェクトの任意配列にnullが設定されているJSONを出力できること() throws Exception {
 
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(
@@ -1604,7 +1604,7 @@ public class JsonDataBuilderTest {
     }
 
     @Test
-    public void 任意オブジェクト配列にnullが設定されているJSONを読み込めること() throws Exception {
+    public void 任意オブジェクト配列にnullが設定されているJSONを出力できること() throws Exception {
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(
                 "file-type:        \"JSON\"",
@@ -1657,7 +1657,7 @@ public class JsonDataBuilderTest {
     }
 
     @Test
-    public void オブジェクト配列内の任意項目にnullが設定されているJSONを読み込めること() throws Exception {
+    public void オブジェクト配列内の任意項目にnullが設定されているJSONを出力できること() throws Exception {
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(
                 "file-type:        \"JSON\"",
