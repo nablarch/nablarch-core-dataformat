@@ -20,8 +20,11 @@ public class CharacterReplacer extends ValueConvertorSupport<String, String> {
     /** フィールド名*/
     private String fieldName;
 
-    /** {@inheritDoc} */
+    @Override
     public CharacterReplacer initialize(FieldDefinition field, Object... args) {
+        if (args == null) {
+            throw new IllegalArgumentException("args must not be null");
+        }
         super.initialize(field, args);
         if (args.length != 1) {
             throw new SyntaxErrorException(String.format(
@@ -73,6 +76,7 @@ public class CharacterReplacer extends ValueConvertorSupport<String, String> {
      * @param data 入力時の寄せ字変換前の文字列
      * @return 入力時の寄せ字変換後の文字列
      */
+    @Override
     public String convertOnRead(String data) {
         if (data == null) {
             return null;
@@ -87,6 +91,7 @@ public class CharacterReplacer extends ValueConvertorSupport<String, String> {
      * @param data 出力時の寄せ字変換前の文字列
      * @return 出力時の寄せ字変換後の文字列
      */
+    @Override
     public String convertOnWrite(Object data) {
         if (data == null) {
             return null;

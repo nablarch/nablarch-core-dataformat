@@ -18,7 +18,11 @@ public class UseEncoding extends ValueConvertorSupport<Object, Object> {
      * この実装では、フィールドの文字エンコーディグの設定をおこなう。
      * データタイプのコンバータに処理を委譲するので、実際の変換処理の中でこのコンバータが呼ばれることはない。
      */
+    @Override
     public UseEncoding initialize(FieldDefinition field, Object... args) {
+        if (args == null) {
+            throw new IllegalArgumentException("args must not be null");
+        }
         super.initialize(field, args);
         
         if (args.length == 0) {
@@ -44,6 +48,7 @@ public class UseEncoding extends ValueConvertorSupport<Object, Object> {
     /** {@inheritDoc}
      * データタイプのコンバータに処理を委譲するので、このメソッドは使用されない。
      */
+    @Override
     public Object convertOnRead(Object data) {
         throw new UnsupportedOperationException();
     }
@@ -51,6 +56,7 @@ public class UseEncoding extends ValueConvertorSupport<Object, Object> {
     /** {@inheritDoc}
      * データタイプのコンバータに処理を委譲するので、このメソッドは使用されない。
      */
+    @Override
     public Object convertOnWrite(Object data) {
         throw new UnsupportedOperationException();
     }
