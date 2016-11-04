@@ -1,9 +1,11 @@
 package nablarch.core.dataformat.convertor.value;
 
-import nablarch.core.dataformat.FieldDefinition;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.*;
 
-import static org.junit.Assert.assertSame;
+import nablarch.core.dataformat.FieldDefinition;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * ValueConvertorSupportのgetterのテスト。
@@ -11,33 +13,22 @@ import static org.junit.Assert.assertSame;
  */
 public class ValueConvertorSupportTest {
     
-    /**
-     * getterのテスト。
-     */
+    private ValueConvertorSupport sut = new ValueConvertorSupport() {
+        @Override
+        public Object convertOnRead(final Object data) {
+            return null;
+        }
+
+        @Override
+        public Object convertOnWrite(final Object data) {
+            return null;
+        }
+    };
+    
     @Test
     public void testGetter(){
-        ValueConvertorSupportStub stub = new ValueConvertorSupportStub();
-        FieldDefinition definition = new FieldDefinition();
-        stub.initialize(definition, new Object());
-        assertSame(stub.getFieldTest(), definition);
-    }
-    
-    private class ValueConvertorSupportStub extends ValueConvertorSupport{
-
-        public Object convertOnRead(Object data) {
-            return null;
-        }
-
-        public Object convertOnWrite(Object data) {
-            return null;
-        }
-        @Override
-        protected FieldDefinition getField() {
-            return super.getField();
-        };
-        
-        public FieldDefinition getFieldTest(){
-            return getField();
-        }
+        final FieldDefinition definition = new FieldDefinition();
+        sut.initialize(definition);
+        Assert.assertThat(sut.getField(), is(sameInstance(definition)));
     }
 }
