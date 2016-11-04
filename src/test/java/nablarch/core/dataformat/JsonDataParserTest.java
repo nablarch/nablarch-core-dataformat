@@ -1474,6 +1474,31 @@ public class JsonDataParserTest {
     }
 
     @Test
+    public void 必須配列の要素にnullが設定されているJSONを読み込めること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key [1..10] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"key\":[null]",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("key", (Object) new String[]{null}));
+    }
+
+    @Test
     public void 任意配列にnullが設定されているJSONを読み込めること() throws Exception {
 
         // フォーマット定義

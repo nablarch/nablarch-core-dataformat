@@ -1439,6 +1439,34 @@ public class JsonDataBuilderTest {
     }
 
     @Test
+    public void 必須配列の要素にnullが設定されているJSONを出力できること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key [1..10] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("key", new String[]{null});
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String expected = "{" +
+                "  \"key\": [null]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
+    }
+
+    @Test
     public void 任意配列にnullが設定されているJSONを出力できること() throws Exception {
 
         // フォーマット定義
