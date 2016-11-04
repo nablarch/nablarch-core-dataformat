@@ -25,7 +25,7 @@ import static org.junit.Assert.fail;
 import static org.junit.matchers.JUnitMatchers.containsString;
 
 /**
- * 可変長ファイルフォーマッタのシングルレイアウトのテストケース。
+ * 可変長ファイルフォーマッタのマルチレイアウトのテストケース。
  * 
  * 観点：
  * 可変長ファイルをマルチレイアウトで書き出す際の、正常系テストおよび異常系テストを網羅する。
@@ -1297,5 +1297,62 @@ public class VariableLengthDataRecordFormatterMultiLayoutWriteTest {
         
         fileToString = fileToString(new File("./output.dat"), "ms932");
         
+    }
+
+    /**
+     * Mapに設定された値がnullの場合にエラーとなることを確認
+     */
+    @Test
+    public void testNullValue() throws Exception {
+
+        File formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:     "UTF-8"
+         record-separator:  "\n"
+         field-separator:   ","
+         requires-title: false
+
+         [Classifier]
+         1 type X
+
+         [Type1]
+         type = "1"
+         1 type  X
+         2 key1  X
+
+         [Type2]
+         type = "2"
+         1 type  X
+         2 key2  X
+         *****************************************/
+        formatFile.deleteOnExit();
+
+
+        Map<String, Object> recordMap1 = new HashMap<String, Object>() {{
+            put("type", "1");
+            put("key1", "value");
+        }};
+
+        Map<String, Object> recordMap2 = new HashMap<String, Object>() {{
+            put("type", "2");
+            put("key2", null);
+        }};
+
+        File outputData = new File("./output.dat");
+        outputData.deleteOnExit();
+        OutputStream dest = new FileOutputStream(outputData, false);
+
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        // type=1の場合は、値が設定されているので例外は発生しない
+        formatter.writeRecord("Type1", recordMap1);
+
+        try {
+            formatter.writeRecord("Type2", recordMap2);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), is("field value was not set. field value must be set. field name=[key2]."));
+        }
     }
 }
