@@ -1,12 +1,11 @@
 package nablarch.core.dataformat.convertor.value;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
 
 import nablarch.core.dataformat.FieldDefinition;
 import nablarch.core.dataformat.SyntaxErrorException;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

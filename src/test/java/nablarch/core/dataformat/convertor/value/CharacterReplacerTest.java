@@ -2,17 +2,13 @@ package nablarch.core.dataformat.convertor.value;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.text.IsEmptyString.isEmptyString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.core.Is;
-import org.hamcrest.text.IsEmptyString;
 
 import nablarch.core.ThreadContext;
 import nablarch.core.dataformat.CharacterReplacementConfig;
@@ -23,7 +19,6 @@ import nablarch.core.dataformat.SyntaxErrorException;
 import nablarch.core.repository.ObjectLoader;
 import nablarch.core.repository.SystemRepository;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

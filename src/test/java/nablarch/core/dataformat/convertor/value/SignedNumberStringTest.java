@@ -1,16 +1,12 @@
 package nablarch.core.dataformat.convertor.value;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.text.IsEmptyString.isEmptyString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 import java.math.BigDecimal;
 
-import org.hamcrest.CoreMatchers;
-
 import nablarch.core.dataformat.InvalidDataFormatException;
-import nablarch.core.dataformat.SyntaxErrorException;
 
 import org.junit.Rule;
 import org.junit.Test;

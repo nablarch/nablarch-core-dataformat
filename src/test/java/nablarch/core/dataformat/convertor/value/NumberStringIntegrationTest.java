@@ -1,35 +1,22 @@
 package nablarch.core.dataformat.convertor.value;
 
 import static nablarch.core.dataformat.DataFormatTestUtils.createInputStreamFrom;
-import static nablarch.test.StringMatcher.startsWith;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.HashMap;
 
 import org.hamcrest.CoreMatchers;
 
 import nablarch.core.dataformat.DataRecord;
 import nablarch.core.dataformat.DataRecordFormatter;
-import nablarch.core.dataformat.FieldDefinition;
 import nablarch.core.dataformat.FormatterFactory;
-import nablarch.core.dataformat.InvalidDataFormatException;
-import nablarch.test.support.tool.Hereis;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -140,43 +127,5 @@ public class NumberStringIntegrationTest {
         }});
 
         assertThat(outputStream.toString("ms932"), is("\"12.345\",\"234.56\",\"34567\"\n"));
-    }
-
-
-    /**
-     * 入力時にエラーが発生し、例外メッセージにレコード番号およびフィールド名が付与されることのテスト。
-     */
-    @Test
-    public void testExceptionConfirmMessage() throws Exception {
-        File formatFile = Hereis.file("./format.dat");
-        /***********************************************************
-         file-type:         "Variable"
-         text-encoding:     "ms932" # 文字列型フィールドの文字エンコーディング
-         record-separator:  "\n"       # レコード区切り文字
-         field-separator:   ","       # フィールド区切り文字
-         quoting-delimiter: "\""       # クオート文字
-
-         [TestDataRecord]
-         1  amount1        X  number    # 数値1
-         2  amount2        X  number    # 数値2
-         3  amount3        X  number    # 数値3
-         ************************************************************/
-        formatFile.deleteOnExit();
-
-        createFormatter(formatFile);
-
-        InputStream inputStream = createInputStreamFrom("\"a\",\"234.56\",\"34567\"");
-        formatter.setInputStream(inputStream)
-                 .initialize();
-
-        try {
-            formatter.readRecord();
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), startsWith(
-                    "invalid parameter format was specified. parameter format must be [^([0-9][0-9]*)?[0-9](\\.[0-9]*[0-9])?$]. value=[a]. "));
-            assertThat(e.getFieldName(), is("amount1"));
-            assertThat(e.getRecordNumber(), is(1));
-        }
     }
 }

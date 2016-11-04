@@ -1,37 +1,31 @@
 package nablarch.core.dataformat.convertor.value;
 
-import nablarch.core.dataformat.DataRecord;
-import nablarch.core.dataformat.DataRecordFormatter;
-import nablarch.core.dataformat.FormatterFactory;
-import nablarch.core.dataformat.InvalidDataFormatException;
-import nablarch.test.support.tool.Hereis;
+import static nablarch.core.dataformat.DataFormatTestUtils.createInputStreamFrom;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-import static nablarch.core.dataformat.DataFormatTestUtils.createInputStreamFrom;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import nablarch.core.dataformat.DataRecord;
+import nablarch.core.dataformat.DataRecordFormatter;
+import nablarch.core.dataformat.FormatterFactory;
+import nablarch.core.dataformat.InvalidDataFormatException;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * {@link SignedNumberString}の機能結合テスト。

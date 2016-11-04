@@ -1,16 +1,9 @@
 package nablarch.core.dataformat.convertor.value;
 
-import static nablarch.core.dataformat.DataFormatTestUtils.createInputStreamFrom;
-import static nablarch.test.StringMatcher.endsWith;
-import static nablarch.test.StringMatcher.startsWith;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,16 +22,9 @@ import nablarch.core.dataformat.CharacterReplacementResult;
 import nablarch.core.dataformat.CharacterReplacementUtil;
 import nablarch.core.dataformat.DataRecord;
 import nablarch.core.dataformat.DataRecordFormatter;
-import nablarch.core.dataformat.FieldDefinition;
 import nablarch.core.dataformat.FormatterFactory;
-import nablarch.core.dataformat.InvalidDataFormatException;
-import nablarch.core.dataformat.SyntaxErrorException;
 import nablarch.core.repository.ObjectLoader;
 import nablarch.core.repository.SystemRepository;
-import nablarch.core.repository.di.ComponentDefinitionLoader;
-import nablarch.core.repository.di.DiContainer;
-import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
-import nablarch.test.support.tool.Hereis;
 
 import org.junit.After;
 import org.junit.Before;
@@ -275,7 +261,7 @@ public class CharacterReplacerIntegrationTest {
         final String actual = outputStream.toString("ms932");
         assertThat(actual, IsEqualIgnoringWhiteSpace.equalToIgnoringWhiteSpace(
                 concat("001", "DEF", "あ高崎")
-                        + '\n' +  concat("002", "G[[", "え■か")));
+                        + '\n' + concat("002", "G[[", "え■か")));
     }
 
     @Test
@@ -315,6 +301,6 @@ public class CharacterReplacerIntegrationTest {
         final String actual = outputStream.toString("ms932");
         assertThat(actual, IsEqualIgnoringWhiteSpace.equalToIgnoringWhiteSpace(
                 concat("001Z", "DEF", "あ高崎")
-                        + '\n' +  concat("002", "G[[", "え■か")));
+                        + '\n' + concat("002", "G[[", "え■か")));
     }
 }
