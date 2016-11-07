@@ -1209,6 +1209,31 @@ public class JsonDataParserTest {
     }
 
     @Test
+    public void numberコンバータで空文字が指定されてもエラーとならないこと() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 number [0..1] X number"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"number\":\"\"",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("number", null));
+    }
+
+    @Test
     public void numberコンバータで符号付き数値の場合に型変換に失敗すること() throws Exception {
         exception.expect(InvalidDataFormatException.class);
         exception.expectMessage(CoreMatchers.containsString("invalid parameter format was specified."));
@@ -1272,6 +1297,31 @@ public class JsonDataParserTest {
         InputStream input = createInputStream(
                 "{",
                 "  \"number\":null",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("number", null));
+    }
+
+    @Test
+    public void signed_numberコンバータで空文字が指定されてもエラーとならないこと() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 number [0..1] X signed_number"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"number\":\"\"",
                 "}"
         );
 
