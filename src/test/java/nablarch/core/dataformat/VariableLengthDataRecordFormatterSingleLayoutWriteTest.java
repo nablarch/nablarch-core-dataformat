@@ -1155,4 +1155,44 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
         }
 
     }
+
+    /**
+     * Mapに設定された値がnullでもエラーとならずに出力されること
+     */
+    @Test
+    public void testNullValue() throws Exception {
+
+        File formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:     "UTF-8"
+         record-separator:  "\n"
+         field-separator:   ","
+         requires-title: false
+
+         [DataRecord]
+         1 key1 X
+         2 key2 X
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key1", "value1");
+            put("key2", null);
+        }};
+
+        File outputData = new File("./output.dat");
+        outputData.deleteOnExit();
+        OutputStream dest = new FileOutputStream(outputData, false);
+
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
+        /**********************************************************************
+        value1,
+        **********************************************************************/
+    }
+
 }
