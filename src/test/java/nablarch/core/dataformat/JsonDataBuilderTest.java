@@ -1581,7 +1581,10 @@ public class JsonDataBuilderTest {
         sut.buildData(map, definition, actual);
 
         // 検証
-        JSONAssert.assertEquals("{}", actual.toString("utf-8"), true);
+        String expected = "{" +
+                "  \"key\":null" +
+                "}";
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
     @Test
@@ -1693,7 +1696,9 @@ public class JsonDataBuilderTest {
 
         // 検証
         String expected = "{" +
-                "  \"parent\":{}" +
+                "  \"parent\":{" +
+                "  \"child\":null" +
+                "  }" +
                 "}";
 
         JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);

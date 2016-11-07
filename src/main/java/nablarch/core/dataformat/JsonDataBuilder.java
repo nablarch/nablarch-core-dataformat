@@ -202,19 +202,24 @@ public class JsonDataBuilder extends StructuredDataEditorSupport implements Stru
     private int writeStringArray(StringBuilder sb, FieldDefinition fd, String currentKeyBase, String mapKey, Map<String, ?> map) {
         int outCount = 0;
         int arraySize = 0;
-        if (map != null && map.get(mapKey) != null) {
+        if (map != null && map.containsKey(mapKey)) {
             String[] arr = (String[]) map.get(mapKey);
-            arraySize = arr.length;
-            sb.append(editJsonKey(fd.getName()) + ":[");
-            for (int i = 0; i < arr.length; i++) {
-                if (i > 0) {
-                    sb.append(",");
+            if (arr != null) {
+                arraySize = arr.length;
+                sb.append(editJsonKey(fd.getName()) + ":[");
+                for (int i = 0; i < arr.length; i++) {
+                    if (i > 0) {
+                        sb.append(",");
+                    }
+                    Object writeVal = convertToFieldOnWrite(arr[i], fd);
+                    sb.append(editJsonDataString(writeVal, fd));
+                    outCount++;
                 }
-                Object writeVal = convertToFieldOnWrite(arr[i], fd);
-                sb.append(editJsonDataString(writeVal, fd));
+                sb.append("]");
+            } else {
+                sb.append(editJsonKey(fd.getName()) + ':' + editJsonDataString(arr, fd));
                 outCount++;
             }
-            sb.append("]");
         }
         // Listの長さチェック実行
         checkArrayLength(fd, arraySize, currentKeyBase);
