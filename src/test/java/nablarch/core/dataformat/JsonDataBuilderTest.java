@@ -1718,6 +1718,84 @@ public class JsonDataBuilderTest {
         JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
     }
 
+    @Test
+    public void 孫要素にのみ値が設定されているJSONを出力できること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..10] OB",
+                "",
+                "[parent]",
+                "1 child [0..1] OB",
+                "",
+                "[child]",
+                "1 key [0..1] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("parent[0].child.key", "value");
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String expected = "{" +
+                "  \"parent\":[" +
+                "    {" +
+                "      \"child\":{" +
+                "        \"key\":\"value\"" +
+                "      }" +
+                "    }" +
+                "  ]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
+    }
+
+    @Test
+    public void 孫要素にのみnullが設定されているJSONを出力できること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..10] OB",
+                "",
+                "[parent]",
+                "1 child [0..1] OB",
+                "",
+                "[child]",
+                "1 key [0..1] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("parent[0].child.key", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String expected = "{" +
+                "  \"parent\":[" +
+                "    {" +
+                "      \"child\":{" +
+                "        \"key\":null" +
+                "      }" +
+                "    }" +
+                "  ]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
+    }
+
     private LayoutDefinition createLayoutDefinition(String... records) throws Exception {
         File file = folder.newFile();
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
