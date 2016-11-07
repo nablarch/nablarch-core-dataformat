@@ -203,6 +203,30 @@ public class JsonDataBuilderTest {
     }
 
     @Test
+    public void 必須子要素に値が設定されていないためエラーとなること() throws Exception {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage(CoreMatchers.containsString("Field parent is required"));
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent OB",
+                "",
+                "[parent]",
+                "1 child X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>();
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+    }
+
+    @Test
     public void 子要素の任意項目に値が設定されているJSONを出力できること() throws Exception {
 
         // フォーマット定義
@@ -1890,6 +1914,38 @@ public class JsonDataBuilderTest {
                 "      }" +
                 "    }" +
                 "  ]" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
+    }
+
+    @Test
+    public void 任意項目が出力されない場合に余計なカンマがJSONに出力されないこと() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key1 [0..1] X",
+                "2 key2 [0..1] X",
+                "3 key3 [0..1] X"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("key1", "value1");
+            put("key2", "value2");
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String expected = "{" +
+                "  \"key1\":\"value1\"," +
+                "  \"key2\":\"value2\"" +
                 "}";
 
         JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
