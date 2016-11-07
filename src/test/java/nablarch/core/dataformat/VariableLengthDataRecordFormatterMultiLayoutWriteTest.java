@@ -1354,4 +1354,55 @@ public class VariableLengthDataRecordFormatterMultiLayoutWriteTest {
         2,
         **********************************************************************/
     }
+
+    /**
+     * 識別項目の値がnullの場合、エラーとならずに出力されること
+     */
+    @Test
+    public void testClassifierNullValue() throws Exception {
+
+        File formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:     "UTF-8"
+         record-separator:  "\n"
+         field-separator:   ","
+         requires-title: false
+
+         [Classifier]
+         1 type X
+
+         [Type1]
+         type = "1"
+         1 type  X
+         2 key1  X
+
+         [Type2]
+         type = "2"
+         1 type  X
+         2 key2  X
+         *****************************************/
+        formatFile.deleteOnExit();
+
+
+        Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("type", null);
+            put("key1", "value1");
+        }};
+
+        File outputData = new File("./output.dat");
+        outputData.deleteOnExit();
+        OutputStream dest = new FileOutputStream(outputData, false);
+
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        try {
+            formatter.writeRecord("Type1", recordMap);
+            fail();
+        } catch (InvalidDataFormatException e) {
+            assertThat(e.getMessage(), containsString("this record could not be applied to the record type."));
+            assertThat(e.getMessage(), containsString("record type=[Type1]"));
+
+        }
+    }
 }
