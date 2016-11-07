@@ -28,6 +28,7 @@ import static nablarch.test.StringMatcher.endsWith;
 import static nablarch.test.StringMatcher.startsWith;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -2446,6 +2447,33 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
             assertThat(e.getMessage(), startsWith("an applicable record type was not found. This format must not have non-title records."));
             assertThat(e.getMessage(), containsString("record number=[2]."));
         }
+    }
+
+    /**
+     * 空文字のファイルを読み込んだ場合、1レコードも取得できないことを確認。
+     */
+    @Test
+    public void testBlankRecord() throws Exception {
+        formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:    "ms932"
+         record-separator: "\r\n" # CRLFで改行
+         field-separator:  ","    # カンマ区切り
+
+         [Books]
+         1   Title      X          # タイトル
+         2   Publisher  X          # 出版社
+         3   Authors    X          # 著者
+         4   Price      X Number   # 価格
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        source = new ByteArrayInputStream("".getBytes("ms932"));
+        formatter = createReadFormatter(formatFile, source);
+
+        assertThat(formatter.hasNext(), is(false));
+        assertThat(formatter.readRecord(), is(nullValue()));
     }
 
 }
