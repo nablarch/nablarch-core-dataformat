@@ -289,14 +289,12 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
 
         dest = new FileOutputStream(outputData, false);
         formatter.setOutputStream(dest).initialize();
-        
-        try{
-            formatter.writeRecord(recordMap);
-            fail();
-        } catch(Exception e) {
-            assertTrue(e instanceof IllegalArgumentException);
-            assertEquals("field value was not set. field value must be set. field name=[FIcode].", e.getMessage());
-        }
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), charset), is(Hereis.string().replaceAll(LS, recordSeparator)));
+        /***********************************
+        "","","ﾏｺ1","ﾏﾂﾄﾞｺｶﾞﾈﾊﾗｼﾃﾝ","1","7778888","ﾀﾞｲｱﾅ ﾛｽ","3020","N","ﾀｸｼｰﾀﾞｲｷﾝﾃﾞｽ","4",""
+        ************************************/
     }
     
     /**
@@ -604,8 +602,6 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
             assertTrue(true);
         }
         dest.close();
-        
-        
 
         /**
          * Mapのキーを設定しない場合、それらが空白のカラムとして出力されるパターン。
@@ -621,17 +617,17 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
 
         dest = new FileOutputStream(outputData, false);
         formatter.setOutputStream(dest).initialize();
-        try {
-            formatter.writeRecord(recordMap);
-            fail();
-        } catch (IllegalArgumentException e){
-            assertTrue(true);
-        }
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), charset), is(Hereis.string().replaceAll(LS, recordSeparator)));
+        /***********************************
+        "","","","","","","","","","","",""
+        ************************************/
+
         dest.close();
 
-        
         /**
-         * Mapの値を設定しない場合、例外がスローされるパターン。
+         * Mapのキーに値を設定しない場合、空白のカラムとして出力されるパターン。
          */
         recordMap = new HashMap<String, Object>() {{
             put("FIcode",        null);
@@ -653,17 +649,16 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
         
         formatter = 
                 createFormatterSimple(enclose, fieldSeparator, recordSeparator, charset);
+        dest = new FileOutputStream(outputData, false);
         formatter.setOutputStream(dest).initialize();
-        try {
-            formatter.writeRecord(recordMap);
-            fail();
-        } catch(Exception e) {
-            assertTrue(e instanceof IllegalArgumentException);
-            assertEquals("field value was not set. field value must be set. field name=[FIcode].", e.getMessage());
-        }
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), charset), is(Hereis.string().replaceAll(LS, recordSeparator)));
+        /***********************************
+        "","","","","","","","","","","",""
+        ************************************/
+
         dest.close();
-
-
     }
     
 

@@ -1300,7 +1300,7 @@ public class VariableLengthDataRecordFormatterMultiLayoutWriteTest {
     }
 
     /**
-     * Mapに設定された値がnullの場合にエラーとなることを確認
+     * Mapに設定された値がnullでもエラーとならずに出力されること
      */
     @Test
     public void testNullValue() throws Exception {
@@ -1345,14 +1345,13 @@ public class VariableLengthDataRecordFormatterMultiLayoutWriteTest {
 
         formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
 
-        // type=1の場合は、値が設定されているので例外は発生しない
         formatter.writeRecord("Type1", recordMap1);
+        formatter.writeRecord("Type2", recordMap2);
 
-        try {
-            formatter.writeRecord("Type2", recordMap2);
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(), is("field value was not set. field value must be set. field name=[key2]."));
-        }
+        assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
+        /**********************************************************************
+        1,value
+        2,
+        **********************************************************************/
     }
 }
