@@ -1166,13 +1166,13 @@ public class JsonDataParserTest {
                 "file-type:        \"JSON\"",
                 "text-encoding:    \"UTF-8\"",
                 "[root]",
-                "1 number X9 number"
+                "1 number X number"
         );
 
         // JSON
         InputStream input = createInputStream(
                 "{",
-                "  \"number\":123456",
+                "  \"number\":\"123456\"",
                 "}"
         );
 
@@ -1181,6 +1181,31 @@ public class JsonDataParserTest {
 
         // 検証
         assertThat(result, hasEntry("number", (Object) new BigDecimal(123456)));
+    }
+
+    @Test
+    public void numberコンバータでnullを使用できること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 number [0..1] X number"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"number\":null",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("number", null));
     }
 
     @Test
@@ -1193,13 +1218,13 @@ public class JsonDataParserTest {
                 "file-type:        \"JSON\"",
                 "text-encoding:    \"UTF-8\"",
                 "[root]",
-                "1 number X9 number"
+                "1 number X number"
         );
 
         // JSON
         InputStream input = createInputStream(
                 "{",
-                "  \"number\":-123456",
+                "  \"number\":\"-123456\"",
                 "}"
         );
 
@@ -1215,13 +1240,13 @@ public class JsonDataParserTest {
                 "file-type:        \"JSON\"",
                 "text-encoding:    \"UTF-8\"",
                 "[root]",
-                "1 number SX9 signed_number"
+                "1 number X signed_number"
         );
 
         // JSON
         InputStream input = createInputStream(
                 "{",
-                "  \"number\":-123456",
+                "  \"number\":\"-123456\"",
                 "}"
         );
 
@@ -1230,6 +1255,31 @@ public class JsonDataParserTest {
 
         // 検証
         assertThat(result, hasEntry("number", (Object) new BigDecimal(-123456)));
+    }
+
+    @Test
+    public void signed_numberコンバータでnullが使用できること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 number [0..1] X signed_number"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"number\":null",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("number", null));
     }
 
     @Test
@@ -1242,7 +1292,7 @@ public class JsonDataParserTest {
                 "file-type:        \"JSON\"",
                 "text-encoding:    \"UTF-8\"",
                 "[root]",
-                "1 number SX9 signed_number"
+                "1 number X signed_number"
         );
 
         // JSON
@@ -1289,6 +1339,41 @@ public class JsonDataParserTest {
 
         // 検証
         assertThat(result, hasEntry("key", (Object) "高崎■"));
+    }
+
+    @Test
+    public void replacementコンバータでnullが使用できること() throws Exception {
+
+        // 寄せ字用のコンポーネント定義
+        CharacterReplacementConfig config = new CharacterReplacementConfig();
+        config.setTypeName("type");
+        config.setFilePath("classpath:nablarch/core/dataformat/replacement.properties");
+        config.setEncoding("UTF-8");
+        CharacterReplacementManager characterReplacementManager = new CharacterReplacementManager();
+        characterReplacementManager.setConfigList(Arrays.asList(config));
+        characterReplacementManager.initialize();
+        repositoryResource.addComponent("characterReplacementManager", characterReplacementManager);
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key [0..1] X replacement(\"type\")"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"key\":null",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("key", null));
     }
 
     @Test

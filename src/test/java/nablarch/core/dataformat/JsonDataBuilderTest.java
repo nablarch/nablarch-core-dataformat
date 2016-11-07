@@ -1144,12 +1144,12 @@ public class JsonDataBuilderTest {
                 "file-type:        \"JSON\"",
                 "text-encoding:    \"UTF-8\"",
                 "[root]",
-                "1 number X9 number"
+                "1 number X number"
         );
 
         // MAP
         Map<String, Object> map = new HashMap<String, Object>() {{
-            put("number", "123456");
+            put("number", 123456);
         }};
 
         // テスト実行
@@ -1158,7 +1158,35 @@ public class JsonDataBuilderTest {
 
         // 検証
         String expected = "{" +
-                "  \"number\":123456" +
+                "  \"number\":\"123456\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
+    }
+
+    @Test
+    public void numberコンバータでnullを使用できること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 number X number"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("number", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String expected = "{" +
+                "  \"number\":\"\"" +
                 "}";
 
         JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
@@ -1174,12 +1202,12 @@ public class JsonDataBuilderTest {
                 "file-type:        \"JSON\"",
                 "text-encoding:    \"UTF-8\"",
                 "[root]",
-                "1 number X9 number"
+                "1 number X number"
         );
 
         // MAP
         Map<String, Object> map = new HashMap<String, Object>() {{
-            put("number", "-123456");
+            put("number", -123456);
         }};
 
         // テスト実行
@@ -1195,12 +1223,12 @@ public class JsonDataBuilderTest {
                 "file-type:        \"JSON\"",
                 "text-encoding:    \"UTF-8\"",
                 "[root]",
-                "1 number SX9 signed_number"
+                "1 number X signed_number"
         );
 
         // MAP
         Map<String, Object> map = new HashMap<String, Object>() {{
-            put("number", "-123456");
+            put("number", -123456);
         }};
 
         // テスト実行
@@ -1209,7 +1237,35 @@ public class JsonDataBuilderTest {
 
         // 検証
         String expected = "{" +
-                "  \"number\":-123456" +
+                "  \"number\":\"-123456\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
+    }
+
+    @Test
+    public void signed_numberコンバータでnullを使用できること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 number X signed_number"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("number", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String expected = "{" +
+                "  \"number\":\"\"" +
                 "}";
 
         JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
@@ -1271,6 +1327,44 @@ public class JsonDataBuilderTest {
         // 検証
         String expected = "{" +
                 "  \"key\":\"高崎■\"" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
+    }
+
+    @Test
+    public void replacementコンバータでnullが使用できること() throws Exception {
+
+        // 寄せ字用のコンポーネント定義
+        CharacterReplacementConfig config = new CharacterReplacementConfig();
+        config.setTypeName("type");
+        config.setFilePath("classpath:nablarch/core/dataformat/replacement.properties");
+        config.setEncoding("UTF-8");
+        CharacterReplacementManager characterReplacementManager = new CharacterReplacementManager();
+        characterReplacementManager.setConfigList(Arrays.asList(config));
+        characterReplacementManager.initialize();
+        repositoryResource.addComponent("characterReplacementManager", characterReplacementManager);
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 key [0..1] X replacement(\"type\")"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("key", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String expected = "{" +
+                "  \"key\":null" +
                 "}";
 
         JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
