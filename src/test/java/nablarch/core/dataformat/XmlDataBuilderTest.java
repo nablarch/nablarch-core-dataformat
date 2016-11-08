@@ -23,7 +23,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 
 /**
- * {@link XmlDataParser}のテストを行います。
+ * {@link XmlDataBuilder}のテストを行います。
  *
  * @author TIS
  */
@@ -53,7 +53,7 @@ public class XmlDataBuilderTest {
     }
 
     /**
-     * フォーマット定義ファイル名を取得します
+     * フォーマット定義ファイル名を取得します。
      *
      * @return フォーマット定義ファイル名
      */
@@ -151,6 +151,23 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void ルートタグの必須属性の値がnullの場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[data]",
+                "1 @name X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("name", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("name is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
     public void ルートタグの任意の属性を指定しなくてもエラーとならないこと() throws Exception {
         createFormatFile(
                 "UTF-8",
@@ -166,6 +183,25 @@ public class XmlDataBuilderTest {
 
         assertThat(actual.toString("utf-8"),
                 isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?><data name=\"属性\"></data>"));
+    }
+
+    @Test
+    public void ルートタグの任意の属性の値がnullの場合空で出力されること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[data]",
+                "1 @name X",
+                "2 @age  [0..1] X9"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("name", "属性");
+        input.put("age", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        sut.buildData(input, getLayoutDefinition(), actual);
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\"?><data name=\"属性\" age=\"\"></data>"));
     }
 
     @Test
@@ -225,6 +261,25 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void ルートタグのコンテンツが任意で値がnullの場合空で出力されること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 body [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("body", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+                        + "<root></root>"));
+    }
+
+    @Test
     public void コンテンツ名を変更した場合その名前の要素がコンテンツ部に出力されること() throws Exception {
         sut.setContentName("content");
 
@@ -246,6 +301,48 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void コンテンツ名が空の場合でも出力できること() throws Exception {
+        sut.setContentName("");
+
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 content [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("content", "この値がコンテンツ部に出力される");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+                        + "<root><content>この値がコンテンツ部に出力される</content></root>"));
+    }
+
+    @Test
+    public void コンテンツ名がnullの場合でも出力できること() throws Exception {
+        sut.setContentName(null);
+
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 content [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("content", "この値がコンテンツ部に出力される");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"
+                        + "<root><content>この値がコンテンツ部に出力される</content></root>"));
+    }
+
+    @Test
     public void ルートのコンテンツが必須で指定しなかった場合エラーとなること() throws Exception {
         createFormatFile(
                 "UTF-8",
@@ -254,6 +351,23 @@ public class XmlDataBuilderTest {
         );
 
         final HashMap<String, Object> input = new HashMap<String, Object>();
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("body is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void ルートのコンテンツが必須で値がnullの場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 body X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("body", null);
         final ByteArrayOutputStream actual = new ByteArrayOutputStream();
 
         expectedException.expect(InvalidDataFormatException.class);
@@ -282,7 +396,28 @@ public class XmlDataBuilderTest {
                 isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
                         + "<root attr=\"属性\">コンテンツ</root>"));
     }
-    
+
+    @Test
+    public void ルートに任意の属性とコンテンツの組み合わせがあって属性がnullの場合空で出力されること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 @attr [0..1] X",
+                "2 body [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("attr", null);
+        input.put("body", "コンテンツ");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root attr=\"\">コンテンツ</root>"));
+    }
+
     @Test
     public void ルートに属性とコンテンツの組み合わせがあってコンテンツがnullの場合コンテンツは空となること() throws Exception {
         createFormatFile(
@@ -502,6 +637,48 @@ public class XmlDataBuilderTest {
 
         expectedException.expect(InvalidDataFormatException.class);
         expectedException.expectMessage("attr is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void 子要素の任意属性がnullの場合空で出力されること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 child [0..1] OB",
+                "[child]",
+                "1 @attr [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("child.attr", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root>\n"
+                        + "  <child attr=\"\"></child>\n"
+                        + "</root>\n").ignoreWhitespace());
+    }
+
+    @Test
+    public void 子要素の必須属性がnullの場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 child [0..1] OB",
+                "[child]",
+                "1 @attr X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("child.attr", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("Field attr is required");
         sut.buildData(input, getLayoutDefinition(), actual);
     }
 
@@ -842,6 +1019,65 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void 任意の子要素の配列自体がnullの場合でも出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [0..2] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "</parent>").ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列の任意の子要素の一つがnullでも出力出来ること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [0..2] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children", new String[]{null, "子供２"});
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children></children>"
+                        + "  <children>子供２</children>\n"
+                        + "</parent>").ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列の長さがフォーマットで指定した範囲より大きい場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [0..2] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children", new String[]{"子供１", "子供２", "子供３"});
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("Out of range array length");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
     public void 必須の配列子要素を指定しなかった場合エラーとなること() throws Exception {
         createFormatFile(
                 "UTF-8",
@@ -856,6 +1092,61 @@ public class XmlDataBuilderTest {
         expectedException.expectMessage("children is required");
         sut.buildData(input, getLayoutDefinition(), actual);
 
+    }
+
+    @Test
+    public void 必須の配列子要素が空文字列の場合コンテンツは空となること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..2] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children", new String[]{""});
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children></children>"
+                        + "</parent>").ignoreWhitespace());
+    }
+
+    @Test
+    public void 必須の配列子要素がnullの場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..2] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children", new String[]{null});
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("children is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void 必須子要素の配列自体がnullの場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..2] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("children is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
     }
 
     @Test
@@ -952,6 +1243,56 @@ public class XmlDataBuilderTest {
         final HashMap<String, Object> input = new HashMap<String, Object>();
         input.put("child[0].age", 30);
         input.put("child[1].name", "子供２");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("name is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+    }
+
+    @Test
+    public void 配列の任意子要素がnullの場合空で出力されること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 child [1..10] OB",
+                "[child]",
+                "1 name [0..1] X",
+                "2 age [0..1] X9"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("child[0].age", 30);
+        input.put("child[0].name", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <child>\n"
+                        + "    <name></name>"
+                        + "    <age>30</age>\n"
+                        + "  </child>\n"
+                        + "</parent>").ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列の必須子要素がnullの場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 child [1..10] OB",
+                "[child]",
+                "1 name X",
+                "2 age [0..1] X9"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("child[0].age", 30);
+        input.put("child[0].name", null);
         final ByteArrayOutputStream actual = new ByteArrayOutputStream();
 
         expectedException.expect(InvalidDataFormatException.class);
@@ -1073,6 +1414,71 @@ public class XmlDataBuilderTest {
         expectedException.expect(InvalidDataFormatException.class);
         expectedException.expectMessage("child is required");
         sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void 属性を持つ要素の任意子要素の配列自体がnullの場合でも出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 @attr X",
+                "2 child [0..10] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("attr", "属性値");
+        input.put("child", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent attr='属性値'>\n"
+                        + "</parent>").ignoreWhitespace());
+    }
+
+    @Test
+    public void 属性を持つ要素の必須子要素の配列自体がnullの場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 @attr X",
+                "2 child [1..10] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("attr", "属性値");
+        input.put("child", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("Field child is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void 属性を持つ要素の任意配列子要素がnullの場合でも出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 @attr X",
+                "2 child [0..10] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("attr", "属性値");
+        input.put("child", new String[]{null});
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent attr='属性値'>\n"
+                        + "    <child></child>"
+                        + "</parent>").ignoreWhitespace());
     }
 
     @Test
@@ -1313,6 +1719,62 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void 配列の子要素の任意配列の値がnullの場合でも出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 @name X",
+                "2 mail [0..*] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].name", "child1");
+        input.put("children[0].mail", new String[] {null, "mail2@child1.com"});
+        input.put("children[1].name", "child2");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children name=\"child1\">\n"
+                        + "    <mail></mail>"
+                        + "    <mail>mail2@child1.com</mail>\n"
+                        + "  </children>\n"
+                        + "  <children name=\"child2\">\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列の子要素の必須配列の値がnullの場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 @name X",
+                "2 mail [1..*] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].name", "child1");
+        input.put("children[0].mail", new String[] {null, "mail2@child1.com"});
+        input.put("children[1].name", "child2");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("mail is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+
+    @Test
     public void オブジェクトの孫要素を出力出来ること() throws Exception {
         createFormatFile(
                 "UTF-8",
@@ -1421,7 +1883,61 @@ public class XmlDataBuilderTest {
                         + "</parent>"
         ).ignoreWhitespace());
     }
-    
+
+    @Test
+    public void オブジェクトの孫要素の任意コンテンツがnullの場合空で出力すること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 @name  X",
+                "2 body [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children.child.name", "属性");
+        input.put("children.child.body", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <child name='属性'></child>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
+    @Test
+    public void オブジェクトの孫要素の必須コンテンツがnullの場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children OB",
+                "[children]",
+                "1 child OB",
+                "[child]",
+                "1 @name  X",
+                "2 body   X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children.child.name", "属性");
+        input.put("children.child.body", null);
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("body is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
     @Test
     public void 配列の孫要素を出力出来ること() throws Exception {
         createFormatFile(
@@ -1651,6 +2167,64 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void 配列の子要素の任意配列オブジェクトの値がnullの場合空で出力されること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 grandchildren [1..*] OB",
+                "[grandchildren]",
+                "1 name [0..1] X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].grandchildren[0].name", null);
+        input.put("children[0].grandchildren[1].name", "孫1-2");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println(actual.toString("utf-8"));
+
+        assertThat(actual.toString("utf-8"), isIdenticalTo(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<parent>\n"
+                        + "  <children>\n"
+                        + "    <grandchildren>\n"
+                        + "      <name></name>\n"
+                        + "    </grandchildren>\n"
+                        + "    <grandchildren>\n"
+                        + "      <name>孫1-2</name>\n"
+                        + "    </grandchildren>\n"
+                        + "  </children>\n"
+                        + "</parent>"
+        ).ignoreWhitespace());
+    }
+
+    @Test
+    public void 配列の子要素の必須配列オブジェクトの値がnullの場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[parent]",
+                "1 children [1..*] OB",
+                "[children]",
+                "1 grandchildren [1..*] OB",
+                "[grandchildren]",
+                "1 name X"
+        );
+
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("children[0].grandchildren[0].name", null);
+        input.put("children[0].grandchildren[1].name", "孫1-2");
+        input.put("children[1].grandchildren", "子供1");
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("children[0].grandchildren[0],Field name is required");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
     public void 出力対象にnullを指定した場合で子要素を持つ場合ルート要素だけが出力されること() throws Exception {
         createFormatFile(
                 "UTF-8",
@@ -1745,6 +2319,25 @@ public class XmlDataBuilderTest {
                 "UTF-8",
                 "[root]",
                 "1 data  X"
+        );
+
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        final HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("data", "");
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root><data /></root>").ignoreWhitespace());
+    }
+
+    @Test
+    public void 出力対象が空文字列で任意の場合コンテンツが空で出力されること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 data [0..1] X"
         );
 
         final ByteArrayOutputStream actual = new ByteArrayOutputStream();
@@ -2018,6 +2611,28 @@ public class XmlDataBuilderTest {
     }
 
     @Test
+    public void 任意項目にnullを指定した場合デフォルト値が出力されること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 data [0..1] X \"デフォルト値\""
+        );
+
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        final DataRecord input = new DataRecord();
+        input.put("data", null);
+
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root>\n"
+                        + "  <data>デフォルト値</data>\n"
+                        + "</root>").ignoreWhitespace());
+    }
+
+    @Test
     public void 値を指定した場合デフォルト値ではなく指定した値が出力されること() throws Exception {
         createFormatFile(
                 "UTF-8",
@@ -2036,6 +2651,27 @@ public class XmlDataBuilderTest {
                 isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
                         + "<root>\n"
                         + "  <data>あいうえお</data>\n"
+                        + "</root>").ignoreWhitespace());
+    }
+
+    @Test
+    public void 任意項目にデフォルト値が設定されていて値が指定されていない場合でも出力できること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 data [0..1] X \"デフォルト値\""
+        );
+
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        final DataRecord input = new DataRecord();
+
+        sut.buildData(input, getLayoutDefinition(), actual);
+
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root>\n"
+                        + "  <data>デフォルト値</data>\n"
                         + "</root>").ignoreWhitespace());
     }
 
@@ -2154,5 +2790,53 @@ public class XmlDataBuilderTest {
                         + "    <ns:age>100</ns:age>\n"
                         + "  </ns:data>\n"
                         + "</root>").ignoreWhitespace());
+    }
+
+    @Test
+    public void フォーマット定義が間違っている場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "root",
+                "1 data X"
+        );
+
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        final DataRecord input = new DataRecord();
+
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("invalid file format");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void 存在しないデータタイプを指定した場合エラーとなること() throws Exception {
+        createFormatFile(
+                "UTF-8",
+                "[root]",
+                "1 data SAMPLE"
+        );
+
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        final DataRecord input = new DataRecord();
+
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("unknown data type name was specified.");
+        sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void 存在しないエンコード形式を指定した場合エラーとなること() throws Exception {
+        createFormatFile(
+                "SAMPLE",
+                "[root]",
+                "1 data X"
+        );
+
+        final ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        final DataRecord input = new DataRecord();
+
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("invalid encoding was specified by 'text-encoding' directive.");
+        sut.buildData(input, getLayoutDefinition(), actual);
     }
 }
