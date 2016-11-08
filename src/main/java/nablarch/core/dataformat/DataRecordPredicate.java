@@ -48,7 +48,7 @@ public interface DataRecordPredicate {
         /** {@inheritDoc} */
         public boolean apply(Map<String, ?> record, boolean checkUnsetValues)
         throws IllegalArgumentException {
-            if (!checkUnsetValues && !record.containsKey(fieldName)) {
+            if (!checkUnsetValues && record.get(fieldName) == null) {
                 return true;
             }
             Object actual = record.get(fieldName);
