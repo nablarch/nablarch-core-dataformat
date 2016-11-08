@@ -39,6 +39,42 @@ public class SignedNumberStringDecimalTest {
     public ExpectedException exception = ExpectedException.none();
 
     /**
+     * 初期化時にnullが渡されたときのテスト。
+     */
+    @Test
+    public void testInitializeNull() {
+        SignedNumberStringDecimal datatype = new SignedNumberStringDecimal();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[SignedNumberStringDecimal].");
+
+        datatype.initialize(null, "hoge");
+    }
+
+    /**
+     * 空文字を読み込む場合のテスト。
+     */
+    @Test
+    public void testReadEmpty() {
+        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+        SignedNumberStringDecimal convertor = (SignedNumberStringDecimal)new SignedNumberStringDecimal().init(field, new Object[]{10, ""});
+
+        assertThat(convertor.convertOnRead(""), is(new BigDecimal("0")));
+    }
+    /**
+     * null, 空文字を書き込む場合のテスト。
+     */
+    @Test
+    public void testWriteNullOrEmpty() {
+        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+        SignedNumberStringDecimal convertor = (SignedNumberStringDecimal)new SignedNumberStringDecimal().init(field, new Object[]{10, ""});
+
+        assertThat(convertor.convertOnWrite(null), is("0000000000".getBytes()));
+        assertThat(convertor.convertOnWrite(""), is("0000000000".getBytes()));
+    }
+
+
+    /**
      * 符号位置固定かつ符号非必須の場合の読み込みテスト。トリムが正常に行われることを確認。
      */
     @Test
@@ -403,7 +439,7 @@ public class SignedNumberStringDecimalTest {
     }
 
     /**
-     * 出力時にパラメータがnullの場合のテスト。
+     * 出力時にパラメータがnull, 空文字の場合のテスト。
      */
     @Test
     public void testWriteNull() throws Exception {
@@ -413,10 +449,11 @@ public class SignedNumberStringDecimalTest {
         convertor.setFixedSignPosition(true);
         convertor.setRequiredPlusSign(false);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid parameter was specified. parameter must not be null.");
+        // null の場合
+        assertThat(convertor.convertOnWrite(null), is("0000000000".getBytes()));
 
-        convertor.convertOnWrite(null);
+        // 空文字の場合
+        assertThat(convertor.convertOnWrite(""), is("0000000000".getBytes()));
     }
 
     /**
@@ -669,7 +706,49 @@ public class SignedNumberStringDecimalTest {
         new File("record.dat").delete();
         return record;
     }
-    
+
+    /**
+     * 書き込み時にパラメータがnullの場合、デフォルト値を出力するテスト。
+     */
+    @Test
+    public void testWriteDefault() throws Exception {
+
+        File formatFile = Hereis.file("./format.fmt");
+        /**********************************************
+         # ファイルタイプ
+         file-type:    "Fixed"
+         # 文字列型フィールドの文字エンコーディング
+         text-encoding: "ms932"
+
+         # 各レコードの長さ
+         record-length: 10
+
+         # データレコード定義
+         [Default]
+         1  signedNumber SX9(10, 3)   123
+         ***************************************************/
+
+        FilePathSetting.getInstance().addBasePathSetting("input", "file:./")
+                .addBasePathSetting("format", "file:./")
+                .addFileExtensions("format", "fmt");
+
+        OutputStream dest = new FileOutputStream("./record.dat", false);
+        DataRecordFormatter formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).
+                createFormatter(formatFile).setOutputStream(dest).initialize();
+        formatter.writeRecord(new DataRecord(){{
+            put("signedNumber", null);
+        }});
+        dest.close();
+        InputStream source = new BufferedInputStream(new FileInputStream("record.dat"));
+        byte[] bytes = new byte[10];
+
+        source.read(bytes);
+
+        source.close();
+
+        assertEquals("000123.000", new String(bytes, "ms932"));
+    }
+
     /**
      * フォーマット定義ファイルを使用したディレクティブの書き込みテスト。
      */

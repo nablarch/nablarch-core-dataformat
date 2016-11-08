@@ -10,7 +10,9 @@ import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -34,6 +36,35 @@ import static org.junit.Assert.fail;
  */
 public class NumberStringDecimalTest {
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
+    /**
+     * 初期化時にnullが渡されたときのテスト。
+     */
+    @Test
+    public void testInitNull() {
+        NumberStringDecimal datatype = new NumberStringDecimal();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
+
+        datatype.init(null, null, "hoge");
+    }
+
+    /**
+     * 初期化時にnullが渡されたときのテスト。
+     */
+    @Test
+    public void testInitializeNull() {
+        NumberStringDecimal datatype = new NumberStringDecimal();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
+
+        datatype.initialize(null, "hoge");
+    }
+
     /**
      * 読み込みテスト。スケールなし。
      */
@@ -45,26 +76,16 @@ public class NumberStringDecimalTest {
     /**
      * 読み込みテスト。スケールなしの浮動小数点。（SignedSingleByteNumberTestでもこのメソッドのテストを行うため、publicメソッドとして切り出す）
      */
-    public void doTestReadNonScale(Class<? extends NumberStringDecimal> target) throws Exception {
+    private void doTestReadNonScale(Class<? extends NumberStringDecimal> target) throws Exception {
         
         FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
         NumberStringDecimal convertor = (NumberStringDecimal) target.newInstance().init(field, new Object[]{10});
 
         // 入力データがnull
-        try {
-            convertor.convertOnRead(toBytesNull());
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must not be null."));
-        }
-        
+        assertThat(convertor.convertOnRead(toBytesNull()), is(new BigDecimal("0")));
+
         // 入力データが空のバイト配列
-        try {
-            convertor.convertOnRead(toBytes(""));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[]."));
-        }
+        assertThat(convertor.convertOnRead(toBytes("")), is(new BigDecimal("0")));
 
         // 入力データが不正な数値
         try {
@@ -107,7 +128,7 @@ public class NumberStringDecimalTest {
     /**
      * 読み込みテスト。スケールありの固定小数点。（SignedSingleByteNumberTestでもこのメソッドのテストを行うため、publicメソッドとして切り出す）
      */
-    public void doTestReadScale(Class<? extends NumberStringDecimal> target) throws Exception {
+    private void doTestReadScale(Class<? extends NumberStringDecimal> target) throws Exception {
 
         FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
         /*
@@ -116,12 +137,7 @@ public class NumberStringDecimalTest {
         NumberStringDecimal convertor = (NumberStringDecimal) target.newInstance().init(field, new Object[]{10, 0});
 
         // 入力データが空のバイト文字列
-        try {
-            convertor.convertOnRead(toBytes(""));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[]."));
-        }
+        assertThat(convertor.convertOnRead(toBytes("")), is(new BigDecimal("0")));
 
         // 入力データが0
         BigDecimal result = convertor.convertOnRead(toBytes("0"));
@@ -143,7 +159,10 @@ public class NumberStringDecimalTest {
          * スケールが3の場合。
          */
         convertor = (NumberStringDecimal) target.newInstance().init(field, new Object[]{10, 3});
-        
+
+        // 入力データが空のバイト文字列
+        assertThat(convertor.convertOnRead(toBytes("")), is(new BigDecimal("0.000")));
+
         // 入力データが0
         result = convertor.convertOnRead(toBytes("0"));
         assertThat(result, is(new BigDecimal("0.000")));
@@ -389,31 +408,20 @@ public class NumberStringDecimalTest {
     /**
      * 書き込みテスト。（SignedSingleByteNumberTestでもこのメソッドのテストを行うため、publicメソッドとして切り出す）
      */
-    public void doWrite(Class<? extends NumberStringDecimal> target) throws Exception {
+    private void doWrite(Class<? extends NumberStringDecimal> target) throws Exception {
         FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
         DataType<BigDecimal, byte[]> convertor = target.newInstance().init(field, new Object[]{10});
 
         // 出力データがnull
-        try {
-            convertor.convertOnWrite(null);
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must not be null."));
-        }
-
+        assertThat(new String(convertor.convertOnWrite(null), "ms932"), is("0000000000"));
         
         /*
          * 以降、出力データが文字列のパターン
          */
         
         // 出力データが空文字
-        try {
-            convertor.convertOnWrite("");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[]."));
-        }
-        
+        assertThat(new String(convertor.convertOnWrite(""), "ms932"), is("0000000000"));
+
         // 出力データが文字列
         try {
             convertor.convertOnWrite("abc");
@@ -749,6 +757,59 @@ public class NumberStringDecimalTest {
 
         source.read(bytes);
         assertEquals("00012.3450", new String(bytes, "ms932"));
+
+        source.close();
+        new File("record.dat").deleteOnExit();
+    }
+
+    /**
+     * 書き込み時にパラメータがnullの場合にデフォルト値が出力されるテスト。
+     */
+    @Test
+    public void testWriteDefault() throws Exception {
+        File formatFile = Hereis.file("./format.fmt");
+        /**********************************************
+         # ファイルタイプ
+         file-type:    "Fixed"
+         # 文字列型フィールドの文字エンコーディング
+         text-encoding: "ms932"
+
+         # 各レコードの長さ
+         record-length: 20
+
+         # データレコード定義
+         [Default]
+         1  number  X9(10, 2)   123
+         11  number2  SX9(10, 4)   321
+         ***************************************************/
+        formatFile.deleteOnExit();
+        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
+                .addBasePathSetting("format", "file:./")
+                .addFileExtensions("format", "fmt");
+
+
+        OutputStream dest = new FileOutputStream("./record.dat", false);
+
+        DataRecordFormatter formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).
+                createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        formatter.writeRecord(new DataRecord(){{
+            put("number", null);
+            put("number2", null);
+        }});
+
+        dest.close();
+
+        InputStream source = new BufferedInputStream(
+                new FileInputStream("record.dat"));
+
+        byte[] bytes = new byte[10];
+
+        source.read(bytes);
+        assertEquals("0000123.00", new String(bytes, "ms932"));
+
+        source.read(bytes);
+        assertEquals("00321.0000", new String(bytes, "ms932"));
 
         source.close();
         new File("record.dat").deleteOnExit();

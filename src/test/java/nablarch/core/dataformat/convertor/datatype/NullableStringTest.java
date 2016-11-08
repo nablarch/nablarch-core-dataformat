@@ -16,6 +16,17 @@ import static org.junit.Assert.assertThat;
 public class NullableStringTest {
 
     /**
+     * 初期化時にnullが渡されたときのテスト。
+     * {@link NullableString}では初期化時になにもしないため、nullを許容する。
+     */
+    @Test
+    public void testInitializeNull() {
+        NullableString dataType = new NullableString();
+
+        assertThat(dataType.initialize(null), is((DataType<String, String>)dataType));
+    }
+
+    /**
      * 読み取り時のテスト
      */
     @Test
@@ -26,6 +37,7 @@ public class NullableStringTest {
         assertEquals("data", converter.convertOnRead("data"));
         assertEquals("\"data", converter.convertOnRead("\"data"));
         assertEquals("data\"", converter.convertOnRead("data\""));
+        assertEquals("", converter.convertOnRead(""));
         assertEquals(null, converter.convertOnRead(null));
     }
     
@@ -40,9 +52,9 @@ public class NullableStringTest {
         assertEquals("\"data\"", converter.convertOnWrite("\"data\""));
         assertEquals("\"data", converter.convertOnWrite("\"data"));
         assertEquals("data\"", converter.convertOnWrite("data\""));
-        
-        // nullはnull
-        assertEquals(null, converter.convertOnWrite(null));
+        assertEquals("", converter.convertOnWrite(""));
+        // nullは空文字に変換する
+        assertEquals("", converter.convertOnWrite(null));
     }
 
     /**

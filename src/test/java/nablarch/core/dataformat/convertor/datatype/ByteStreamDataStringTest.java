@@ -56,16 +56,16 @@ public class ByteStreamDataStringTest {
 	}
 
     /** 指定ファイルから一行読み込む */
-	private String readLineFrom(File outputFile, String encoding)
-			throws UnsupportedEncodingException, FileNotFoundException {
-		BufferedReader reader = new BufferedReader(
-				new InputStreamReader(new FileInputStream(outputFile), encoding));
-		try {
-			return reader.readLine();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private String readLineFrom(File outputFile, String encoding)
+            throws UnsupportedEncodingException, FileNotFoundException {
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(outputFile), encoding));
+        try {
+            return reader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 	
     /**
      * マルチバイト文字の読み込みができることの確認。
@@ -722,7 +722,17 @@ public class ByteStreamDataStringTest {
         }
         
     }
-    
+
+    /**
+     * 入力時にパラメータが空白の場合のテスト。
+     * 固定長を扱うため、nullがわたされることはないため考慮しない。
+     */
+    @Test
+    public void testReadParameterEmpty() throws Exception {
+        ByteStreamDataString MultiByteCharacter = new ByteStreamDataString();
+        MultiByteCharacter.init(new FieldDefinition().setEncoding(Charset.forName("MS932")), 10);
+        assertThat(MultiByteCharacter.convertOnRead("".getBytes()), is(""));
+    }
     /**
      * 出力時にパラメータがnullまたは空白の場合のテスト。
      */

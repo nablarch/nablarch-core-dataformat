@@ -9,7 +9,9 @@ import nablarch.core.dataformat.SyntaxErrorException;
 import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -41,7 +43,10 @@ import static org.junit.matchers.JUnitMatchers.containsString;
 public class BytesTest {
 
     private DataRecordFormatter formatter = null;
-    
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @After
     public void tearDown() throws Exception {
         if(formatter != null) {
@@ -65,11 +70,11 @@ public class BytesTest {
         # 文字列型フィールドの文字エンコーディング
         text-encoding: "sjis"
         # 各レコードの長さ
-        record-length: 10
+        record-length: 3
 
         # データレコード定義
         [Default]
-        1    byteString     B(10)   # バイト列
+        1    byteString     B(3)   # バイト列
         ***************************************************/
         formatFile.deleteOnExit();
 
@@ -79,7 +84,7 @@ public class BytesTest {
         formatter.setOutputStream(stream).initialize();
         DataRecord record = new DataRecord();
         record.put("byteString", "abc".getBytes());
-        
+
         formatter.writeRecord(record);
 
         FileInputStream inputStream = new FileInputStream("test.dat");
@@ -88,7 +93,68 @@ public class BytesTest {
        
         assertEquals("abc", new String(buffer, "sjis"));
     }
-    
+
+    /**
+     * バイト長が違った場合のテスト。
+     */
+    @Test
+    public void testWriteInvalidByteLength() throws Exception {
+        // レイアウト定義ファイル
+        File formatFile = Hereis.file("./format.fmt");
+        /**********************************************
+         # ファイルタイプ
+         file-type:    "Fixed"
+         # 文字列型フィールドの文字エンコーディング
+         text-encoding: "sjis"
+         # 各レコードの長さ
+         record-length: 2
+
+         # データレコード定義
+         [Default]
+         1    byteString     B(2)   # バイト列
+         ***************************************************/
+        formatFile.deleteOnExit();
+
+        OutputStream stream = new BufferedOutputStream(new FileOutputStream("test.dat"));
+        DataRecordFormatter formatter =
+                FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(new File("format.fmt"));
+        formatter.setOutputStream(stream).initialize();
+        DataRecord record = new DataRecord();
+        record.put("byteString", "abc".getBytes());
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. parameter length = [3], expected = [2].");
+
+        formatter.writeRecord(record);
+
+        // レイアウト定義ファイル
+        formatFile = Hereis.file("./format.fmt");
+        /**********************************************
+         # ファイルタイプ
+         file-type:    "Fixed"
+         # 文字列型フィールドの文字エンコーディング
+         text-encoding: "sjis"
+         # 各レコードの長さ
+         record-length: 4
+
+         # データレコード定義
+         [Default]
+         1    byteString     B(4)   # バイト列
+         ***************************************************/
+        formatFile.deleteOnExit();
+
+        stream = new BufferedOutputStream(new FileOutputStream("test.dat"));
+        formatter =
+                FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(new File("format.fmt"));
+        formatter.setOutputStream(stream).initialize();
+        record = new DataRecord();
+        record.put("byteString", "abc".getBytes());
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. parameter length = [3], expected = [4].");
+
+        formatter.writeRecord(record);
+    }
     
     /**
      * レイアウト定義ファイルに不正なバイト列のパラメータを設定した場合、例外がスローされることの確認。
@@ -229,19 +295,24 @@ public class BytesTest {
     @Test
     public void testWriteParameterNullOrEmpty() {
         Bytes bytes = new Bytes();
-        bytes.init(new FieldDefinition(), 0);
-        try {
-            bytes.convertOnWrite(null);
-            fail();
-        } catch (InvalidDataFormatException e){
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must be not null."));
-        }
-        try {
-            bytes.convertOnWrite("");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertTrue(true);
-        }
+        bytes.init(new FieldDefinition(), 10);
+        byte[] expected = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00,
+                                       0x00, 0x00, 0x00, 0x00, 0x00};
+        assertThat(bytes.convertOnWrite(null), is(expected));
+
+        assertThat(bytes.convertOnWrite(""), is(expected));
     }
-    
+
+    /**
+     * 入力時にパラメータが空白の場合のテスト。
+     * 固定長を扱うため、nullがわたされることはないため考慮しない。
+     */
+    @Test
+    public void testReadParameterEmpty() {
+        Bytes bytes = new Bytes();
+        bytes.init(new FieldDefinition(), 0);
+
+        assertThat(bytes.convertOnRead("".getBytes()), is("".getBytes()));
+    }
+
 }

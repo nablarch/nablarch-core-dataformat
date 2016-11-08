@@ -1,19 +1,14 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import nablarch.core.dataformat.DataRecord;
-import nablarch.core.dataformat.DataRecordFormatter;
-import nablarch.core.dataformat.FieldDefinition;
-import nablarch.core.dataformat.FormatterFactory;
+import nablarch.core.dataformat.*;
 import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -34,7 +29,10 @@ import static org.junit.Assert.assertThat;
 public class DoubleByteCharacterStringTest {
 
     private DataRecordFormatter formatter = null;
-    
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @After
     public void tearDown() throws Exception {
         if(formatter != null) {
@@ -188,7 +186,32 @@ public class DoubleByteCharacterStringTest {
         
         assertEquals("あいうえお１１１１１", new String(buffer, "ms932"));
     }
-    
+
+    /**
+     * 初期化時にnullが渡されたときのテスト。
+     */
+    @Test
+    public void testInitializeNull() {
+        DoubleByteCharacterString doubleByteCharacter = new DoubleByteCharacterString();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[DoubleByteCharacterString].");
+
+        doubleByteCharacter.initialize(null, "hoge");
+    }
+
+    /**
+     * 読込のテスト。
+     * 空文字とそれ以外をテストする。
+     */
+    @Test
+    public void testReadParameterEmpty() {
+        DoubleByteCharacterString dataType = new DoubleByteCharacterString();
+        dataType.init(new FieldDefinition().setEncoding(Charset.forName("utf8")), 10);
+
+        assertThat(dataType.convertOnRead("".getBytes()), is(""));
+        assertThat(dataType.convertOnRead("あいう".getBytes()), is("あいう"));
+    }
 
     /**
      * 出力時にパラメータがnullまたは空白の場合のテスト。
@@ -200,6 +223,54 @@ public class DoubleByteCharacterStringTest {
         assertThat("　　　　　".getBytes("MS932"), is(doubleByteCharacter.convertOnWrite(null)));
         assertThat("　　　　　".getBytes("MS932"), is(doubleByteCharacter.convertOnWrite("")));
     }
-    
-    
+
+    /**
+     * 出力時にパラメータがnullのとき、デフォルト値を書き込めることのテスト。
+     */
+    @Test
+    public void testWriteDefault() throws Exception {
+
+        File formatFile = Hereis.file("./format.fmt");
+        /**********************************************
+         # ファイルタイプ
+         file-type:    "Fixed"
+         # 文字列型フィールドの文字エンコーディング
+         text-encoding: "sjis"
+         # 各レコードの長さ
+         record-length: 20
+
+         # データレコード定義
+         [Default]
+         1    doubleByteString     N(20)    "０１２３４５６７８９"
+         ***************************************************/
+        formatFile.deleteOnExit();
+
+        File outputFile = new File("record.dat");
+
+        DataRecordFormatter formatter = createWriteFormatter(formatFile, outputFile);
+        formatter.writeRecord(new DataRecord(){{
+            put("doubleByteString", null);
+        }});
+        assertThat(readLineFrom(outputFile, "sjis"), is("０１２３４５６７８９"));
+    }
+
+    /** 書き込み用フォーマッタを生成する */
+    private DataRecordFormatter createWriteFormatter(File formatFile, File outputFile)
+            throws FileNotFoundException {
+        DataRecordFormatter formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile);
+        formatter.setOutputStream(new FileOutputStream(outputFile)).initialize();
+        return formatter;
+    }
+
+    /** 指定ファイルから一行読み込む */
+    private String readLineFrom(File outputFile, String encoding)
+            throws UnsupportedEncodingException, FileNotFoundException {
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(outputFile), encoding));
+        try {
+            return reader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
