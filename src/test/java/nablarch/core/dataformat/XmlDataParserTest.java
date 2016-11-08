@@ -2982,6 +2982,56 @@ public class XmlDataParserTest  {
     }
 
     @Test
+    public void フォーマット定義に無効なエンコーディング形式が指定された場合はエラーとなること() throws Exception {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid encoding was specified by 'text-encoding' directive.");
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"XML\"",
+                "text-encoding:    \"SAMPLE\"",
+                "[root]",
+                "1 body X"
+        );
+
+        // XML
+        InputStream input = createInputStream(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<root>",
+                "  <body>value1</body>",
+                "</root>"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    @Test
+    public void XMLに無効なエンコーディング形式が指定された場合はエラーとなること() throws Exception {
+        exception.expect(UnsupportedEncodingException.class);
+        exception.expectMessage("SAMPLE");
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"XML\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 body X"
+        );
+
+        // XML
+        InputStream input = createInputStream(
+                "<?xml version=\"1.0\" encoding=\"SAMPLE\"?>",
+                "<root>",
+                "  <body>value1</body>",
+                "</root>"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    @Test
     public void コンテンツ名を変更した場合は変更した名前でコンテンツを読み込めること() throws Exception {
 
         // コンテンツ名を変更
