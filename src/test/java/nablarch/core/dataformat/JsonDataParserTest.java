@@ -1733,6 +1733,7 @@ public class JsonDataParserTest {
                 "{",
                 "  \"parent\":{",
                 "    \"child\":null",
+                "  }",
                 "}"
         );
 
@@ -1789,6 +1790,7 @@ public class JsonDataParserTest {
                 "{",
                 "  \"parent\":{",
                 "    \"child\":null",
+                "  }",
                 "}"
         );
 
@@ -1901,6 +1903,7 @@ public class JsonDataParserTest {
                 "    {",
                 "      \"child\":null",
                 "    }",
+                "  ]",
                 "}"
         );
 
