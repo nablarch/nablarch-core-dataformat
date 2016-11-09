@@ -23,7 +23,7 @@ import nablarch.core.util.StringUtil;
  * <p>
  * <b>null値の扱い</b><br/><br/>
  * 入力処理の引数にnullまたは空文字が渡された場合、nullを返却する。<br/>
- * 出力処理の引数にnullが渡された場合、空文字を出力する。
+ * 出力処理の引数にnullが渡された場合、nullを出力する。
  * </p>
  * @author Masato Inoue
  */
@@ -31,9 +31,6 @@ public class NumberString extends ValueConvertorSupport<Object, String> {
 
     /** 符号なし数値のパターン */
     private static final Pattern PATTERN = Pattern.compile("^([0-9][0-9]*)?[0-9](\\.[0-9]*[0-9])?$");
-
-    /** 空文字 */
-    private static final String EMPTY = "";
 
     /**
      * {@inheritDoc}
@@ -65,13 +62,13 @@ public class NumberString extends ValueConvertorSupport<Object, String> {
      * </ul>
      * </p>
      * <p>
-     * 引数がnullの場合、空文字を返却する。
+     * 引数がnullの場合、そのままnullを返却する。
      * </p>
      */
     public String convertOnWrite(Object data) {
         
         if (data == null) {
-            return EMPTY;
+            return null;
         }
 
         String dataStr;
@@ -82,7 +79,10 @@ public class NumberString extends ValueConvertorSupport<Object, String> {
         } else {
             throw new InvalidDataFormatException("invalid parameter type was specified. parameter must be java.lang.Number class or number string.");
         }
-        validateNumericString(dataStr);
+
+        if (!dataStr.isEmpty()) {
+            validateNumericString(dataStr);
+        }
         return dataStr;
     }
 

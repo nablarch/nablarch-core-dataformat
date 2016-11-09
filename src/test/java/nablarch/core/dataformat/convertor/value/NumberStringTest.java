@@ -180,14 +180,16 @@ public class NumberStringTest {
     }
 
     /**
-     * 入力時の引数がnullおよび空文字の場合にnullが、出力時の引数がnullの場合に空文字が返却されることのテスト。
+     * 入力時の引数がnullおよび空文字の場合にnullが、
+     * 出力時の引数がnullおよび空文字の場合にはそのままnullおよび空文字が返却されることのテスト。
      */
     @Test
     public void testArgNullOrEmpty() throws Exception {
         NumberString numberString = new NumberString();
         assertNull(numberString.convertOnRead(null));
         assertNull(numberString.convertOnRead(""));
-        assertEquals("", numberString.convertOnWrite(null));
+        assertNull(numberString.convertOnWrite(null));
+        assertEquals("", numberString.convertOnWrite(""));
     }
     
     /**
@@ -298,14 +300,10 @@ public class NumberStringTest {
         FieldDefinition field = new FieldDefinition().setName("testField");
         convertor.initialize(field);
 
-        // 出力時の空文字は許容されない
+        // 空文字はそのまま出力される
         String param = "";
-        try {
-            convertor.convertOnWrite(param);
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertTrue(true);
-        }
+        convertor.convertOnWrite(param);
+        assertEquals(param, convertor.convertOnWrite(param));
         
         param = "a";
         try {
@@ -527,53 +525,6 @@ public class NumberStringTest {
         assertEquals(new BigDecimal("12.345"), readRecord.get("amount1"));
         assertNull(readRecord.get("amount2")); // null!!
         assertNull(readRecord.get("amount3")); // null!!
-        formatter.close();
-    }
-    
-    /**
-     * DataRecordの空項目（null）を空文字として出力できることの確認。
-     */
-    @Test
-    public void testWriteEmptyField() throws Exception {
-        File formatFile = Hereis.file("./format.dat");
-        /***********************************************************
-        file-type:         "Variable"         
-        text-encoding:     "ms932" # 文字列型フィールドの文字エンコーディング
-        record-separator:  "\n"       # レコード区切り文字
-        field-separator:   ","       # フィールド区切り文字
-        quoting-delimiter: "\""       # クオート文字
-
-        [TestDataRecord]
-        1  amount1        X  number    # 数値1          
-        2  amount2        X  number    # 数値2           
-        3  amount3        X  number    # 数値3           
-        ************************************************************/
-        formatFile.deleteOnExit();
-        
-        createFormatter(formatFile);
-        
-        FileOutputStream outputStream = new FileOutputStream("record.dat");
-        formatter.setOutputStream(outputStream).initialize();
-        
-        formatter.writeRecord(new DataRecord() {
-            {
-                put("amount1", "12.345"); // String Number
-                put("amount2", null); // null !!
-                put("amount3", null); // null !!
-            }
-        });
-
-        
-        File writeFile = new File("record.dat");
-        writeFile.deleteOnExit();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(
-                new FileInputStream(writeFile), "ms932"
-           ));
-        
-        assertEquals("\"12.345\",\"\",\"\"", reader.readLine());
-        
-        outputStream.close();
-        
         formatter.close();
     }
 }

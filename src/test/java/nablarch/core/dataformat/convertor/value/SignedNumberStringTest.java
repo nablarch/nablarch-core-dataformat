@@ -165,14 +165,16 @@ public class SignedNumberStringTest {
     }
 
     /**
-     * 入力時の引数がnullおよび空文字の場合にnullが、出力時の引数がnullの場合に空文字が返却されることのテスト。
+     * 入力時の引数がnullおよび空文字の場合にnullが、
+     * 出力時の引数がnullおよび空文字の場合にはそのままnullおよび空文字が返却されることのテスト。
      */
     @Test
     public void testArgNullOrEmpty() throws Exception {
         SignedNumberString numberString = new SignedNumberString();
         assertNull(numberString.convertOnRead(null));
         assertNull(numberString.convertOnRead(""));
-        assertEquals("", numberString.convertOnWrite(null));
+        assertNull(numberString.convertOnWrite(null));
+        assertEquals("", numberString.convertOnWrite(""));
     }
     
     /**
@@ -280,16 +282,11 @@ public class SignedNumberStringTest {
     public void testFormatCheckOnWrite() throws Exception {
 
         SignedNumberString convertor = new SignedNumberString();
-        
-        // 出力時の空文字は許容されない
+
+        // 空文字はそのまま出力される
         String param = "";
-        try {
-            convertor.convertOnWrite(param);
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertTrue(true);
-        }
-        
+        assertEquals(param, convertor.convertOnWrite(param));
+
         param = "a";
         try {
             convertor.convertOnRead(param);

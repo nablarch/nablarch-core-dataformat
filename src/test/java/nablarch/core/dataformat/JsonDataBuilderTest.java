@@ -1268,7 +1268,7 @@ public class JsonDataBuilderTest {
                 "file-type:        \"JSON\"",
                 "text-encoding:    \"UTF-8\"",
                 "[root]",
-                "1 number X number"
+                "1 number [0..1] X number"
         );
 
         // MAP
@@ -1282,7 +1282,7 @@ public class JsonDataBuilderTest {
 
         // 検証
         String expected = "{" +
-                "  \"number\":\"\"" +
+                "  \"number\":null" +
                 "}";
 
         JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
@@ -1347,7 +1347,7 @@ public class JsonDataBuilderTest {
                 "file-type:        \"JSON\"",
                 "text-encoding:    \"UTF-8\"",
                 "[root]",
-                "1 number X signed_number"
+                "1 number [0..1] X signed_number"
         );
 
         // MAP
@@ -1361,7 +1361,7 @@ public class JsonDataBuilderTest {
 
         // 検証
         String expected = "{" +
-                "  \"number\":\"\"" +
+                "  \"number\":null" +
                 "}";
 
         JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
