@@ -34,6 +34,12 @@ public class Bytes extends ByteStreamDataSupport<byte[]> {
                             "invalid parameter type was specified. parameter type must be 'Integer' but was: '%s'. parameter=%s. convertor=[Bytes].",
                             args[0].getClass().getName(), Arrays.toString(args)));
         }
+        if ((Integer)args[0] <= 0) {
+            throw new SyntaxErrorException(
+                    String.format(
+                            "invalid parameter was specified. 1st parameter must be positive number, but was [%d]. parameter=%s.",
+                            args[0], Arrays.toString(args)));
+        }
         setSize((Integer) args[0]);
         return this;
     }

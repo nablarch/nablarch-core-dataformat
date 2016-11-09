@@ -258,6 +258,31 @@ public class BytesTest {
     }
 
     /**
+     * 初期化時の第一引数（バイト長）に0を設定すると例外がスローされること。
+     */
+    @Test
+    public void testInitializeSizeZero() {
+        Bytes datatype = new Bytes();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid parameter was specified. 1st parameter must be positive number, but was [0].");
+
+        datatype.initialize(0, null);
+    }
+    /**
+     * 初期化時の第一引数（バイト長）に負数を設定すると例外がスローされること。
+     */
+    @Test
+    public void testInitializeSizeNegative() {
+        Bytes datatype = new Bytes();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid parameter was specified. 1st parameter must be positive number, but was [-1].");
+
+        datatype.initialize(-1, null);
+    }
+
+    /**
      * 出力時にバイト以外のデータを渡した場合。
      */
     @Test
@@ -302,12 +327,12 @@ public class BytesTest {
     }
 
     /**
-     * 出力時にパラメータがnullまたは空白の場合のテスト。
+     * 出力時にパラメータがnullまたは空文字の場合のテスト。
      */
     @Test
     public void testWriteParameterNullOrEmpty() {
         Bytes bytes = new Bytes();
-        bytes.init(new FieldDefinition(), 0);
+        bytes.init(new FieldDefinition(), 1);
         try {
             bytes.convertOnWrite(null);
             fail();
@@ -315,21 +340,21 @@ public class BytesTest {
             assertThat(e.getMessage(), is("invalid parameter was specified. parameter must be not null."));
         }
         try {
-            bytes.convertOnWrite("");
+            bytes.convertOnWrite("".getBytes());
             fail();
         } catch (InvalidDataFormatException e) {
-            assertTrue(true);
+            assertThat(e.getMessage(), is("invalid parameter was specified. parameter length = [0], expected = [1]."));
         }
     }
 
     /**
-     * 入力時にパラメータが空白の場合のテスト。
+     * 入力時にパラメータが空文字の場合のテスト。
      * 固定長を扱うため、nullがわたされることはないため考慮しない。
      */
     @Test
     public void testReadParameterEmpty() {
         Bytes bytes = new Bytes();
-        bytes.init(new FieldDefinition(), 0);
+        bytes.init(new FieldDefinition(), 2);
 
         assertThat(bytes.convertOnRead("".getBytes()), is("".getBytes()));
     }
