@@ -377,7 +377,7 @@ public class SignedNumberStringDecimal extends NumberStringDecimal {
      * @param pattern パターン
      */
     private void validateFormat(String strData, Pattern pattern) {
-        if (!pattern.matcher(strData).matches()) {
+        if (!pattern.matcher(strData).matches() && !"".equals(strData)) {
             throw new InvalidDataFormatException(Builder.concat(
                     "invalid parameter format was specified. parameter format must be [", pattern, "]."
                   , " parameter=[", strData, "]."));
