@@ -1161,6 +1161,72 @@ public class JsonDataBuilderTest {
     }
 
     @Test
+    public void 各フィールドタイプがnullの場合に全てnullで出力されること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 type1 [0..1] X",
+                "2 type2 [0..1] N",
+                "3 type3 [0..1] XN",
+                "4 type4 [0..1] X9",
+                "5 type5 [0..1] SX9",
+                "6 type6 [0..1] BL",
+                "7 type7 [0..1] OB",
+                "",
+                "[type7]",
+                "1 type1 [0..1] X",
+                "2 type2 [0..1] N",
+                "3 type3 [0..1] XN",
+                "4 type4 [0..1] X9",
+                "5 type5 [0..1] SX9",
+                "6 type6 [0..1] BL"
+        );
+
+        // MAP
+        Map<String, Object> map = new HashMap<String, Object>() {{
+            put("type1", null);
+            put("type2", null);
+            put("type3", null);
+            put("type4", null);
+            put("type5", null);
+            put("type6", null);
+            put("type7.type1", null);
+            put("type7.type2", null);
+            put("type7.type3", null);
+            put("type7.type4", null);
+            put("type7.type5", null);
+            put("type7.type6", null);
+        }};
+
+        // テスト実行
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        sut.buildData(map, definition, actual);
+
+        // 検証
+        String expected = "{" +
+                "  \"type1\":null," +
+                "  \"type2\":null," +
+                "  \"type3\":null," +
+                "  \"type4\":null," +
+                "  \"type5\":null," +
+                "  \"type6\":null," +
+                "  \"type7\":{" +
+                "    \"type1\":null," +
+                "    \"type2\":null," +
+                "    \"type3\":null," +
+                "    \"type4\":null," +
+                "    \"type5\":null," +
+                "    \"type6\":null" +
+                "  }" +
+                "}";
+
+        JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);
+    }
+
+    @Test
     public void numberコンバータを使用できること() throws Exception {
 
         // フォーマット定義

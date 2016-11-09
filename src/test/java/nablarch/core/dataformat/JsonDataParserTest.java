@@ -1159,6 +1159,69 @@ public class JsonDataParserTest {
     }
 
     @Test
+    public void 各フィールドタイプがnullの場合に全てnullで読み込めること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 type1 [0..1] X",
+                "2 type2 [0..1] N",
+                "3 type3 [0..1] XN",
+                "4 type4 [0..1] X9",
+                "5 type5 [0..1] SX9",
+                "6 type6 [0..1] BL",
+                "7 type7 [0..1] OB",
+                "",
+                "[type7]",
+                "1 type1 [0..1] X",
+                "2 type2 [0..1] N",
+                "3 type3 [0..1] XN",
+                "4 type4 [0..1] X9",
+                "5 type5 [0..1] SX9",
+                "6 type6 [0..1] BL"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{",
+                "  \"type1\":null,",
+                "  \"type2\":null,",
+                "  \"type3\":null,",
+                "  \"type4\":null,",
+                "  \"type5\":null,",
+                "  \"type6\":null,",
+                "  \"type7\":{",
+                "    \"type1\":null,",
+                "    \"type2\":null,",
+                "    \"type3\":null,",
+                "    \"type4\":null,",
+                "    \"type5\":null,",
+                "    \"type6\":null",
+                "  }",
+                "}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result, hasEntry("type1", null));
+        assertThat(result, hasEntry("type2", null));
+        assertThat(result, hasEntry("type3", null));
+        assertThat(result, hasEntry("type4", null));
+        assertThat(result, hasEntry("type5", null));
+        assertThat(result, hasEntry("type6", null));
+        assertThat(result, hasEntry("type7.type1", null));
+        assertThat(result, hasEntry("type7.type2", null));
+        assertThat(result, hasEntry("type7.type3", null));
+        assertThat(result, hasEntry("type7.type4", null));
+        assertThat(result, hasEntry("type7.type5", null));
+        assertThat(result, hasEntry("type7.type6", null));
+    }
+
+    @Test
     public void numberコンバータで数値型に変換できること() throws Exception {
 
         // フォーマット定義
