@@ -1175,6 +1175,7 @@ public class JsonDataBuilderTest {
                 "5 type5 [0..1] SX9",
                 "6 type6 [0..1] BL",
                 "7 type7 [0..1] OB",
+                "8 type8 [0..1] OB",
                 "",
                 "[type7]",
                 "1 type1 [0..1] X",
@@ -1182,7 +1183,10 @@ public class JsonDataBuilderTest {
                 "3 type3 [0..1] XN",
                 "4 type4 [0..1] X9",
                 "5 type5 [0..1] SX9",
-                "6 type6 [0..1] BL"
+                "6 type6 [0..1] BL",
+                "",
+                "[type8]",
+                "1 type1 [0..1] X"
         );
 
         // MAP
@@ -1199,6 +1203,7 @@ public class JsonDataBuilderTest {
             put("type7.type4", null);
             put("type7.type5", null);
             put("type7.type6", null);
+            put("type8", null);
         }};
 
         // テスト実行
@@ -1220,7 +1225,8 @@ public class JsonDataBuilderTest {
                 "    \"type4\":null," +
                 "    \"type5\":null," +
                 "    \"type6\":null" +
-                "  }" +
+                "  }," +
+                "  \"type8\":null" +
                 "}";
 
         JSONAssert.assertEquals(expected, actual.toString("utf-8"), true);

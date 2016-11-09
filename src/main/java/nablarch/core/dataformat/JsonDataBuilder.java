@@ -240,9 +240,15 @@ public class JsonDataBuilder extends StructuredDataEditorSupport implements Stru
     private int writeObject(StringBuilder sb, LayoutDefinition ld, RecordDefinition nrd, FieldDefinition fd, 
             String mapKey, Map<String, ?> map) {
         int outCount = 0;
-        String jsonString = createJsonString(mapKey, map, ld, nrd, true);
-        if (jsonString == null) {
-            jsonString = "";
+
+        String jsonString;
+        if (map.containsKey(mapKey) && map.get(mapKey) == null) {
+            jsonString = null;
+        } else {
+            jsonString = createJsonString(mapKey, map, ld, nrd, true);
+            if (jsonString == null) {
+                jsonString = "";
+            }
         }
         outCount++;
         sb.append(editJsonKey(fd.getName()) + ":" + editJsonDataString(jsonString, fd));

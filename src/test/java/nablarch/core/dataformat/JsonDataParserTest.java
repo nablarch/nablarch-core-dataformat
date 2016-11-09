@@ -1173,6 +1173,7 @@ public class JsonDataParserTest {
                 "5 type5 [0..1] SX9",
                 "6 type6 [0..1] BL",
                 "7 type7 [0..1] OB",
+                "8 type8 [0..1] OB",
                 "",
                 "[type7]",
                 "1 type1 [0..1] X",
@@ -1180,7 +1181,10 @@ public class JsonDataParserTest {
                 "3 type3 [0..1] XN",
                 "4 type4 [0..1] X9",
                 "5 type5 [0..1] SX9",
-                "6 type6 [0..1] BL"
+                "6 type6 [0..1] BL",
+                "",
+                "[type8]",
+                "1 type1 [0..1] X"
         );
 
         // JSON
@@ -1200,6 +1204,7 @@ public class JsonDataParserTest {
                 "    \"type5\":null,",
                 "    \"type6\":null",
                 "  }",
+                "  \"type8\":null",
                 "}"
         );
 
@@ -1219,6 +1224,7 @@ public class JsonDataParserTest {
         assertThat(result, hasEntry("type7.type4", null));
         assertThat(result, hasEntry("type7.type5", null));
         assertThat(result, hasEntry("type7.type6", null));
+        assertThat(result, hasEntry("type8", null));
     }
 
     @Test
@@ -1772,7 +1778,7 @@ public class JsonDataParserTest {
         Map<String, ?> result = sut.parseData(input, definition);
 
         // 検証
-        assertThat(result.size(), is(0));
+        assertThat(result, hasEntry("parent", null));
     }
 
     @Test
