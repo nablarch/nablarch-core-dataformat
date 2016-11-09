@@ -40,7 +40,34 @@ public class NumberStringDecimalTest {
     public ExpectedException exception = ExpectedException.none();
 
     /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        NumberStringDecimal datatype = new NumberStringDecimal();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[NumberStringDecimal].");
+
+        datatype.initialize(null);
+    }
+
+    /**
      * 初期化時にnullが渡されたときのテスト。
+     */
+    @Test
+    public void testInitialize1stParameterNull() {
+        NumberStringDecimal datatype = new NumberStringDecimal();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
+
+        datatype.initialize(null, "hoge");
+    }
+
+    /**
+     * 初期化時にnullが渡されたときのテスト。
+     * initをオーバーライドしたため、init内でinitializeが呼ばれていることを確かめる。
      */
     @Test
     public void testInitNull() {
@@ -50,19 +77,6 @@ public class NumberStringDecimalTest {
         exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
 
         datatype.init(null, null, "hoge");
-    }
-
-    /**
-     * 初期化時にnullが渡されたときのテスト。
-     */
-    @Test
-    public void testInitializeNull() {
-        NumberStringDecimal datatype = new NumberStringDecimal();
-
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
-
-        datatype.initialize(null, "hoge");
     }
 
     /**

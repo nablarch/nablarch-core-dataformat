@@ -188,10 +188,23 @@ public class DoubleByteCharacterStringTest {
     }
 
     /**
-     * 初期化時にnullが渡されたときのテスト。
+     * 初期化時にnullをわたすと例外がスローされること。
      */
     @Test
     public void testInitializeNull() {
+        DoubleByteCharacterString datatype = new DoubleByteCharacterString();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[DoubleByteCharacterString].");
+
+        datatype.initialize(null);
+    }
+
+    /**
+     * 初期化時の第一引数にnullが渡されたときのテスト。
+     */
+    @Test
+    public void testInitialize1stParameterNull() {
         DoubleByteCharacterString doubleByteCharacter = new DoubleByteCharacterString();
 
         exception.expect(SyntaxErrorException.class);

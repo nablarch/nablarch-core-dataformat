@@ -10,7 +10,9 @@ import nablarch.core.dataformat.convertor.FixedLengthConvertorFactory;
 import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -47,7 +49,10 @@ public class PackedDecimalTest {
     private FixedLengthConvertorFactory factory = new FixedLengthConvertorFactory();
     
     private DataRecordFormatter formatter = null;
-    
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @After
     public void tearDown() throws Exception {
         if(formatter != null) {
@@ -591,8 +596,19 @@ public class PackedDecimalTest {
             assertEquals("1st parameter was null. parameter=[null, null]. convertor=[PackedDecimal].", e.getMessage());
         }
     }
-    
-    
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        PackedDecimal datatype = new PackedDecimal();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[PackedDecimal].");
+
+        datatype.initialize(null);
+    }
 
     /**
      * 出力するオブジェクトが文字列

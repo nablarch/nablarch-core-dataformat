@@ -8,7 +8,9 @@ import nablarch.core.dataformat.InvalidDataFormatException;
 import nablarch.core.dataformat.SyntaxErrorException;
 import nablarch.test.support.tool.Hereis;
 import org.hamcrest.CoreMatchers;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,6 +39,9 @@ import static org.junit.Assert.fail;
  * @author Masato Inoue
  */
 public class ByteStreamDataStringTest {
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     /** 読み込み用フォーマッタを生成する */
 	private DataRecordFormatter createReadFormatter(String value, String encoding) {
@@ -702,7 +707,20 @@ public class ByteStreamDataStringTest {
 
         assertThat(readRecord.getString("multiByteString"), is("aaaa111"));
     }
-    
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        ByteStreamDataString datatype = new ByteStreamDataString();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[ByteStreamDataString].");
+
+        datatype.initialize(null);
+    }
+
     /**
      * 初期化時のパラメータ不正テスト。
      */

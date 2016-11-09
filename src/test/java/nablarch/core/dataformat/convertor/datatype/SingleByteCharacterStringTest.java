@@ -7,7 +7,9 @@ import nablarch.core.dataformat.FormatterFactory;
 import nablarch.core.dataformat.InvalidDataFormatException;
 import nablarch.core.dataformat.SyntaxErrorException;
 import nablarch.test.support.tool.Hereis;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -33,6 +35,9 @@ import static org.junit.Assert.fail;
  * @author Masato Inoue
  */
 public class SingleByteCharacterStringTest {
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     /**
      * シングルバイトのパラメータが数値型でない場合に、例外がスローされることの確認。
@@ -194,7 +199,20 @@ public class SingleByteCharacterStringTest {
             assertThat(e.getFilePath(), endsWith("format.fmt"));
         }
     }
-    
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        SingleByteCharacterString datatype = new SingleByteCharacterString();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[SingleByteCharacterString].");
+
+        datatype.initialize(null);
+    }
+
     /**
      * 初期化時のパラメータ不正テスト。
      */

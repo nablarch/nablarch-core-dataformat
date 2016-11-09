@@ -243,7 +243,19 @@ public class BytesTest {
             assertEquals("1st parameter was null. parameter=[null, null]. convertor=[Bytes].", e.getMessage());
         }
     }
-    
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        Bytes datatype = new Bytes();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[Bytes].");
+
+        datatype.initialize(null);
+    }
 
     /**
      * 出力時にバイト以外のデータを渡した場合。
@@ -295,12 +307,19 @@ public class BytesTest {
     @Test
     public void testWriteParameterNullOrEmpty() {
         Bytes bytes = new Bytes();
-        bytes.init(new FieldDefinition(), 10);
-        byte[] expected = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00,
-                                       0x00, 0x00, 0x00, 0x00, 0x00};
-        assertThat(bytes.convertOnWrite(null), is(expected));
-
-        assertThat(bytes.convertOnWrite(""), is(expected));
+        bytes.init(new FieldDefinition(), 0);
+        try {
+            bytes.convertOnWrite(null);
+            fail();
+        } catch (InvalidDataFormatException e){
+            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must be not null."));
+        }
+        try {
+            bytes.convertOnWrite("");
+            fail();
+        } catch (InvalidDataFormatException e) {
+            assertTrue(true);
+        }
     }
 
     /**

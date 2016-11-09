@@ -39,10 +39,23 @@ public class SignedNumberStringDecimalTest {
     public ExpectedException exception = ExpectedException.none();
 
     /**
-     * 初期化時にnullが渡されたときのテスト。
+     * 初期化時にnullをわたすと例外がスローされること。
      */
     @Test
     public void testInitializeNull() {
+        SignedNumberStringDecimal datatype = new SignedNumberStringDecimal();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[SignedNumberStringDecimal].");
+
+        datatype.initialize(null);
+    }
+
+    /**
+     * 初期化時にnullが渡されたときのテスト。
+     */
+    @Test
+    public void testInitialize1stParameterNull() {
         SignedNumberStringDecimal datatype = new SignedNumberStringDecimal();
 
         exception.expect(SyntaxErrorException.class);

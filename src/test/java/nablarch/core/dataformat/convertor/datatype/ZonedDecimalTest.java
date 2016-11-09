@@ -10,7 +10,9 @@ import nablarch.core.dataformat.convertor.FixedLengthConvertorFactory;
 import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -44,6 +46,9 @@ public class ZonedDecimalTest {
     private FixedLengthConvertorFactory factory = new FixedLengthConvertorFactory();
     private DataRecordFormatter formatter = null;
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     /** フォーマッタ(read)を生成する。 */
     private void createReadFormatter(File filePath, InputStream source) {
         formatter = new FormatterFactory().setCacheLayoutFileDefinition(false).createFormatter(filePath).setInputStream(source).initialize();
@@ -60,6 +65,19 @@ public class ZonedDecimalTest {
         formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(filePath);
         formatter.setOutputStream(dest).initialize();
         return formatter;
+    }
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        ZonedDecimal datatype = new ZonedDecimal();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[ZonedDecimal].");
+
+        datatype.initialize(null);
     }
 
     /**
