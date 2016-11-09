@@ -1356,7 +1356,7 @@ public class VariableLengthDataRecordFormatterMultiLayoutWriteTest {
     }
 
     /**
-     * 識別項目の値がnullの場合、エラーとならずに出力されること
+     * 識別項目の値がnullの場合、エラーとなること
      */
     @Test
     public void testClassifierNullValue() throws Exception {
