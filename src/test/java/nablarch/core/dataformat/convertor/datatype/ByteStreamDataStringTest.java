@@ -8,7 +8,9 @@ import nablarch.core.dataformat.InvalidDataFormatException;
 import nablarch.core.dataformat.SyntaxErrorException;
 import nablarch.test.support.tool.Hereis;
 import org.hamcrest.CoreMatchers;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,6 +40,9 @@ import static org.junit.Assert.fail;
  */
 public class ByteStreamDataStringTest {
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     /** 読み込み用フォーマッタを生成する */
 	private DataRecordFormatter createReadFormatter(String value, String encoding) {
 		InputStream source = createInputStreamFrom(value, encoding);
@@ -56,16 +61,16 @@ public class ByteStreamDataStringTest {
 	}
 
     /** 指定ファイルから一行読み込む */
-	private String readLineFrom(File outputFile, String encoding)
-			throws UnsupportedEncodingException, FileNotFoundException {
-		BufferedReader reader = new BufferedReader(
-				new InputStreamReader(new FileInputStream(outputFile), encoding));
-		try {
-			return reader.readLine();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private String readLineFrom(File outputFile, String encoding)
+            throws UnsupportedEncodingException, FileNotFoundException {
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(outputFile), encoding));
+        try {
+            return reader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 	
     /**
      * マルチバイト文字の読み込みができることの確認。
@@ -702,7 +707,20 @@ public class ByteStreamDataStringTest {
 
         assertThat(readRecord.getString("multiByteString"), is("aaaa111"));
     }
-    
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        ByteStreamDataString datatype = new ByteStreamDataString();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[ByteStreamDataString].");
+
+        datatype.initialize(null);
+    }
+
     /**
      * 初期化時のパラメータ不正テスト。
      */
@@ -722,7 +740,17 @@ public class ByteStreamDataStringTest {
         }
         
     }
-    
+
+    /**
+     * 入力時にパラメータが空白の場合のテスト。
+     * 固定長を扱うため、nullがわたされることはないため考慮しない。
+     */
+    @Test
+    public void testReadParameterEmpty() throws Exception {
+        ByteStreamDataString MultiByteCharacter = new ByteStreamDataString();
+        MultiByteCharacter.init(new FieldDefinition().setEncoding(Charset.forName("MS932")), 10);
+        assertThat(MultiByteCharacter.convertOnRead("".getBytes()), is(""));
+    }
     /**
      * 出力時にパラメータがnullまたは空白の場合のテスト。
      */

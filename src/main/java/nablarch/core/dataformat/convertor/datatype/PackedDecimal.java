@@ -87,6 +87,9 @@ public class PackedDecimal extends ByteStreamDataSupport<BigDecimal> {
 
     /** {@inheritDoc} */
     public PackedDecimal initialize(Object... args) {
+        if (args == null) {
+            throw new SyntaxErrorException("initialize parameter was null. parameter must be specified. convertor=[PackedDecimal].");
+        }
         if (args.length == 0) {
             throw new SyntaxErrorException("parameter was not specified. parameter must be specified. convertor=[PackedDecimal].");
         }

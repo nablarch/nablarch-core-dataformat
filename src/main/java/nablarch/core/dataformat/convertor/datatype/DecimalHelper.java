@@ -68,9 +68,12 @@ public final class DecimalHelper {
      * @return 変換後のデータ
      */
     public static BigDecimal toBigDecimal(Object data, Integer scale) {
-        if (data == null) {
-            throw new InvalidDataFormatException(
-                    "invalid parameter was specified. parameter must not be null.");
+        if (data == null || "".equals(data)) {
+            if (scale != null) {
+                return new BigDecimal(BigInteger.ZERO, scale);
+            } else {
+                return BigDecimal.ZERO;
+            }
         }
         if (data instanceof BigDecimal) {
             return (BigDecimal) data;

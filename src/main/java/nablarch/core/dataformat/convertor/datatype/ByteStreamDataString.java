@@ -35,6 +35,10 @@ public class ByteStreamDataString extends ByteStreamDataSupport<String> {
 
     /** {@inheritDoc} */
     public ByteStreamDataString initialize(Object... args) {
+        if (args == null) {
+            throw new SyntaxErrorException(Builder.concat(
+                    "initialize parameter was null. parameter must be specified. convertor=[", getClass().getSimpleName(), "]."));
+        }
         if (args.length == 0) {
             throw new SyntaxErrorException(Builder.concat(
                     "parameter was not specified. parameter must be specified. convertor=[", getClass().getSimpleName(), "]."));

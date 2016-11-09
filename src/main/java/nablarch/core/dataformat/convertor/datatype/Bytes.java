@@ -17,6 +17,9 @@ public class Bytes extends ByteStreamDataSupport<byte[]> {
     
     /** {@inheritDoc} */
     public Bytes initialize(Object... args) {
+        if (args == null) {
+            throw new SyntaxErrorException("initialize parameter was null. parameter must be specified. convertor=[Bytes].");
+        }
         if (args.length == 0) {
             throw new SyntaxErrorException("parameter was not specified. parameter must be specified. convertor=[Bytes].");
         }
@@ -30,6 +33,12 @@ public class Bytes extends ByteStreamDataSupport<byte[]> {
                     String.format(
                             "invalid parameter type was specified. parameter type must be 'Integer' but was: '%s'. parameter=%s. convertor=[Bytes].",
                             args[0].getClass().getName(), Arrays.toString(args)));
+        }
+        if ((Integer)args[0] <= 0) {
+            throw new SyntaxErrorException(
+                    String.format(
+                            "invalid parameter was specified. 1st parameter must be positive number, but was [%d]. parameter=%s.",
+                            args[0], Arrays.toString(args)));
         }
         setSize((Integer) args[0]);
         return this;
@@ -55,6 +64,11 @@ public class Bytes extends ByteStreamDataSupport<byte[]> {
         if (!(data instanceof byte[])) {
             throw new InvalidDataFormatException("invalid parameter type was specified. "
                     + "parameter must be a byte array.").setFieldName(getField().getName());
+        }
+        if (((byte[]) data).length != getSize()) {
+            throw new InvalidDataFormatException("invalid parameter was specified."
+                    + " parameter length = [" + ((byte[]) data).length + "], expected = [" + getSize() + "].")
+                    .setFieldName(getField().getName());
         }
         return (byte[]) data;
     }

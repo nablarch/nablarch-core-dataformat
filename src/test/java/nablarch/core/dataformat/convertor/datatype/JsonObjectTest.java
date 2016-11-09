@@ -16,6 +16,17 @@ import static org.junit.Assert.assertThat;
 public class JsonObjectTest {
 
     /**
+     * 初期化時にnullが渡されたときのテスト。
+     * {@link JsonObject}では初期化時になにもしないため、nullを許容する。
+     */
+    @Test
+    public void testInitializeNull() {
+        JsonObject dataType = new JsonObject();
+
+        assertThat(dataType.initialize(null), is((DataType<String, String>)dataType));
+    }
+
+    /**
      * 読み取り時のテスト
      */
     @Test
@@ -26,6 +37,7 @@ public class JsonObjectTest {
         assertEquals("data", converter.convertOnRead("data"));
         assertEquals("\"data", converter.convertOnRead("\"data"));
         assertEquals("data\"", converter.convertOnRead("data\""));
+        assertEquals("", converter.convertOnRead(""));
         assertEquals(null, converter.convertOnRead(null));
     }
     
@@ -40,7 +52,7 @@ public class JsonObjectTest {
         assertEquals("\"data\"", converter.convertOnWrite("\"data\""));
         assertEquals("\"data", converter.convertOnWrite("\"data"));
         assertEquals("data\"", converter.convertOnWrite("data\""));
-        
+        assertEquals("", converter.convertOnWrite(""));
         // nullはnull
         assertEquals(null, converter.convertOnWrite(null));
     }

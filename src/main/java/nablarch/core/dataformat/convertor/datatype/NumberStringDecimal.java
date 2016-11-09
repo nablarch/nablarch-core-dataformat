@@ -2,6 +2,7 @@ package nablarch.core.dataformat.convertor.datatype;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -315,8 +316,11 @@ public class NumberStringDecimal extends ByteStreamDataSupport<BigDecimal> {
     /** {@inheritDoc} */
     @Override
     public DataType<BigDecimal, byte[]> initialize(Object... args) {
-        
-
+        if (args == null) {
+            throw new SyntaxErrorException(Builder.concat(
+                    "initialize parameter was null. parameter must be specified. convertor=[",
+                    getClass().getSimpleName(), "]."));
+        }
         // 第1引数はバイト長（必須項目）
         if (args.length == 0) {
             throw new SyntaxErrorException(Builder.concat(
@@ -367,8 +371,7 @@ public class NumberStringDecimal extends ByteStreamDataSupport<BigDecimal> {
      */
     public BigDecimal convertOnRead(byte[] data) {
         if (data == null) {
-            throw new InvalidDataFormatException(
-                    "invalid parameter was specified. parameter must not be null.");
+            return new BigDecimal(BigInteger.ZERO, this.scale);
         }
         String strData;
         try {
@@ -402,7 +405,7 @@ public class NumberStringDecimal extends ByteStreamDataSupport<BigDecimal> {
      * @param data 入力データまたは出力データ
      */
     protected void validateReadDataFormat(String data) {
-        if (!dataPattern.matcher(data).matches()) {
+        if (!dataPattern.matcher(data).matches() && !"".equals(data)) {
             throw new InvalidDataFormatException(Builder.concat(
                     "invalid parameter format was specified. parameter format must be [", dataPattern, "]."
                    , " parameter=[", data, "]."));

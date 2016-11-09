@@ -10,7 +10,9 @@ import nablarch.core.dataformat.convertor.FixedLengthConvertorFactory;
 import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -47,7 +49,10 @@ public class PackedDecimalTest {
     private FixedLengthConvertorFactory factory = new FixedLengthConvertorFactory();
     
     private DataRecordFormatter formatter = null;
-    
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     @After
     public void tearDown() throws Exception {
         if(formatter != null) {
@@ -60,7 +65,21 @@ public class PackedDecimalTest {
         formatter.setOutputStream(dest).initialize();
         return formatter;
     }
-        
+
+    /**
+     * 空文字を読み込む場合のテスト。
+     */
+    @Test
+    public void testReadEmpty() {
+        DataType<BigDecimal, byte[]> t = factory.typeOf("P", field, 0, 0);
+        PackedDecimal packedType = (PackedDecimal)t;
+
+        byte packNibble = (byte) ((Charset.forName("sjis").encode("1").get() & 0xF0) >>> 4);
+        packedType.setPackNibble(packNibble);
+
+        assertEquals(new BigDecimal("0"), packedType.convertOnRead("".getBytes()));
+    }
+
     /**
      * ASCII規格での符号なしパック10進のテスト
      */
@@ -72,7 +91,7 @@ public class PackedDecimalTest {
 
         byte packNibble = (byte) ((Charset.forName("sjis").encode("1").get() & 0xF0) >>> 4);
         packedType.setPackNibble(packNibble);
-        
+
         byte[] bytes = new byte[] {
             0x08, 0x76, 0x54, 0x32, 0x13
         };
@@ -353,7 +372,61 @@ public class PackedDecimalTest {
         new File("record.dat").deleteOnExit();
         
     }
-    
+
+    /**
+     * 出力時のパラメータがnullのときデフォルト値が出力されるテスト。
+     */
+    @Test
+    public void testWriteDefault() throws Exception{
+
+        File formatFile = Hereis.file("./format.fmt");
+        /**********************************************
+         # ファイルタイプ
+         file-type:    "Fixed"
+         # 文字列型フィールドの文字エンコーディング
+         text-encoding: "sjis"
+
+         # 各レコードの長さ
+         record-length: 10
+
+         # データレコード定義
+         [Default]
+         1  signedZDigits  SP(10, "", "7", "4")   123
+         ***************************************************/
+        formatFile.deleteOnExit();
+        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
+                .addBasePathSetting("format", "file:./")
+                .addFileExtensions("format", "fmt");
+
+
+        DataRecord record = new DataRecord(){{
+            put("signedZDigits", null);
+        }};
+
+        OutputStream dest = new FileOutputStream("./record.dat", false);
+        createWriteFormatter(new File("format.fmt"), dest);
+        formatter.writeRecord(record);
+
+        formatter.close();
+
+        InputStream source = new BufferedInputStream(
+                new FileInputStream("record.dat"));
+
+        byte[] actual = new byte[10];
+        source.read(actual);
+
+        byte[] expected = new byte[] {
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x12, 0x37
+        };
+
+        assertThat(actual, is(expected));
+
+        source.close();
+        new File("record.dat").deleteOnExit();
+
+
+    }
     
     /**
      * 不正なパラメータを設定する。
@@ -523,8 +596,19 @@ public class PackedDecimalTest {
             assertEquals("1st parameter was null. parameter=[null, null]. convertor=[PackedDecimal].", e.getMessage());
         }
     }
-    
-    
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        PackedDecimal datatype = new PackedDecimal();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[PackedDecimal].");
+
+        datatype.initialize(null);
+    }
 
     /**
      * 出力するオブジェクトが文字列
@@ -590,8 +674,27 @@ public class PackedDecimalTest {
                 
 
     }
-    
 
+
+    /**
+     * null と 空文字を出力するテスト。
+     * デフォルト値(0)を出力する。
+     */
+    @Test
+    public void testWriteValidSingularValue() {
+        byte packNibble = 0x03;
+        DataType<BigDecimal, byte[]> t = factory.typeOf("P", field, 5);
+        PackedDecimal decimal = (PackedDecimal)t;
+        decimal.setPackNibble(packNibble);
+
+        byte[] bytes = { 0x00, 0x00, 0x00, 0x00, 0x03 };
+
+        // null の場合
+        assertThat(decimal.convertOnWrite(null), is(bytes));
+
+        // 空文字 の場合
+        assertThat(decimal.convertOnWrite(""), is(bytes));
+    }
 
     /**
      * BigDecimalに変換できないオブジェクトが渡された場合に例外がスローされるテスト。
@@ -602,24 +705,8 @@ public class PackedDecimalTest {
         PackedDecimal decimal = new PackedDecimal();
 
         /*
-         * nullの場合
-         */
-        try {
-            decimal.convertOnWrite(null);
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must not be null."));
-        }
-
-        /*
          * 文字列の場合
          */
-        try {
-            decimal.convertOnWrite("");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[]."));
-        }
         try {
             decimal.convertOnWrite("abc");
             fail();

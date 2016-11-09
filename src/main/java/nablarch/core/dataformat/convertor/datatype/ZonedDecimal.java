@@ -85,6 +85,9 @@ public class ZonedDecimal extends ByteStreamDataSupport<BigDecimal> {
 
     /** {@inheritDoc} */
     public ZonedDecimal initialize(Object... args) {
+        if (args == null) {
+            throw new SyntaxErrorException("initialize parameter was null. parameter must be specified. convertor=[ZonedDecimal].");
+        }
         if (args.length == 0) {
             throw new SyntaxErrorException("parameter was not specified. parameter must be specified. convertor=[ZonedDecimal].");
         }

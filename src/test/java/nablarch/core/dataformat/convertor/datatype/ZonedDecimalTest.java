@@ -9,7 +9,10 @@ import nablarch.core.dataformat.SyntaxErrorException;
 import nablarch.core.dataformat.convertor.FixedLengthConvertorFactory;
 import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
+import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -43,9 +46,38 @@ public class ZonedDecimalTest {
     private FixedLengthConvertorFactory factory = new FixedLengthConvertorFactory();
     private DataRecordFormatter formatter = null;
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
+
     /** フォーマッタ(read)を生成する。 */
     private void createReadFormatter(File filePath, InputStream source) {
         formatter = new FormatterFactory().setCacheLayoutFileDefinition(false).createFormatter(filePath).setInputStream(source).initialize();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        if(formatter != null) {
+            formatter.close();
+        }
+    }
+    /** フォーマッタ(write)を生成する。 */
+    private DataRecordFormatter createWriteFormatter(File filePath, OutputStream dest) {
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(filePath);
+        formatter.setOutputStream(dest).initialize();
+        return formatter;
+    }
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        ZonedDecimal datatype = new ZonedDecimal();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[ZonedDecimal].");
+
+        datatype.initialize(null);
     }
 
     /**
@@ -526,7 +558,37 @@ public class ZonedDecimalTest {
         }
         return true;
     }
-    
+
+    /**
+     * 空文字を入力するテスト。
+     */
+    @Test
+    public void testReadEmpty() {
+        DataType<BigDecimal, byte[]> t = factory.typeOf("Z", field, 0, 0);
+        ZonedDecimal decimal = (ZonedDecimal)t;
+        byte zoneNibble = (byte) (Charset.forName("sjis").encode("1").get() & 0xF0);
+        decimal.setZoneNibble(zoneNibble);
+
+        // 空文字 の場合
+        assertThat(decimal.convertOnRead("".getBytes()), is(new BigDecimal("0")));
+    }
+
+    /**
+     * null と 空文字を出力するテスト。
+     * デフォルト値(0)を出力する。
+     */
+    @Test
+    public void testWriteValidSingularValue() {
+        DataType<BigDecimal, byte[]> t = factory.typeOf("Z", field, 5, 0);
+        ZonedDecimal decimal = (ZonedDecimal)t;
+        byte zoneNibble = (byte) (Charset.forName("sjis").encode("1").get() & 0xF0);
+        decimal.setZoneNibble(zoneNibble);
+
+        // null の場合
+        assertThat(decimal.convertOnWrite(null), is("00000".getBytes()));
+        // 空文字 の場合
+        assertThat(decimal.convertOnWrite(""), is("00000".getBytes()));
+    }
 
     /**
      * BigDecimalに変換できないオブジェクトが渡された場合に例外がスローされるテスト。
@@ -536,25 +598,6 @@ public class ZonedDecimalTest {
     public void testWriteObjectNotBigDecimal() {
         ZonedDecimal decimal = new ZonedDecimal();
 
-        /*
-         * nullの場合
-         */
-        try {
-            decimal.convertOnWrite(null);
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must not be null."));
-        }
-
-        /*
-         * 文字列の場合
-         */
-        try {
-            decimal.convertOnWrite("");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[]."));
-        }
         try {
             decimal.convertOnWrite("abc");
             fail();
@@ -573,8 +616,52 @@ public class ZonedDecimalTest {
             assertThat(e.getMessage(), startsWith("invalid parameter was specified. parameter must be able to convert to BigDecimal."));
         }
     }
-    
-    
+
+    /**
+     * 出力時のパラメータがnullの場合にデフォルト値を出力するテスト。
+     */
+    @Test
+    public void testWriteDefault() throws Exception {
+        File formatFile = Hereis.file("./format.fmt");
+        /**********************************************
+         # ファイルタイプ
+         file-type:    "Fixed"
+         # 文字列型フィールドの文字エンコーディング
+         text-encoding: "sjis"
+
+         # 各レコードの長さ
+         record-length: 10
+
+         # データレコード定義
+         [Default]
+         1  signedZDigits  SZ(10, "", "3", "7")   123
+         ***************************************************/
+        formatFile.deleteOnExit();
+        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
+                .addBasePathSetting("format", "file:./")
+                .addFileExtensions("format", "fmt");
+
+        DataRecord record = new DataRecord() {{
+            put("signedZDigits", null);
+        }};
+
+        OutputStream dest = new FileOutputStream("./record.dat", false);
+        createWriteFormatter(new File("format.fmt"), dest);
+        formatter.writeRecord(record);
+
+        formatter.close();
+
+        InputStream source = new BufferedInputStream(
+                new FileInputStream("record.dat"));
+
+        byte[] actual = new byte[10];
+        source.read(actual);
+
+        assertThat(actual, is("0000000123".getBytes()));
+
+        source.close();
+        new File("record.dat").deleteOnExit();
+    }
     
     /**
      * 出力時の最大値／最小値のテスト。

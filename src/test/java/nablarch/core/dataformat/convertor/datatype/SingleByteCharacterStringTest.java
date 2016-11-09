@@ -7,11 +7,11 @@ import nablarch.core.dataformat.FormatterFactory;
 import nablarch.core.dataformat.InvalidDataFormatException;
 import nablarch.core.dataformat.SyntaxErrorException;
 import nablarch.test.support.tool.Hereis;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 
 import static nablarch.core.dataformat.DataFormatTestUtils.createInputStreamFrom;
@@ -36,6 +36,8 @@ import static org.junit.Assert.fail;
  */
 public class SingleByteCharacterStringTest {
 
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     /**
      * シングルバイトのパラメータが数値型でない場合に、例外がスローされることの確認。
@@ -197,7 +199,20 @@ public class SingleByteCharacterStringTest {
             assertThat(e.getFilePath(), endsWith("format.fmt"));
         }
     }
-    
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        SingleByteCharacterString datatype = new SingleByteCharacterString();
+
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[SingleByteCharacterString].");
+
+        datatype.initialize(null);
+    }
+
     /**
      * 初期化時のパラメータ不正テスト。
      */
@@ -217,7 +232,17 @@ public class SingleByteCharacterStringTest {
         }
         
     }
-    
+
+    /**
+     * 入力時にパラメータが空白の場合のテスト。
+     */
+    @Test
+    public void testReadEmpty() throws Exception {
+        SingleByteCharacterString singleByteCharacter = new SingleByteCharacterString();
+        singleByteCharacter.init(new FieldDefinition().setEncoding(Charset.forName("MS932")), 10);
+        assertThat("", is(singleByteCharacter.convertOnRead("".getBytes())));
+    }
+
     /**
      * 出力時にパラメータがnullまたは空白の場合のテスト。
      */
@@ -228,5 +253,53 @@ public class SingleByteCharacterStringTest {
         assertThat("          ".getBytes("MS932"), is(singleByteCharacter.convertOnWrite(null)));
         assertThat("          ".getBytes("MS932"), is(singleByteCharacter.convertOnWrite("")));
     }
-    
+
+    /**
+     * 出力時にパラメータがnullの場合にデフォルト値を出力するテスト。
+     */
+    @Test
+    public void testWriteDefault() throws Exception {
+
+        File formatFile = Hereis.file("./format.fmt");
+        /**********************************************
+         # ファイルタイプ
+         file-type:    "Fixed"
+         # 文字列型フィールドの文字エンコーディング
+         text-encoding: "sjis"
+         # 各レコードの長さ
+         record-length: 10
+
+         # データレコード定義
+         [Default]
+         1    singleByteString     X(10)   "abc"
+         ***************************************************/
+        formatFile.deleteOnExit();
+
+        File outputFile = new File("test.dat");
+        FileOutputStream outputStream = new FileOutputStream(outputFile);
+
+        DataRecordFormatter formatter =
+                FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile);
+        formatter.setOutputStream(outputStream).initialize();
+
+        DataRecord dataRecord = new DataRecord(){{
+            put("singleByteString", null);
+        }};
+
+        formatter.writeRecord(dataRecord);
+        formatter.close();
+
+        assertThat(readLineFrom(outputFile, "sjis"), is("abc       "));
+    }
+    /** 指定ファイルから一行読み込む */
+    private String readLineFrom(File outputFile, String encoding)
+            throws UnsupportedEncodingException, FileNotFoundException {
+        BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(outputFile), encoding));
+        try {
+            return reader.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
