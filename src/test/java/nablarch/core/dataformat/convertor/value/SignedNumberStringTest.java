@@ -35,7 +35,7 @@ public class SignedNumberStringTest {
 
     @Test
     public void writeNull() throws Exception {
-        assertThat(sut.convertOnWrite(null), isEmptyString());
+        assertThat(sut.convertOnWrite(null), is(nullValue()));
     }
 
     @Test
@@ -47,11 +47,8 @@ public class SignedNumberStringTest {
     }
 
     @Test
-    public void writeEmptyString_shouldThrowException() throws Exception {
-        expectedException.expect(InvalidDataFormatException.class);
-        expectedException.expectMessage("invalid parameter format was specified." 
-                + " parameter format must be [^[+-]?([0-9][0-9]*)?[0-9](\\.[0-9]*[0-9])?$]. value=[].");
-        sut.convertOnWrite("");
+    public void writeEmptyString() throws Exception {
+        assertThat(sut.convertOnWrite(""), isEmptyString());
     }
 
     @Test

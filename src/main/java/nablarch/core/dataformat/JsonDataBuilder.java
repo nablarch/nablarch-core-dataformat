@@ -204,17 +204,22 @@ public class JsonDataBuilder extends StructuredDataEditorSupport implements Stru
         int arraySize = 0;
         if (map != null && map.containsKey(mapKey)) {
             String[] arr = (String[]) map.get(mapKey);
-            arraySize = arr.length;
-            sb.append(editJsonKey(fd.getName()) + ":[");
-            for (int i = 0; i < arr.length; i++) {
-                if (i > 0) {
-                    sb.append(",");
+            if (arr != null) {
+                arraySize = arr.length;
+                sb.append(editJsonKey(fd.getName()) + ":[");
+                for (int i = 0; i < arr.length; i++) {
+                    if (i > 0) {
+                        sb.append(",");
+                    }
+                    Object writeVal = convertToFieldOnWrite(arr[i], fd);
+                    sb.append(editJsonDataString(writeVal, fd));
+                    outCount++;
                 }
-                Object writeVal = convertToFieldOnWrite(arr[i], fd);
-                sb.append(editJsonDataString(writeVal, fd));
+                sb.append("]");
+            } else {
+                sb.append(editJsonKey(fd.getName()) + ':' + editJsonDataString(arr, fd));
                 outCount++;
             }
-            sb.append("]");
         }
         // Listの長さチェック実行
         checkArrayLength(fd, arraySize, currentKeyBase);
@@ -235,9 +240,15 @@ public class JsonDataBuilder extends StructuredDataEditorSupport implements Stru
     private int writeObject(StringBuilder sb, LayoutDefinition ld, RecordDefinition nrd, FieldDefinition fd, 
             String mapKey, Map<String, ?> map) {
         int outCount = 0;
-        String jsonString = createJsonString(mapKey, map, ld, nrd, true);
-        if (jsonString == null) {
-            jsonString = "";
+
+        String jsonString;
+        if (map.containsKey(mapKey) && map.get(mapKey) == null) {
+            jsonString = null;
+        } else {
+            jsonString = createJsonString(mapKey, map, ld, nrd, true);
+            if (jsonString == null) {
+                jsonString = "";
+            }
         }
         outCount++;
         sb.append(editJsonKey(fd.getName()) + ":" + editJsonDataString(jsonString, fd));

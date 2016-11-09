@@ -132,6 +132,8 @@ public class JsonDataParser extends StructuredDataEditorSupport implements Struc
                         // Object
                         RecordDefinition next = layoutDef.getRecordType(fieldDef.getName());
                         makeFlatMap(mapKey, outMap, layoutDef, next, childMap);
+                    } else if (structuredMap.containsKey(fieldDef.getName())) {
+                        outMap.put(mapKey, null);
                     }
                 } else {
                     // 読み込みオブジェクト取得
