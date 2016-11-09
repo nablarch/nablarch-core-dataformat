@@ -2451,10 +2451,10 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
     }
 
     /**
-     * 空文字のファイルを読み込んだ場合、1レコードも取得できないことを確認。
+     * 空の項目が設定されたファイルを読み込んだ場合に、空文字で読み込めること
      */
     @Test
-    public void testBlankRecord() throws Exception {
+    public void testBlankField() throws Exception {
         formatFile = Hereis.file("./test.fmt");
         /*****************************************
          file-type:    "Variable"
@@ -2470,11 +2470,11 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
          *****************************************/
         formatFile.deleteOnExit();
 
-        source = new ByteArrayInputStream("".getBytes("ms932"));
+        source = new ByteArrayInputStream("タイトル,,著者,1000".getBytes("ms932"));
         formatter = createReadFormatter(formatFile, source);
 
-        assertThat(formatter.hasNext(), is(false));
-        assertThat(formatter.readRecord(), is(nullValue()));
+        DataRecord record = formatter.readRecord();
+        assertThat(record.getString("Publisher"), is(""));
     }
 
     /**
@@ -2490,11 +2490,12 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
          field-separator:  ","    # カンマ区切り
 
          [data]
-         1 number X number
+         1 key X
+         2 number X number
          *****************************************/
         formatFile.deleteOnExit();
 
-        source = new ByteArrayInputStream("123456".getBytes("ms932"));
+        source = new ByteArrayInputStream("value,123456".getBytes("ms932"));
         formatter = createReadFormatter(formatFile, source);
 
         assertThat(formatter.hasNext(), is(true));
@@ -2514,15 +2515,16 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
          field-separator:  ","    # カンマ区切り
 
          [data]
-         1 number X number
+         1 key X
+         2 number X number
          *****************************************/
         formatFile.deleteOnExit();
 
-        source = new ByteArrayInputStream("".getBytes("ms932"));
+        source = new ByteArrayInputStream("value,".getBytes("ms932"));
         formatter = createReadFormatter(formatFile, source);
 
-        assertThat(formatter.hasNext(), is(false));
-        assertThat(formatter.readRecord(), is(nullValue()));
+        assertThat(formatter.hasNext(), is(true));
+        assertThat(formatter.readRecord().get("number"), is(nullValue()));
     }
 
     /**
@@ -2538,11 +2540,12 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
          field-separator:  ","    # カンマ区切り
 
          [data]
-         1 number X number
+         1 key X
+         2 number X number
          *****************************************/
         formatFile.deleteOnExit();
 
-        source = new ByteArrayInputStream("value".getBytes("ms932"));
+        source = new ByteArrayInputStream("value1,value2".getBytes("ms932"));
         formatter = createReadFormatter(formatFile, source);
 
         try {
@@ -2566,11 +2569,12 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
          field-separator:  ","    # カンマ区切り
 
          [data]
-         1 number X signed_number
+         1 key X
+         2 number X signed_number
          *****************************************/
         formatFile.deleteOnExit();
 
-        source = new ByteArrayInputStream("-123456".getBytes("ms932"));
+        source = new ByteArrayInputStream("value,-123456".getBytes("ms932"));
         formatter = createReadFormatter(formatFile, source);
 
         assertThat(formatter.hasNext(), is(true));
@@ -2590,15 +2594,16 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
          field-separator:  ","    # カンマ区切り
 
          [data]
-         1 number X signed_number
+         1 key X
+         2 number X signed_number
          *****************************************/
         formatFile.deleteOnExit();
 
-        source = new ByteArrayInputStream("".getBytes("ms932"));
+        source = new ByteArrayInputStream("value,".getBytes("ms932"));
         formatter = createReadFormatter(formatFile, source);
 
-        assertThat(formatter.hasNext(), is(false));
-        assertThat(formatter.readRecord(), is(nullValue()));
+        assertThat(formatter.hasNext(), is(true));
+        assertThat(formatter.readRecord().get("number"), is(nullValue()));
     }
 
     /**
@@ -2614,11 +2619,12 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
          field-separator:  ","    # カンマ区切り
 
          [data]
-         1 number X signed_number
+         1 key X
+         2 number X signed_number
          *****************************************/
         formatFile.deleteOnExit();
 
-        source = new ByteArrayInputStream("value".getBytes("ms932"));
+        source = new ByteArrayInputStream("value1,value2".getBytes("ms932"));
         formatter = createReadFormatter(formatFile, source);
 
         try {

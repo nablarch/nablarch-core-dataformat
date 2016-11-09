@@ -1211,11 +1211,13 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
          requires-title: false
 
          [DataRecord]
-         1 number X number
+         1 key X
+         2 number X number
          *****************************************/
         formatFile.deleteOnExit();
 
         Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key", "value");
             put("number", 123456);
         }};
 
@@ -1229,7 +1231,7 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
 
         assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
         /**********************************************************************
-        123456
+        value,123456
         **********************************************************************/
     }
 
@@ -1249,11 +1251,13 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
          requires-title: false
 
          [DataRecord]
-         1 number X number
+         1 key X
+         2 number X number
          *****************************************/
         formatFile.deleteOnExit();
 
         Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key", "value");
             put("number", null);
         }};
 
@@ -1267,7 +1271,7 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
 
         assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
         /**********************************************************************
-
+        value,
         **********************************************************************/
     }
 
@@ -1287,12 +1291,14 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
          requires-title: false
 
          [DataRecord]
-         1 number X number
+         1 key X
+         2 number X number
          *****************************************/
         formatFile.deleteOnExit();
 
         Map<String, Object> recordMap = new HashMap<String, Object>() {{
-            put("number", "value");
+            put("key", "value1");
+            put("number", "value2");
         }};
 
         File outputData = new File("./output.dat");
@@ -1325,11 +1331,13 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
          requires-title: false
 
          [DataRecord]
-         1 number X signed_number
+         1 key X
+         2 number X signed_number
          *****************************************/
         formatFile.deleteOnExit();
 
         Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key", "value");
             put("number", -123456);
         }};
 
@@ -1343,7 +1351,7 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
 
         assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
         /**********************************************************************
-        -123456
+        value,-123456
         **********************************************************************/
     }
 
@@ -1363,11 +1371,13 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
          requires-title: false
 
          [DataRecord]
-         1 number X signed_number
+         1 key X
+         2 number X signed_number
          *****************************************/
         formatFile.deleteOnExit();
 
         Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key", "value");
             put("number", null);
         }};
 
@@ -1381,7 +1391,7 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
 
         assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
         /**********************************************************************
-
+        value,
         **********************************************************************/
     }
 
@@ -1401,12 +1411,14 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
          requires-title: false
 
          [DataRecord]
-         1 number X signed_number
+         1 key X
+         2 number X signed_number
          *****************************************/
         formatFile.deleteOnExit();
 
         Map<String, Object> recordMap = new HashMap<String, Object>() {{
-            put("number", "value");
+            put("key", "value1");
+            put("number", "value2");
         }};
 
         File outputData = new File("./output.dat");
