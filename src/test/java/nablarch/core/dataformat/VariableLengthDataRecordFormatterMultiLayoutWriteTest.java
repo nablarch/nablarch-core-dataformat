@@ -1356,7 +1356,7 @@ public class VariableLengthDataRecordFormatterMultiLayoutWriteTest {
     }
 
     /**
-     * 識別項目の値がnullの場合、エラーとなること
+     * 識別項目の値にnullを指定した場合でも出力できること。
      */
     @Test
     public void testClassifierNullValue() throws Exception {
@@ -1395,14 +1395,10 @@ public class VariableLengthDataRecordFormatterMultiLayoutWriteTest {
         OutputStream dest = new FileOutputStream(outputData, false);
 
         formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
-
-        try {
-            formatter.writeRecord("Type1", recordMap);
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), containsString("this record could not be applied to the record type."));
-            assertThat(e.getMessage(), containsString("record type=[Type1]"));
-
-        }
+        formatter.writeRecord("Type1", recordMap);
+        assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
+        /**********************************************************************
+        ,value1
+        **********************************************************************/
     }
 }
