@@ -1374,12 +1374,12 @@ public class VariableLengthDataRecordFormatterMultiLayoutWriteTest {
 
          [Type1]
          type = "1"
-         1 type  X
+         1 type  X "1"
          2 key1  X
 
          [Type2]
          type = "2"
-         1 type  X
+         1 type  X "2"
          2 key2  X
          *****************************************/
         formatFile.deleteOnExit();
@@ -1398,7 +1398,7 @@ public class VariableLengthDataRecordFormatterMultiLayoutWriteTest {
         formatter.writeRecord("Type1", recordMap);
         assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
         /**********************************************************************
-        ,value1
+        1,value1
         **********************************************************************/
     }
 }
