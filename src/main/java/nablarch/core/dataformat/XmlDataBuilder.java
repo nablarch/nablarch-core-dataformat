@@ -213,10 +213,16 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
      */
     private void writeStringArray(XMLStreamWriter writer, FieldDefinition fd, String currentKeyBase, String mapKey, Map<String, ?> map)
             throws XMLStreamException {
-        if (map != null && map.containsKey(mapKey)) {
+        if (map != null && map.containsKey(mapKey) && map.get(mapKey) != null) {
             String[] arr = (String[]) map.get(mapKey);
+
             // 配列の長さチェック実施
             checkArrayLength(fd, arr.length, currentKeyBase);
+
+            for (int i = 0; i < arr.length; i++) {
+                // 必須チェック実施
+                checkIndispensable(currentKeyBase, fd, arr[i]);
+            }
 
             for (int i = 0; i < arr.length; i++) {
                 writer.writeStartElement(fd.getName());
@@ -292,7 +298,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
         // 必須チェック実施
         checkIndispensable(currentKeyBase, fd, writeVal);
 
-        if (map != null && map.containsKey(mapKey) || writeVal != null) {
+        if (map != null && map.containsKey(mapKey) || fd.isRequired()) {
             if (fd.isAttribute()) {
                 writer.writeAttribute(fd.getName(), StringUtil.toString(writeVal));
             } else if (fd.getName().equals(contentName)) {

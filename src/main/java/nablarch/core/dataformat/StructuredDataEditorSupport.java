@@ -33,7 +33,7 @@ public abstract class StructuredDataEditorSupport {
 
     /**
      * 必須チェック用の関数 <br>
-     * targetObjectがNullで必須項目の場合は<br>
+     * targetObjectがNullまたは空文字で必須項目の場合は<br>
      * throwInvalidDataFormatExceptionを実行
      *
      * @param baseKey      キー
@@ -54,7 +54,7 @@ public abstract class StructuredDataEditorSupport {
             return;
         }
 
-        if (targetObject == null) {
+        if (targetObject == null || "".equals(targetObject)) {
             throw new InvalidDataFormatException(String.format(
                     "BaseKey = %s,Field %s is required", baseKey, fd.getName()));
         }
