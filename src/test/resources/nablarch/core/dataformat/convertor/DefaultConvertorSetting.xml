@@ -35,6 +35,8 @@
               <entry key="X" value="nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString"/>
               <entry key="N" value="nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString"/>
               <entry key="XN" value="nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString"/>
+              <entry key="X9" value="nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString"/>
+              <entry key="SX9" value="nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString"/>
               <entry key="pad" value="nablarch.core.dataformat.convertor.value.Padding"/>
               <entry key="encoding" value="nablarch.core.dataformat.convertor.value.UseEncoding"/>
               <entry key="_LITERAL_" value="nablarch.core.dataformat.convertor.value.DefaultValue"/>
