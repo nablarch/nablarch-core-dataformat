@@ -22,18 +22,20 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.util.Map;
 
 import static nablarch.test.StringMatcher.endsWith;
 import static nablarch.test.StringMatcher.startsWith;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.matchers.JUnitMatchers.containsString;
 
 /**
  * 可変長ファイルフォーマッタのシングルレイアウトのテストケース。
@@ -2448,4 +2450,188 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
         }
     }
 
+    /**
+     * 空の項目が設定されたファイルを読み込んだ場合に、空文字で読み込めること
+     */
+    @Test
+    public void testBlankField() throws Exception {
+        formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:    "ms932"
+         record-separator: "\r\n" # CRLFで改行
+         field-separator:  ","    # カンマ区切り
+
+         [Books]
+         1   Title      X          # タイトル
+         2   Publisher  X          # 出版社
+         3   Authors    X          # 著者
+         4   Price      X Number   # 価格
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        source = new ByteArrayInputStream("タイトル,,著者,1000".getBytes("ms932"));
+        formatter = createReadFormatter(formatFile, source);
+
+        DataRecord record = formatter.readRecord();
+        assertThat(record.getString("Publisher"), is(""));
+    }
+
+    /**
+     * Numberコンバータによって数値型に変換されていること
+     */
+    @Test
+    public void testNumber() throws Exception {
+        formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:    "ms932"
+         record-separator: "\r\n" # CRLFで改行
+         field-separator:  ","    # カンマ区切り
+
+         [data]
+         1 key X
+         2 number X number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        source = new ByteArrayInputStream("value,123456".getBytes("ms932"));
+        formatter = createReadFormatter(formatFile, source);
+
+        assertThat(formatter.hasNext(), is(true));
+        assertThat(formatter.readRecord().get("number"), is((Object) new BigDecimal("123456")));
+    }
+
+    /**
+     * Numberコンバータの値に空文字が設定されていてもエラーが発生しないこと
+     */
+    @Test
+    public void testNumberBlank() throws Exception {
+        formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:    "ms932"
+         record-separator: "\r\n" # CRLFで改行
+         field-separator:  ","    # カンマ区切り
+
+         [data]
+         1 key X
+         2 number X number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        source = new ByteArrayInputStream("value,".getBytes("ms932"));
+        formatter = createReadFormatter(formatFile, source);
+
+        assertThat(formatter.hasNext(), is(true));
+        assertThat(formatter.readRecord().get("number"), is(nullValue()));
+    }
+
+    /**
+     * Numberコンバータで数値に変換できない値の場合にエラーとなること
+     */
+    @Test
+    public void testNumberFailed() throws Exception {
+        formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:    "ms932"
+         record-separator: "\r\n" # CRLFで改行
+         field-separator:  ","    # カンマ区切り
+
+         [data]
+         1 key X
+         2 number X number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        source = new ByteArrayInputStream("value1,value2".getBytes("ms932"));
+        formatter = createReadFormatter(formatFile, source);
+
+        try {
+            formatter.readRecord();
+            fail();
+        } catch (InvalidDataFormatException e) {
+            assertThat(e.getMessage(), containsString("invalid parameter format was specified."));
+        }
+    }
+
+    /**
+     * SignedNumberコンバータによって数値型に変換されていること
+     */
+    @Test
+    public void testSignedNumber() throws Exception {
+        formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:    "ms932"
+         record-separator: "\r\n" # CRLFで改行
+         field-separator:  ","    # カンマ区切り
+
+         [data]
+         1 key X
+         2 number X signed_number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        source = new ByteArrayInputStream("value,-123456".getBytes("ms932"));
+        formatter = createReadFormatter(formatFile, source);
+
+        assertThat(formatter.hasNext(), is(true));
+        assertThat(formatter.readRecord().get("number"), is((Object) new BigDecimal("-123456")));
+    }
+
+    /**
+     * SignedNumberコンバータの値に空文字が設定されていてもエラーが発生しないこと
+     */
+    @Test
+    public void testSignedNumberBlank() throws Exception {
+        formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:    "ms932"
+         record-separator: "\r\n" # CRLFで改行
+         field-separator:  ","    # カンマ区切り
+
+         [data]
+         1 key X
+         2 number X signed_number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        source = new ByteArrayInputStream("value,".getBytes("ms932"));
+        formatter = createReadFormatter(formatFile, source);
+
+        assertThat(formatter.hasNext(), is(true));
+        assertThat(formatter.readRecord().get("number"), is(nullValue()));
+    }
+
+    /**
+     * SignedNumberコンバータで数値に変換できない値の場合にエラーとなること
+     */
+    @Test
+    public void testSignedNumberFailed() throws Exception {
+        formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:    "ms932"
+         record-separator: "\r\n" # CRLFで改行
+         field-separator:  ","    # カンマ区切り
+
+         [data]
+         1 key X
+         2 number X signed_number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        source = new ByteArrayInputStream("value1,value2".getBytes("ms932"));
+        formatter = createReadFormatter(formatFile, source);
+
+        try {
+            formatter.readRecord();
+            fail();
+        } catch (InvalidDataFormatException e) {
+            assertThat(e.getMessage(), containsString("invalid parameter format was specified."));
+        }
+    }
 }

@@ -17,12 +17,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static nablarch.test.StringMatcher.startsWith;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.matchers.JUnitMatchers.containsString;
 
 /**
  * 可変長ファイルフォーマッタのシングルレイアウトのテストケース。
@@ -289,14 +289,12 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
 
         dest = new FileOutputStream(outputData, false);
         formatter.setOutputStream(dest).initialize();
-        
-        try{
-            formatter.writeRecord(recordMap);
-            fail();
-        } catch(Exception e) {
-            assertTrue(e instanceof IllegalArgumentException);
-            assertEquals("field value was not set. field value must be set. field name=[FIcode].", e.getMessage());
-        }
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), charset), is(Hereis.string().replaceAll(LS, recordSeparator)));
+        /***********************************
+        "","","ﾏｺ1","ﾏﾂﾄﾞｺｶﾞﾈﾊﾗｼﾃﾝ","1","7778888","ﾀﾞｲｱﾅ ﾛｽ","3020","N","ﾀｸｼｰﾀﾞｲｷﾝﾃﾞｽ","4",""
+        ************************************/
     }
     
     /**
@@ -604,8 +602,6 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
             assertTrue(true);
         }
         dest.close();
-        
-        
 
         /**
          * Mapのキーを設定しない場合、それらが空白のカラムとして出力されるパターン。
@@ -621,17 +617,17 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
 
         dest = new FileOutputStream(outputData, false);
         formatter.setOutputStream(dest).initialize();
-        try {
-            formatter.writeRecord(recordMap);
-            fail();
-        } catch (IllegalArgumentException e){
-            assertTrue(true);
-        }
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), charset), is(Hereis.string().replaceAll(LS, recordSeparator)));
+        /***********************************
+        "","","","","","","","","","","",""
+        ************************************/
+
         dest.close();
 
-        
         /**
-         * Mapの値を設定しない場合、例外がスローされるパターン。
+         * Mapのキーに値を設定しない場合、空白のカラムとして出力されるパターン。
          */
         recordMap = new HashMap<String, Object>() {{
             put("FIcode",        null);
@@ -653,17 +649,16 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
         
         formatter = 
                 createFormatterSimple(enclose, fieldSeparator, recordSeparator, charset);
+        dest = new FileOutputStream(outputData, false);
         formatter.setOutputStream(dest).initialize();
-        try {
-            formatter.writeRecord(recordMap);
-            fail();
-        } catch(Exception e) {
-            assertTrue(e instanceof IllegalArgumentException);
-            assertEquals("field value was not set. field value must be set. field name=[FIcode].", e.getMessage());
-        }
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), charset), is(Hereis.string().replaceAll(LS, recordSeparator)));
+        /***********************************
+        "","","","","","","","","","","",""
+        ************************************/
+
         dest.close();
-
-
     }
     
 
@@ -1160,4 +1155,284 @@ public class VariableLengthDataRecordFormatterSingleLayoutWriteTest {
         }
 
     }
+
+    /**
+     * Mapに設定された値がnullでもエラーとならずに出力されること
+     */
+    @Test
+    public void testNullValue() throws Exception {
+
+        File formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:     "UTF-8"
+         record-separator:  "\n"
+         field-separator:   ","
+         requires-title: false
+
+         [DataRecord]
+         1 key1 X
+         2 key2 X
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key1", "value1");
+            put("key2", null);
+        }};
+
+        File outputData = new File("./output.dat");
+        outputData.deleteOnExit();
+        OutputStream dest = new FileOutputStream(outputData, false);
+
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
+        /**********************************************************************
+        value1,
+        **********************************************************************/
+    }
+
+    /**
+     * Numberコンバータを使用できること
+     * @throws Exception
+     */
+    @Test
+    public void testNumber() throws Exception {
+
+        File formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:     "UTF-8"
+         record-separator:  "\n"
+         field-separator:   ","
+         requires-title: false
+
+         [DataRecord]
+         1 key X
+         2 number X number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key", "value");
+            put("number", 123456);
+        }};
+
+        File outputData = new File("./output.dat");
+        outputData.deleteOnExit();
+        OutputStream dest = new FileOutputStream(outputData, false);
+
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
+        /**********************************************************************
+        value,123456
+        **********************************************************************/
+    }
+
+    /**
+     * Numberコンバータでnullの場合に空文字が出力されること
+     * @throws Exception
+     */
+    @Test
+    public void testNumberNull() throws Exception {
+
+        File formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:     "UTF-8"
+         record-separator:  "\n"
+         field-separator:   ","
+         requires-title: false
+
+         [DataRecord]
+         1 key X
+         2 number X number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key", "value");
+            put("number", null);
+        }};
+
+        File outputData = new File("./output.dat");
+        outputData.deleteOnExit();
+        OutputStream dest = new FileOutputStream(outputData, false);
+
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
+        /**********************************************************************
+        value,
+        **********************************************************************/
+    }
+
+    /**
+     * Numberコンバータで数値でない場合にエラーとなること
+     * @throws Exception
+     */
+    @Test
+    public void testNumberFailed() throws Exception {
+
+        File formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:     "UTF-8"
+         record-separator:  "\n"
+         field-separator:   ","
+         requires-title: false
+
+         [DataRecord]
+         1 key X
+         2 number X number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key", "value1");
+            put("number", "value2");
+        }};
+
+        File outputData = new File("./output.dat");
+        outputData.deleteOnExit();
+        OutputStream dest = new FileOutputStream(outputData, false);
+
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        try {
+            formatter.writeRecord(recordMap);
+            fail();
+        } catch (InvalidDataFormatException e) {
+            assertThat(e.getMessage(), containsString("invalid parameter format was specified."));
+        }
+    }
+
+    /**
+     * SignedNumberコンバータを使用できること
+     * @throws Exception
+     */
+    @Test
+    public void testSignedNumber() throws Exception {
+
+        File formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:     "UTF-8"
+         record-separator:  "\n"
+         field-separator:   ","
+         requires-title: false
+
+         [DataRecord]
+         1 key X
+         2 number X signed_number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key", "value");
+            put("number", -123456);
+        }};
+
+        File outputData = new File("./output.dat");
+        outputData.deleteOnExit();
+        OutputStream dest = new FileOutputStream(outputData, false);
+
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
+        /**********************************************************************
+        value,-123456
+        **********************************************************************/
+    }
+
+    /**
+     * SignedNumberコンバータでnullの場合に空文字が出力されること
+     * @throws Exception
+     */
+    @Test
+    public void testSignedNumberNull() throws Exception {
+
+        File formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:     "UTF-8"
+         record-separator:  "\n"
+         field-separator:   ","
+         requires-title: false
+
+         [DataRecord]
+         1 key X
+         2 number X signed_number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key", "value");
+            put("number", null);
+        }};
+
+        File outputData = new File("./output.dat");
+        outputData.deleteOnExit();
+        OutputStream dest = new FileOutputStream(outputData, false);
+
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        formatter.writeRecord(recordMap);
+
+        assertThat(fileToString(new File("./output.dat"), "ms932"), is(Hereis.string().replace(LS, "\n")));
+        /**********************************************************************
+        value,
+        **********************************************************************/
+    }
+
+    /**
+     * SignedNumberコンバータで数値でない場合にエラーとなること
+     * @throws Exception
+     */
+    @Test
+    public void testSignedNumberFailed() throws Exception {
+
+        File formatFile = Hereis.file("./test.fmt");
+        /*****************************************
+         file-type:    "Variable"
+         text-encoding:     "UTF-8"
+         record-separator:  "\n"
+         field-separator:   ","
+         requires-title: false
+
+         [DataRecord]
+         1 key X
+         2 number X signed_number
+         *****************************************/
+        formatFile.deleteOnExit();
+
+        Map<String, Object> recordMap = new HashMap<String, Object>() {{
+            put("key", "value1");
+            put("number", "value2");
+        }};
+
+        File outputData = new File("./output.dat");
+        outputData.deleteOnExit();
+        OutputStream dest = new FileOutputStream(outputData, false);
+
+        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(formatFile).setOutputStream(dest).initialize();
+
+        try {
+            formatter.writeRecord(recordMap);
+            fail();
+        } catch (InvalidDataFormatException e) {
+            assertThat(e.getMessage(), containsString("invalid parameter format was specified."));
+        }
+    }
+
 }

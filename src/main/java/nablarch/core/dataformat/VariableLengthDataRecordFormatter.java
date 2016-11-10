@@ -755,11 +755,6 @@ public class VariableLengthDataRecordFormatter extends DataRecordFormatterSuppor
             for (ValueConvertor convertor : field.getConvertors()) {
                 data = convertor.convertOnWrite(data);
             }
-    
-            if (data == null) {
-                throw new IllegalArgumentException(String.format(
-                        "field value was not set. field value must be set. field name=[%s].", field.getName()));
-            }
 
             // データタイプを実行する       
             CharacterStreamDataString dataType = (CharacterStreamDataString) field
