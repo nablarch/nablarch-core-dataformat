@@ -4,8 +4,6 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://tis.co.jp/nablarch/component-configuration component-configuration.xsd">
 
-  <import file="nablarch/core/dataformat/convertor/DefaultConvertorSetting.xml" />
-
   <component name="characterReplacementManager" class="nablarch.core.dataformat.CharacterReplacementManager">
     <property name="configList">
       <list>
