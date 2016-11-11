@@ -5,7 +5,9 @@ import nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString;
 import nablarch.core.dataformat.convertor.datatype.DataType;
 import nablarch.core.dataformat.convertor.value.ValueConvertor;
 import nablarch.core.dataformat.convertor.value.ValueConvertorSupport;
-import nablarch.test.support.SystemRepositoryResource;
+import nablarch.core.repository.ObjectLoader;
+import nablarch.core.repository.SystemRepository;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -18,6 +20,7 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -38,9 +41,6 @@ import static org.junit.Assert.assertThat;
 public class XmlDataParserTest  {
 
     @Rule
-    public SystemRepositoryResource repositoryResource = new SystemRepositoryResource("nablarch/core/dataformat/convertor/DefaultConvertorSetting.xml");
-
-    @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Rule
@@ -48,7 +48,12 @@ public class XmlDataParserTest  {
 
     /** テスト対象 */
     private XmlDataParser sut = new XmlDataParser();
-    
+
+    @After
+    public void tearDown() throws Exception {
+        SystemRepository.clear();
+    }
+
     @Test
     public void ルート要素の必須属性に値が設定されているXMLを読み込めること() throws Exception {
 
@@ -2813,14 +2818,22 @@ public class XmlDataParserTest  {
     public void replacementコンバータで置換されること() throws Exception {
 
         // 寄せ字用のコンポーネント定義
-        CharacterReplacementConfig config = new CharacterReplacementConfig();
-        config.setTypeName("type");
-        config.setFilePath("classpath:nablarch/core/dataformat/replacement.properties");
-        config.setEncoding("UTF-8");
-        CharacterReplacementManager characterReplacementManager = new CharacterReplacementManager();
-        characterReplacementManager.setConfigList(Arrays.asList(config));
-        characterReplacementManager.initialize();
-        repositoryResource.addComponent("characterReplacementManager", characterReplacementManager);
+        SystemRepository.load(new ObjectLoader() {
+            @Override
+            public Map<String, Object> load() {
+                return new HashMap<String, Object>() {{
+                    CharacterReplacementConfig config = new CharacterReplacementConfig();
+                    config.setTypeName("type");
+                    config.setFilePath("classpath:nablarch/core/dataformat/replacement.properties");
+                    config.setEncoding("UTF-8");
+                    CharacterReplacementManager characterReplacementManager = new CharacterReplacementManager();
+                    characterReplacementManager.setConfigList(Arrays.asList(config));
+                    characterReplacementManager.initialize();
+                    put("characterReplacementManager", characterReplacementManager);
+                }};
+            }
+        });
+
 
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(
@@ -2848,8 +2861,17 @@ public class XmlDataParserTest  {
     @Test
     public void 独自コンバータが適用されること() throws Exception {
 
-        XmlDataConvertorSetting setting = repositoryResource.getComponent("xmlDataConvertorSetting");
-        setting.getConvertorFactory().getConvertorTable().put("custom", CustomValueConvertor.class);
+        SystemRepository.load(new ObjectLoader() {
+            @Override
+            public Map<String, Object> load() {
+                return new HashMap<String, Object>() {{
+                    XmlDataConvertorSetting setting = new XmlDataConvertorSetting();
+                    setting.getConvertorFactory().getConvertorTable().put("custom", CustomValueConvertor.class);
+                    put("xmlDataConvertorSetting", setting);
+                }};
+            }
+        });
+
 
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(
@@ -2877,8 +2899,17 @@ public class XmlDataParserTest  {
     @Test
     public void 独自フィールドタイプが適用されること() throws Exception {
 
-        XmlDataConvertorSetting setting = repositoryResource.getComponent("xmlDataConvertorSetting");
-        setting.getConvertorFactory().getConvertorTable().put("CM", CustomDataType.class);
+        SystemRepository.load(new ObjectLoader() {
+            @Override
+            public Map<String, Object> load() {
+                return new HashMap<String, Object>() {{
+                    XmlDataConvertorSetting setting = new XmlDataConvertorSetting();
+                    setting.getConvertorFactory().getConvertorTable().put("CM", CustomDataType.class);
+                    put("xmlDataConvertorSetting", setting);
+                }};
+            }
+        });
+
 
         // フォーマット定義
         LayoutDefinition definition = createLayoutDefinition(

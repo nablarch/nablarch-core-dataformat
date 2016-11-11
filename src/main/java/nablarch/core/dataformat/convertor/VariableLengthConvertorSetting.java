@@ -12,7 +12,7 @@ import nablarch.core.repository.SystemRepository;
 public class VariableLengthConvertorSetting implements ConvertorSetting {
 
     /** コンバータのファクトリクラス */
-    private static VariableLengthConvertorFactory factory = new VariableLengthConvertorFactory();
+    private VariableLengthConvertorFactory factory = new VariableLengthConvertorFactory();
 
     /** システムリポジトリ上の登録名 */
     private static final String REPOSITORY_KEY =  "variableLengthConvertorSetting";

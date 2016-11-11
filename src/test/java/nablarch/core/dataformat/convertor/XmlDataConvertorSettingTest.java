@@ -44,16 +44,6 @@ public class XmlDataConvertorSettingTest {
         Map<String, Class<?>> resultTable = setting.getConvertorFactory().getConvertorTable();
         assertSame(CharacterStreamDataString.class, resultTable.get("Test"));
         assertSame(Bytes.class, resultTable.get("Hoge"));
-        
-        SystemRepository.clear();
-        
-        
-        // デフォルトのリポジトリに戻す
-        loader = new XmlComponentDefinitionLoader(
-                "nablarch/core/dataformat/convertor/DefaultConvertorSetting.xml");
-        container = new DiContainer(loader);
-        SystemRepository.clear();
-        SystemRepository.load(container);
     }
     
 }

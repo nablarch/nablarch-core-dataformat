@@ -39,20 +39,10 @@ public class FixedLengthConvertorSettingTest {
         DiContainer container = new DiContainer(loader);
         SystemRepository.load(container);
 
-        FixedLengthConvertorSetting setting = new FixedLengthConvertorSetting();
+        FixedLengthConvertorSetting setting = FixedLengthConvertorSetting.getInstance();
         Map<String, Class<?>> resultTable = setting.getConvertorFactory().getConvertorTable();
         assertSame(SingleByteCharacterString.class, resultTable.get("Test"));
         assertSame(Bytes.class, resultTable.get("Hoge"));
-        
-        SystemRepository.clear();
-        
-        
-        // デフォルトのリポジトリに戻す
-        loader = new XmlComponentDefinitionLoader(
-                "nablarch/core/dataformat/convertor/DefaultConvertorSetting.xml");
-        container = new DiContainer(loader);
-        SystemRepository.load(container);
-        
     }
     
 }
