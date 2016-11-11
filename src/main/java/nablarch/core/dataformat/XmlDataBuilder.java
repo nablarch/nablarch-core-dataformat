@@ -12,6 +12,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import nablarch.core.dataformat.StructuredDataRecordFormatterSupport.StructuredDataDirective;
+import nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString;
 import nablarch.core.dataformat.convertor.value.DefaultValue;
 import nablarch.core.dataformat.convertor.value.ValueConvertor;
 import nablarch.core.util.StringUtil;
@@ -284,46 +285,29 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
      */
     private void writeValue(XMLStreamWriter writer, FieldDefinition fd, String mapKey, Map<String, ?> map, String currentKeyBase)
         throws XMLStreamException {
-        
+
         Object writeVal = null;
-        boolean isDefaultValue = false;
         if (map != null) {
-            String mapVal =
-                    map.get(mapKey) == null ? null : StringUtil.toString(map.get(mapKey));
-
-            List<ValueConvertor> convertorList = fd.getConvertors();
-            for (int i = 0; i < convertorList.size(); i++) {
-                ValueConvertor convertor = convertorList.get(i);
-                if (convertor instanceof DefaultValue) {
-                    isDefaultValue = true;
-                }
-            }
-
-            //キーが設定されていないか、キーは設定されているが値がnullのもの、またはデフォルト値以外はコンバートにかけない
-            if (mapVal != null || isDefaultValue) {
-                writeVal = convertToFieldOnWrite(mapVal, fd);
-            }
+            String mapVal = map.get(mapKey) == null ? null : StringUtil.toString(map.get(mapKey));
+            writeVal = convertToFieldOnWrite(mapVal, fd);
         }
 
         // 必須チェック実施
         checkIndispensable(currentKeyBase, fd, writeVal);
 
-        if (map != null && map.containsKey(mapKey) || isDefaultValue) {
+        if (map != null && map.containsKey(mapKey) || writeVal != null) {
+            CharacterStreamDataString dataType = (CharacterStreamDataString) fd.getDataType();
+            // データタイプのコンバータを実行する
+            writeVal = dataType.convertOnWrite(writeVal);
             if (fd.isAttribute()) {
                 writer.writeAttribute(fd.getName(), StringUtil.toString(writeVal));
             } else if (fd.getName().equals(contentName)) {
-                if (writeVal != null) {
-                    writer.writeCharacters(StringUtil.toString(writeVal));
-                }
+                writer.writeCharacters(StringUtil.toString(writeVal));
             } else {
                 writer.writeStartElement(fd.getName());
-                if (writeVal != null) {
-                    writer.writeCharacters(StringUtil.toString(writeVal));
-                }
+                writer.writeCharacters(StringUtil.toString(writeVal));
                 writer.writeEndElement();
             }
         }
     }
-    
-
 }

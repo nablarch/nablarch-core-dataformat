@@ -9,7 +9,7 @@ import nablarch.core.util.annotation.Published;
  * <p>
  * 入力時には文字列に対して何もせずそのまま返却し、
  * 出力時にはオブジェクトを文字列に変換して返却する。
- * なお、出力時にオブジェクトがnullの場合はnullを返却する。
+ * なお、出力時にオブジェクトがnullの場合は空文字を返却する。
  * </p>
  * @author TIS
  */
