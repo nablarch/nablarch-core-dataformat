@@ -226,15 +226,9 @@ public class SignedNumberStringIntegrationTest {
     public void testFormatCheckOnWrite() throws Exception {
 
         SignedNumberString convertor = new SignedNumberString();
-        
-        // 出力時の空文字は許容されない
+
         String param = "";
-        try {
-            convertor.convertOnWrite(param);
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertTrue(true);
-        }
+        assertEquals(param, convertor.convertOnWrite(param));
         
         param = "a";
         try {

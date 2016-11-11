@@ -28,7 +28,7 @@ public class ExponentialNumberStringTest {
 
     @Test
     public void writeTest() throws Exception {
-        assertThat(sut.convertOnWrite(null), isEmptyString());
+        assertThat(sut.convertOnWrite(null), is(nullValue()));
         assertThat(sut.convertOnWrite(BigDecimal.ONE), is("1"));
         assertThat(sut.convertOnWrite("12345"), is("12345"));
         assertThat(sut.convertOnWrite("1e10"), is("1e10"));

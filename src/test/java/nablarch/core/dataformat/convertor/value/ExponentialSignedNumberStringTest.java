@@ -31,7 +31,7 @@ public class ExponentialSignedNumberStringTest {
         assertThat(sut.convertOnWrite("12345"), is("12345"));
         assertThat(sut.convertOnWrite(BigDecimal.ONE), is("1"));
         assertThat(sut.convertOnWrite(-100), is("-100"));
-        assertThat(sut.convertOnWrite(null), isEmptyString());
+        assertThat(sut.convertOnWrite(null), is(nullValue()));
         assertThat(sut.convertOnWrite(new BigDecimal("-100.1")), is("-100.1"));
         assertThat(sut.convertOnWrite("-1e10"), is("-1e10"));
     }
