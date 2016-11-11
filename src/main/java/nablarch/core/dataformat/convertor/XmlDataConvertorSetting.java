@@ -12,7 +12,7 @@ import nablarch.core.repository.SystemRepository;
 public class XmlDataConvertorSetting implements ConvertorSetting {
 
     /** コンバータのファクトリクラス */
-    private static XmlDataConvertorFactory factory = new XmlDataConvertorFactory();
+    private XmlDataConvertorFactory factory = new XmlDataConvertorFactory();
 
     /** システムリポジトリ上の登録名 */
     private static final String REPOSITORY_KEY =  "xmlDataConvertorSetting";

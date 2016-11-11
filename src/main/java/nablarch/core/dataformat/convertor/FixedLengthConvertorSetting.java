@@ -13,7 +13,7 @@ import nablarch.core.repository.SystemRepository;
 public class FixedLengthConvertorSetting implements ConvertorSetting {
 
     /** コンバータのファクトリクラス */
-    private static FixedLengthConvertorFactory factory = new FixedLengthConvertorFactory();
+    private FixedLengthConvertorFactory factory = new FixedLengthConvertorFactory();
 
     /** ゾーン数値の符号ビット（正）のデフォルト設定 */
     private Byte defaultPositiveZoneSignNibble = null;

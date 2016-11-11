@@ -12,7 +12,7 @@ import nablarch.core.repository.SystemRepository;
 public class JsonDataConvertorSetting implements ConvertorSetting {
 
     /** コンバータのファクトリクラス */
-    private static JsonDataConvertorFactory factory = new JsonDataConvertorFactory();
+    private JsonDataConvertorFactory factory = new JsonDataConvertorFactory();
 
     /** システムリポジトリ上の登録名 */
     private static final String REPOSITORY_KEY =  "jsonDataConvertorSetting";
