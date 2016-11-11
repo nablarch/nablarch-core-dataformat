@@ -15,6 +15,9 @@ import nablarch.core.util.annotation.Published;
  */
 @Published(tag = "architect")
 public class NullableString extends CharacterStreamDataString {
+
+    /** 出力時に、nullが渡された場合に変換する空文字 */
+    private static final String EMPTY = "";
     
     /** {@inheritDoc}
      * この実装では、入力時に、引数の文字列に対して何もせずに返却する。
@@ -36,7 +39,7 @@ public class NullableString extends CharacterStreamDataString {
     @Override
     public String convertOnWrite(Object data) {
         if (data == null) {
-            return "";
+            return EMPTY;
         }
         return StringUtil.toString(data);
     }

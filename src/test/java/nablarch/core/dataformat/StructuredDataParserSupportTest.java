@@ -547,7 +547,7 @@ public class StructuredDataParserSupportTest {
         } catch (InvalidDataFormatException e) {
         }
         
-        parser.checkRequired("basekey", fd, "", false);
+        parser.checkRequired("basekey", fd, "", true);
         
         parser.checkRequired("basekey", fd, "a", true);
 

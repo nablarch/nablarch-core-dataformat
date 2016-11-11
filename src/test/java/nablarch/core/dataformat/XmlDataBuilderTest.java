@@ -1740,7 +1740,7 @@ public class XmlDataBuilderTest {
     }
 
     @Test
-    public void 出力対象が空文字列で必須の場合エラーとなること() throws Exception {
+    public void 出力対象が空文字列の場合コンテンツは空となること() throws Exception {
         createFormatFile(
                 "UTF-8",
                 "[root]",
@@ -1750,11 +1750,12 @@ public class XmlDataBuilderTest {
         final ByteArrayOutputStream actual = new ByteArrayOutputStream();
         final HashMap<String, Object> input = new HashMap<String, Object>();
         input.put("data", "");
-
-        expectedException.expect(InvalidDataFormatException.class);
-        expectedException.expectMessage("data is required");
         sut.buildData(input, getLayoutDefinition(), actual);
 
+        System.out.println("actual.toString(\"utf-8\") = " + actual.toString("utf-8"));
+        assertThat(actual.toString("utf-8"),
+                isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+                        + "<root><data /></root>").ignoreWhitespace());
     }
     
     @Test
