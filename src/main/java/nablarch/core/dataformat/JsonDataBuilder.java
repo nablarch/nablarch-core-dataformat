@@ -10,6 +10,7 @@ import nablarch.core.dataformat.convertor.datatype.JsonBoolean;
 import nablarch.core.dataformat.convertor.datatype.JsonNumber;
 import nablarch.core.dataformat.convertor.datatype.JsonObject;
 import nablarch.core.dataformat.convertor.datatype.JsonString;
+import nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString;
 import nablarch.core.util.StringUtil;
 
 /**
@@ -112,6 +113,10 @@ public class JsonDataBuilder extends StructuredDataEditorSupport implements Stru
                                                     : convertToFieldOnWrite(map.get(mapKey), fd);
                     // 必須チェック実施
                     checkRequired(currentKeyBase, fd, writeVal, checkIndispensable);
+
+                    CharacterStreamDataString dataType = (CharacterStreamDataString) fd.getDataType();
+                    // データタイプのコンバータを実行する
+                    writeVal = dataType.convertOnWrite(writeVal);
                     
                     outCount += writeValue(sb, fd, mapKey, map, writeVal);
                 }
@@ -212,6 +217,10 @@ public class JsonDataBuilder extends StructuredDataEditorSupport implements Stru
                         sb.append(",");
                     }
                     Object writeVal = convertToFieldOnWrite(arr[i], fd);
+                    CharacterStreamDataString dataType = (CharacterStreamDataString) fd.getDataType();
+                    // データタイプのコンバータを実行する
+                    writeVal = dataType.convertOnWrite(writeVal);
+
                     sb.append(editJsonDataString(writeVal, fd));
                     outCount++;
                 }

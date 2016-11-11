@@ -13,8 +13,6 @@ import javax.xml.stream.XMLStreamWriter;
 
 import nablarch.core.dataformat.StructuredDataRecordFormatterSupport.StructuredDataDirective;
 import nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString;
-import nablarch.core.dataformat.convertor.value.DefaultValue;
-import nablarch.core.dataformat.convertor.value.ValueConvertor;
 import nablarch.core.util.StringUtil;
 
 /**
