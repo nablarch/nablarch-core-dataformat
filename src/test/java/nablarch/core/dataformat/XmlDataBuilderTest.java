@@ -1756,7 +1756,6 @@ public class XmlDataBuilderTest {
         assertThat(actual.toString("utf-8"),
                 isIdenticalTo("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
                         + "<root><data /></root>").ignoreWhitespace());
-
     }
     
     @Test

@@ -53,10 +53,8 @@ public class NullableStringTest {
         assertEquals("\"data", converter.convertOnWrite("\"data"));
         assertEquals("data\"", converter.convertOnWrite("data\""));
         assertEquals("", converter.convertOnWrite(""));
-        // nullは空文字に変換する（別案件となるため、別途対応する）
-        //assertEquals("", converter.convertOnWrite(null));
-        // 現行では null は null
-        assertEquals(null, converter.convertOnWrite(null));
+        // nullは空文字に変換する
+        assertEquals("", converter.convertOnWrite(null));
     }
 
     /**

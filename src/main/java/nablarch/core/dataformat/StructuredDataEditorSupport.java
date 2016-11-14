@@ -139,9 +139,6 @@ public abstract class StructuredDataEditorSupport {
     @SuppressWarnings("rawtypes")
     protected Object convertToFieldOnWrite(Object fieldStr,
                                            FieldDefinition field) {
-        CharacterStreamDataString dataType = (CharacterStreamDataString) field
-                .getDataType();
-
         Object value;
         try {
             value = fieldStr;
@@ -150,9 +147,6 @@ public abstract class StructuredDataEditorSupport {
             for (ValueConvertor convertor : field.getConvertors()) {
                 value = convertor.convertOnWrite(value);
             }
-
-            // データタイプのコンバータを実行する
-            value = dataType.convertOnWrite(value);
 
         } catch (InvalidDataFormatException e) {
             // コンバータで発生した例外に対して、フィールド名の情報を付与する
