@@ -1,69 +1,95 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import nablarch.core.dataformat.DataRecord;
-import nablarch.core.dataformat.DataRecordFormatter;
 import nablarch.core.dataformat.FieldDefinition;
-import nablarch.core.dataformat.FormatterFactory;
 import nablarch.core.dataformat.InvalidDataFormatException;
 import nablarch.core.dataformat.SyntaxErrorException;
 import nablarch.core.dataformat.convertor.FixedLengthConvertorFactory;
-import nablarch.core.util.FilePathSetting;
-import nablarch.test.support.tool.Hereis;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 
-import static nablarch.test.StringMatcher.endsWith;
 import static nablarch.test.StringMatcher.startsWith;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
- * パック10進数のデータタイプコンバータのテスト。
- * 
- * 観点：
- * 正常系は、フォーマッタのテストで確認しているので、ここでは異常系、およびオプション設定関連のテストを行う。
- *   ・全角文字のパディング、トリムが行われること。
- *   ・パディング・トリム処理のテスト。
+ * {@link PackedDecimal}のテスト。
  *   
  * @author Masato Inoue
  */
 public class PackedDecimalTest {
 
-    private FieldDefinition field;
-    private FixedLengthConvertorFactory factory = new FixedLengthConvertorFactory();
-    
-    private DataRecordFormatter formatter = null;
+    private PackedDecimal sut = new PackedDecimal();
+    private FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("sjis"));
+    final byte packNibble = 0x03; // ((Charset.forName("sjis").encode("1").get() & 0xF0) >>> 4)
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
-    @After
-    public void tearDown() throws Exception {
-        if(formatter != null) {
-            formatter.close();
-        }
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[PackedDecimal].");
+
+        sut.initialize(null);
     }
-    /** フォーマッタ(write)を生成する。 */
-    private DataRecordFormatter createWriteFormatter(File filePath, OutputStream dest) {
-        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(filePath);
-        formatter.setOutputStream(dest).initialize();
-        return formatter;
+
+    /**
+     * 初期化時に（バイト長として）nullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNullByteLength() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("1st parameter was null. parameter=[null, null]. convertor=[PackedDecimal].");
+
+        sut.initialize(null, null);
+    }
+
+    /**
+     * 初期化時に空配列をわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeEmptyByteLength() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("parameter was not specified. parameter must be specified. convertor=[PackedDecimal].");
+
+        sut.initialize(new Object[0]);
+    }
+
+    /**
+     * 初期化時に（バイト長として）文字列をわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeStringByteLength() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid parameter type was specified. 1st parameter type must be 'Integer' but was: 'java.lang.String'. parameter=[5]. convertor=[PackedDecimal].");
+
+        sut.initialize("5");
+    }
+
+    /**
+     * 初期化時に（スケールとして）文字列をわたすとデフォルトとして処理されること。
+     */
+    @Test
+    public void testInitializeStringScale() {
+        sut.init(field, 10, "5");
+        sut.setPackNibble(packNibble);
+
+        byte[] inputBytes = new byte[] {
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x08, 0x76, 0x54, 0x32, 0x13
+        };
+
+        assertThat(sut.convertOnRead(inputBytes), is(new BigDecimal("87654321")));
     }
 
     /**
@@ -71,610 +97,146 @@ public class PackedDecimalTest {
      */
     @Test
     public void testReadEmpty() {
-        DataType<BigDecimal, byte[]> t = factory.typeOf("P", field, 0, 0);
-        PackedDecimal packedType = (PackedDecimal)t;
+        sut.init(field, 0, 0);
 
-        byte packNibble = (byte) ((Charset.forName("sjis").encode("1").get() & 0xF0) >>> 4);
-        packedType.setPackNibble(packNibble);
-
-        assertEquals(new BigDecimal("0"), packedType.convertOnRead("".getBytes()));
+        assertThat(sut.convertOnRead("".getBytes()), is(new BigDecimal("0")));
     }
 
     /**
-     * ASCII規格での符号なしパック10進のテスト
+     * ASCII規格での符号なしパック10進の正常系読込テスト。
      */
     @Test
-    public void testUnsignedPackedDigitType() throws Exception {
-        
-        DataType<BigDecimal, byte[]> t = factory.typeOf("P", field, 5, 0);
-        PackedDecimal packedType = (PackedDecimal)t;
+    public void testReadNormal() throws Exception {
+        sut.init(field, 5, 0);
+        sut.setPackNibble(packNibble);
 
-        byte packNibble = (byte) ((Charset.forName("sjis").encode("1").get() & 0xF0) >>> 4);
-        packedType.setPackNibble(packNibble);
+        byte[] inputBytes = new byte[] {
+                0x08, 0x76, 0x54, 0x32, 0x13
+        };
 
-        byte[] bytes = new byte[] {
-            0x08, 0x76, 0x54, 0x32, 0x13
-        };
-        
-        BigDecimal value = packedType.convertOnRead(bytes);
-        assertEquals(87654321, value.intValue());
-        
-        
-        byte[] convertedByte = packedType.convertOnWrite(new BigDecimal(87654321));
-        assertTrue(isSameSequence(bytes, convertedByte));
-        
-        bytes = new byte[] {
-            (byte) 0x98, 0x76, 0x54, 0x32, 0x13
-        };
-            
-        value = packedType.convertOnRead(bytes);
-        assertEquals(987654321, value.intValue());
-        
-        convertedByte = packedType.convertOnWrite(new BigDecimal(987654321));
-        
-        assertTrue(isSameSequence(bytes, convertedByte));
-        
-        
-        // 符号ビットが不正な場合
-        bytes = new byte[] {
-            (byte) 0x98, 0x76, 0x54, 0x32, 0x1C
-        };
-        try {
-            packedType.convertOnRead(bytes);
-            fail();
-        } catch (Exception e) {
-            assertTrue(e instanceof InvalidDataFormatException);
-        }
+        assertThat(sut.convertOnRead(inputBytes), is(new BigDecimal("87654321")));
     }
-    
-    /**
-     * ASCII規格での符号ありパック10進のテスト
-     */
-    @Test
-    public void testSignedPackedDigitType() throws Exception {
-
-        field  = new FieldDefinition();
-        field.setEncoding(Charset.forName("sjis"));
-
-        byte packNibble = (byte) 0x03;
-        
-        DataType<BigDecimal, byte[]> t = factory.typeOf("SP", field, 5, 0);
-        PackedDecimal packedType = (PackedDecimal)t;
-        packedType.setPackNibble(packNibble);
-        packedType.setPackSignNibblePositive(3);
-        packedType.setPackSignNibbleNegative(7);
-        
-        byte[] bytes = new byte[] {
-            0x08, 0x76, 0x54, 0x32, 0x13
-        };
-        
-        BigDecimal value = packedType.convertOnRead(bytes);
-        assertEquals(87654321, value.intValue());
-        
-        byte[] convertedByte = packedType.convertOnWrite(new BigDecimal(87654321));
-        assertTrue(isSameSequence(bytes, convertedByte));
-        
-        bytes = new byte[] {
-            0x08, 0x76, 0x54, 0x32, 0x17
-        };
-            
-        value = packedType.convertOnRead(bytes);
-        assertEquals(-87654321, value.intValue());
-        
-        convertedByte = packedType.convertOnWrite(new BigDecimal(-87654321));
-        assertTrue(isSameSequence(bytes, convertedByte));
-        
-        
-
-        // 符号ビットが不正な場合
-        bytes = new byte[] {
-                0x08, 0x76, 0x54, 0x32, 0x16
-            };
-        try {
-            packedType.convertOnRead(bytes);
-            fail();
-        } catch (Exception e) {
-            assertTrue(e instanceof InvalidDataFormatException);
-        }
-    }
-    
 
     /**
-     * EBCDIC規格での符号なしパック10進のテスト
+     * ASCII規格での符号なしパック10進の正常系書き込みテスト。
      */
     @Test
-    public void testUnsignedPackedDigitType_EBCDIC() throws Exception {
+    public void testWriteNormal() throws Exception {
+        sut.init(field, 5, 0);
+        sut.setPackNibble(packNibble);
 
-        field  = new FieldDefinition();
+        byte[] expected = new byte[] {
+                0x08, 0x76, 0x54, 0x32, 0x13
+        };
+
+        assertThat(sut.convertOnWrite("87654321"), is(expected));
+    }
+
+    /**
+     * ASCII規格での符号なしパック10進の異常系読込テスト。
+     * 符号ビットが不正。
+     */
+    @Test
+    public void testReadAbnormal() throws Exception {
+        sut.init(field, 5, 0);
+        sut.setPackNibble(packNibble);
+
+        byte[] inputBytes = new byte[] {
+                (byte) 0x98, 0x76, 0x54, 0x32, 0x1C
+        };
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid pack bits was specified.");
+
+        sut.convertOnRead(inputBytes);
+    }
+
+    /**
+     * EBCDIC規格での符号なしパック10進の正常系読込テスト。
+     */
+    @Test
+    public void testReadNormalEBCDIC() throws Exception {
+        final FieldDefinition field  = new FieldDefinition();
         field.setEncoding(Charset.forName("IBM1047"));
+        sut.init(field, 5, 0);
+        sut.setPackNibble((byte)0x0F);
 
-        byte packNibble = (byte) 0x0F;
-        byte packSignNibblePositive = (byte) 0x0C;
-        byte packSignNibbleNegative = (byte) 0x0D;
-        
-        DataType<BigDecimal, byte[]> t = factory.typeOf("P", field, 5, 0);
-        PackedDecimal packedType = (PackedDecimal)t;
+        byte[] inputBytes = new byte[] {
+                0x08, 0x76, 0x54, 0x32, 0x1F
+        };
 
-        packedType.setPackNibble(packNibble);
-        packedType.setPackSignNibblePositive(Integer.valueOf(packSignNibblePositive));
-        packedType.setPackSignNibbleNegative(Integer.valueOf(packSignNibbleNegative));
-        
-        byte[] bytes = new byte[] {
-            0x08, 0x76, 0x54, 0x32, 0x1F
-        };
-        
-        BigDecimal value = packedType.convertOnRead(bytes);
-        assertEquals(87654321, value.intValue());
-        
-        
-        byte[] convertedByte = packedType.convertOnWrite(new BigDecimal(87654321));
-        assertTrue(isSameSequence(bytes, convertedByte));
-        
-        bytes = new byte[] {
-            (byte) 0x98, 0x76, 0x54, 0x32, 0x1F
-        };
-            
-        value = packedType.convertOnRead(bytes);
-        assertEquals(987654321, value.intValue());
-        
-        convertedByte = packedType.convertOnWrite(new BigDecimal(987654321));
-        
-        assertTrue(isSameSequence(bytes, convertedByte));
-        
-        
-        // 符号ビットが不正な場合
-        bytes = new byte[] {
-            (byte) 0x98, 0x76, 0x54, 0x32, 0x1C
-        };
-        try {
-            packedType.convertOnRead(bytes);
-            fail();
-        } catch (Exception e) {
-            assertTrue(e instanceof InvalidDataFormatException);
-        }
-    }
-    
-    /**
-     * EBCDIC規格での符号ありパック10進のテスト
-     */
-    @Test
-    public void testSignedPackedDigitType_EBCDIC() throws Exception {
-
-        field  = new FieldDefinition();
-        field.setEncoding(Charset.forName("sjis"));
-
-        byte packNibble = (byte) 0xF0;
-        
-        DataType<BigDecimal, byte[]> t = factory.typeOf("SP", field, 5, 0);
-        PackedDecimal packedType = (PackedDecimal)t;
-        packedType.setPackNibble(packNibble);
-        packedType.setPackSignNibblePositive(Integer.parseInt("C", 16));
-        packedType.setPackSignNibbleNegative(Integer.parseInt("D", 16));
-        
-        byte[] bytes = new byte[] {
-            0x08, 0x76, 0x54, 0x32, 0x1C
-        };
-        
-        BigDecimal value = packedType.convertOnRead(bytes);
-        assertEquals(87654321, value.intValue());
-        
-        byte[] convertedByte = packedType.convertOnWrite(new BigDecimal(87654321));
-        assertTrue(isSameSequence(bytes, convertedByte));
-        
-        bytes = new byte[] {
-            0x08, 0x76, 0x54, 0x32, 0x1D
-        };
-            
-        value = packedType.convertOnRead(bytes);
-        assertEquals(-87654321, value.intValue());
-        
-        convertedByte = packedType.convertOnWrite(new BigDecimal(-87654321));
-        assertTrue(isSameSequence(bytes, convertedByte));
-    }
-    
-    /**
-     * パディング・トリム処理のテスト
-     */
-    @Test
-    public void testPaddingAndTrimming() throws Exception {
-        byte packNibble = (byte) 0x03;
-        field  = new FieldDefinition();
-        field.setEncoding(Charset.forName("sjis"));
-        
-        DataType<BigDecimal, byte[]> t = factory.typeOf("P", field, 10, 0);
-        PackedDecimal packedType = (PackedDecimal)t;
-        packedType.setPackNibble(packNibble);
-        packedType.setPackSignNibblePositive(3);
-        packedType.setPackSignNibbleNegative(7);
-
-        byte[] bytes = new byte[] {
-            0x00, 0x00, 0x00, 0x00, 0x00, 
-            0x08, 0x76, 0x54, 0x32, 0x13
-        };
-        
-        BigDecimal value = packedType.convertOnRead(bytes);
-        assertEquals(87654321, value.intValue());
-        
-        byte[] convertedByte = packedType.convertOnWrite(new BigDecimal(87654321));
-        assertTrue(isSameSequence(bytes, convertedByte));
-    }
-    
-    private boolean isSameSequence(byte[] a , byte[] b) {
-        if (a.length != b.length) {
-            return false;
-        }
-        for(int i = 0; i < a.length; i++) {
-            if (a[i] != b[i]) {
-                return false;
-            }
-        }
-        return true;
-    }
-    
-    
-
-    /** フォーマッタ(read)を生成する。 */
-    private void createReadFormatter(File filePath, InputStream source) {
-        formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).createFormatter(filePath).setInputStream(source).initialize();
+        assertThat(sut.convertOnRead(inputBytes), is(new BigDecimal("87654321")));
     }
 
     /**
-     * 正常系のテスト。レイアウト定義ファイルからパラメータを設定する。
+     * EBCDIC規格での符号なしパック10進の正常系書き込みテスト。
      */
     @Test
-    public void testNormal() throws Exception {
+    public void testWriteNormalEBCDIC() throws Exception {
+        final FieldDefinition field  = new FieldDefinition();
+        field.setEncoding(Charset.forName("IBM1047"));
+        sut.init(field, 5, 0);
+        sut.setPackNibble((byte)0x0F);
 
-        File formatFile = Hereis.file("./format.fmt");
-        /**********************************************
-        # ファイルタイプ
-        file-type:    "Fixed"
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "sjis"
-        
-        # 各レコードの長さ
-        record-length: 20
+        byte[] expected = new byte[] {
+                0x08, 0x76, 0x54, 0x32, 0x1F
+        };
 
-        # データレコード定義
-        [Default]
-        1  signedZDigits  SP(10, "", "7", "4")    # 
-        11  signedZDigits2  SP(10, "", "7", "4")   # 
-        ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                                 .addBasePathSetting("format", "file:./")
-                                 .addFileExtensions("format", "fmt");
-        
-        byte[] bytes = new byte[] {
-                0x00, 0x00, 0x00, 0x00, 0x00, 
-                0x08, 0x76, 0x54, 0x32, 0x14
-            };        
-        byte[] bytes2 = new byte[] {
-                0x00, 0x00, 0x00, 0x00, 0x00, 
-                0x08, 0x76, 0x54, 0x32, 0x17
-            };        
-        
-        OutputStream dest = new FileOutputStream("./record.dat", false);
-        dest.write(bytes);
-        dest.write(bytes2);
-        dest.close();
-
-        InputStream source = new BufferedInputStream(
-                new FileInputStream("record.dat"));
-
-        createReadFormatter(new File("format.fmt"), source);
-        DataRecord record = formatter.readRecord();
-        
-        assertEquals(2, record.size());
-        assertEquals(new BigDecimal("-87654321"),          record.get("signedZDigits"));
-        assertEquals(new BigDecimal("87654321"),          record.get("signedZDigits2"));
-        
-        source.close();
-        new File("record.dat").deleteOnExit();
-        
+        assertThat(sut.convertOnWrite("87654321"), is(expected));
     }
 
     /**
-     * 出力時のパラメータがnullのときデフォルト値が出力されるテスト。
+     * EBCDIC規格での符号なしパック10進の異常系読込テスト。
+     * 符号ビットが不正。
      */
     @Test
-    public void testWriteDefault() throws Exception{
+    public void testReadAbnormalEBCDIC() throws Exception {
+        final FieldDefinition field  = new FieldDefinition();
+        field.setEncoding(Charset.forName("IBM1047"));
+        sut.init(field, 5, 0);
+        sut.setPackNibble((byte)0x0F);
 
-        File formatFile = Hereis.file("./format.fmt");
-        /**********************************************
-         # ファイルタイプ
-         file-type:    "Fixed"
-         # 文字列型フィールドの文字エンコーディング
-         text-encoding: "sjis"
+        byte[] inputBytes = new byte[] {
+                0x08, 0x76, 0x54, 0x32, 0x1C
+        };
 
-         # 各レコードの長さ
-         record-length: 10
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid pack bits was specified.");
 
-         # データレコード定義
-         [Default]
-         1  signedZDigits  SP(10, "", "7", "4")   123
-         ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                .addBasePathSetting("format", "file:./")
-                .addFileExtensions("format", "fmt");
+        sut.convertOnRead(inputBytes);
+    }
 
+    /**
+     * 読込時トリムのテスト。
+     */
+    @Test
+    public void testTrim() throws Exception {
+        sut.init(field, 10, 0);
+        sut.setPackNibble(packNibble);
 
-        DataRecord record = new DataRecord(){{
-            put("signedZDigits", null);
-        }};
+        byte[] inputBytes = new byte[] {
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x08, 0x76, 0x54, 0x32, 0x13
+        };
 
-        OutputStream dest = new FileOutputStream("./record.dat", false);
-        createWriteFormatter(new File("format.fmt"), dest);
-        formatter.writeRecord(record);
+        assertThat(sut.convertOnRead(inputBytes), is(new BigDecimal("87654321")));
+    }
 
-        formatter.close();
-
-        InputStream source = new BufferedInputStream(
-                new FileInputStream("record.dat"));
-
-        byte[] actual = new byte[10];
-        source.read(actual);
+    /**
+     * 書き込み時パディングのテスト。
+     */
+    @Test
+    public void testPadding() throws Exception {
+        sut.init(field, 10, 0);
+        sut.setPackNibble(packNibble);
 
         byte[] expected = new byte[] {
                 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x12, 0x37
+                0x08, 0x76, 0x54, 0x32, 0x13
         };
 
-        assertThat(actual, is(expected));
-
-        source.close();
-        new File("record.dat").deleteOnExit();
-
-
+        assertThat(sut.convertOnWrite("87654321"), is(expected));
     }
-    
-    /**
-     * 不正なパラメータを設定する。
-     */
-    @Test
-    public void testInvalidParameter() throws Exception {
-
-        /**
-         * パラメータが空
-         */
-        File formatFile = Hereis.file("./format.fmt");
-        /**********************************************
-        # ファイルタイプ
-        file-type:    "Fixed"
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "sjis"
-        
-        # 各レコードの長さ
-        record-length: 20
-
-        # データレコード定義
-        [Default]
-        1  signedZDigits  SP()    # 
-        11  signedZDigits2  SP(10, "", "7", "4")   # 
-        ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                                 .addBasePathSetting("format", "file:./")
-                                 .addFileExtensions("format", "fmt");
-        
-        byte[] bytes = new byte[] {
-                0x00, 0x00, 0x00, 0x00, 0x00, 
-                0x08, 0x76, 0x54, 0x32, 0x14
-            };        
-        byte[] bytes2 = new byte[] {
-                0x00, 0x00, 0x00, 0x00, 0x00, 
-                0x08, 0x76, 0x54, 0x32, 0x17
-            };        
-        
-        OutputStream dest = new FileOutputStream("./record.dat", false);
-        dest.write(bytes);
-        dest.write(bytes2);
-        dest.close();
-
-        InputStream source = new BufferedInputStream(
-                new FileInputStream("record.dat"));
-
-        try {
-            createReadFormatter(new File("format.fmt"), source);
-            fail();
-        } catch (SyntaxErrorException e){
-            assertThat(e.getMessage(), startsWith(
-                    "parameter was not specified. parameter must be specified. convertor=[PackedDecimal]."));
-            assertThat(e.getFilePath(), endsWith("format.fmt"));
-        }
-
-        /**
-         * パラメータが数値でない。
-         */
-        formatFile = Hereis.file("./format.fmt");
-        /**********************************************
-        # ファイルタイプ
-        file-type:    "Fixed"
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "sjis"
-        
-        # 各レコードの長さ
-        record-length: 20
-
-        # データレコード定義
-        [Default]
-        1  signedZDigits  SP("a")    # 
-        11  signedZDigits2  SP(10, "", "7", "4")   # 
-        ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                                 .addBasePathSetting("format", "file:./")
-                                 .addFileExtensions("format", "fmt");
-        
-        bytes = new byte[] {
-                0x00, 0x00, 0x00, 0x00, 0x00, 
-                0x08, 0x76, 0x54, 0x32, 0x14
-            };        
-        bytes2 = new byte[] {
-                0x00, 0x00, 0x00, 0x00, 0x00, 
-                0x08, 0x76, 0x54, 0x32, 0x17
-            };        
-        
-        dest = new FileOutputStream("./record.dat", false);
-        dest.write(bytes);
-        dest.write(bytes2);
-        dest.close();
-
-        source = new BufferedInputStream(
-                new FileInputStream("record.dat"));
-
-        try {
-            createReadFormatter(new File("format.fmt"), source);
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), startsWith(
-                    "invalid parameter type was specified. " +
-                            "1st parameter type must be 'Integer' but was: " +
-                            "'java.lang.String'. parameter=[a]. " +
-                            "convertor=[PackedDecimal]."));
-            assertThat(e.getFilePath(), endsWith("format.fmt"));
-        }
-
-        /**
-         * scaleが数値でない（普通にscaleが無視されれて処理が行われる）
-         */
-        formatFile = Hereis.file("./format.fmt");
-        /**********************************************
-        # ファイルタイプ
-        file-type:    "Fixed"
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "sjis"
-        
-        # 各レコードの長さ
-        record-length: 20
-
-        # データレコード定義
-        [Default]
-        1  signedZDigits  SP(10, "a", "7", "4")    # 
-        11  signedZDigits2  SP(10, "", "7", "4")   # 
-        ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-        .addBasePathSetting("format", "file:./")
-        .addFileExtensions("format", "fmt");
-
-        bytes = new byte[] {
-        0x00, 0x00, 0x00, 0x00, 0x00, 
-        0x08, 0x76, 0x54, 0x32, 0x14
-        };        
-        bytes2 = new byte[] {
-        0x00, 0x00, 0x00, 0x00, 0x00, 
-        0x08, 0x76, 0x54, 0x32, 0x17
-        };        
-        
-        dest = new FileOutputStream("./record.dat", false);
-        dest.write(bytes);
-        dest.write(bytes2);
-        dest.close();
-        
-        source = new BufferedInputStream(
-        new FileInputStream("record.dat"));
-        
-        createReadFormatter(new File("format.fmt"), source);
-        DataRecord record = formatter.readRecord();
-        
-        assertEquals(2, record.size());
-        assertEquals(new BigDecimal("-87654321"),          record.get("signedZDigits"));
-        assertEquals(new BigDecimal("87654321"),          record.get("signedZDigits2"));
-        
-        source.close();
-        new File("record.dat").deleteOnExit();
-
-        /**
-         * 引数がnull。
-         */
-        PackedDecimal dataType = new PackedDecimal();
-        try {
-            dataType.initialize(null, null);
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertEquals("1st parameter was null. parameter=[null, null]. convertor=[PackedDecimal].", e.getMessage());
-        }
-    }
-
-    /**
-     * 初期化時にnullをわたすと例外がスローされること。
-     */
-    @Test
-    public void testInitializeNull() {
-        PackedDecimal datatype = new PackedDecimal();
-
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[PackedDecimal].");
-
-        datatype.initialize(null);
-    }
-
-    /**
-     * 出力するオブジェクトが文字列
-     */
-    @Test
-    public void testArgString() throws Exception{
-
-        File formatFile = Hereis.file("./format.fmt");
-        /**********************************************
-        # ファイルタイプ
-        file-type:    "Fixed"
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "sjis"
-        
-        # 各レコードの長さ
-        record-length: 20
-
-        # データレコード定義
-        [Default]
-        1  signedZDigits  SP(10, "", "7", "4")    # 
-        11  signedZDigits2  SP(10, "", "7", "4")   # 
-        ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                                 .addBasePathSetting("format", "file:./")
-                                 .addFileExtensions("format", "fmt");
-        
-
-        DataRecord record = new DataRecord(){{
-            put("signedZDigits", "-87654321");
-            put("signedZDigits2", "87654321");
-        }};
-        
-        
-        OutputStream dest = new FileOutputStream("./record.dat", false);
-        createWriteFormatter(new File("format.fmt"), dest);
-        formatter.writeRecord(record);
-        
-        formatter.close();
-        
-        InputStream source = new BufferedInputStream(
-                new FileInputStream("record.dat"));
-
-        byte[] bytes5 = new byte[10];
-        byte[] bytes6 = new byte[10];
-        source.read(bytes5);
-        source.read(bytes6);
-        
-        byte[] bytes = new byte[] {
-                0x00, 0x00, 0x00, 0x00, 0x00, 
-                0x08, 0x76, 0x54, 0x32, 0x14
-            };        
-        byte[] bytes2 = new byte[] {
-                0x00, 0x00, 0x00, 0x00, 0x00, 
-                0x08, 0x76, 0x54, 0x32, 0x17
-            };        
-        
-        assertTrue(Arrays.equals(bytes, bytes5));
-        assertTrue(Arrays.equals(bytes2, bytes6));
-        
-        source.close();
-        new File("record.dat").deleteOnExit();
-                
-
-    }
-
 
     /**
      * null と 空文字を出力するテスト。
@@ -682,190 +244,131 @@ public class PackedDecimalTest {
      */
     @Test
     public void testWriteValidSingularValue() {
-        byte packNibble = 0x03;
-        DataType<BigDecimal, byte[]> t = factory.typeOf("P", field, 5);
-        PackedDecimal decimal = (PackedDecimal)t;
-        decimal.setPackNibble(packNibble);
+        sut.init(field, 5);
+        sut.setPackNibble(packNibble);
 
         byte[] bytes = { 0x00, 0x00, 0x00, 0x00, 0x03 };
 
-        // null の場合
-        assertThat(decimal.convertOnWrite(null), is(bytes));
-
-        // 空文字 の場合
-        assertThat(decimal.convertOnWrite(""), is(bytes));
+        assertThat(sut.convertOnWrite(null), is(bytes));
+        assertThat(sut.convertOnWrite(""), is(bytes));
     }
 
     /**
      * BigDecimalに変換できないオブジェクトが渡された場合に例外がスローされるテスト。
-     * InvalidDataFormatExceptionがスローされる。
+     * 文字列のケース。
      */
     @Test
-    public void testWriteObjectNotBigDecimal() {
-        PackedDecimal decimal = new PackedDecimal();
+    public void testWriteString() {
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[abc].");
 
-        /*
-         * 文字列の場合
-         */
-        try {
-            decimal.convertOnWrite("abc");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[abc]."));
-        }
-        
-        
-        /*
-         * オブジェクトの場合
-         */
-        try {
-            decimal.convertOnWrite(new Object());
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertSame(NumberFormatException.class, e.getCause().getClass());
-            assertThat(e.getMessage(), startsWith("invalid parameter was specified. parameter must be able to convert to BigDecimal."));
-        }
+        sut.convertOnWrite("abc");
     }
 
     /**
-     * 出力時の最大値／最小値のテスト。
-     * 桁数が不正な場合、InvalidDataFormatExceptionがスローされる。
+     * BigDecimalに変換できないオブジェクトが渡された場合に例外がスローされるテスト。
+     * オブジェクトのケース。
      */
     @Test
-    public void testMaxAndMinDigitsOnWrite() throws Exception {
+    public void testWriteObject() {
+        exception.expect(allOf(
+                instanceOf(InvalidDataFormatException.class),
+                hasProperty("message", startsWith("invalid parameter was specified. parameter must be able to convert to BigDecimal."))
+        ));
 
-        /*
-         * 符号なしパック10進のテスト。
-         */
-        DataType<BigDecimal, byte[]> t = factory.typeOf("P", field, 10, 0);
-        PackedDecimal packedType = (PackedDecimal)t;
+        sut.convertOnWrite(new Object());
+    }
 
-        byte packNibble = (byte) ((Charset.forName("sjis").encode("1").get() & 0xF0) >>> 4); // 3
-        packedType.setPackNibble(packNibble);
-        
-        byte[] bytes = new byte[] {
+    /**
+     * 最大値の書き込みテスト。
+     * 正の整数。
+     */
+    @Test
+    public void testWriteMaxValue() throws Exception {
+        sut.init(field, 10, 0);
+        sut.setPackNibble(packNibble);
+
+        byte[] maxBytes = new byte[] {
                 0x09, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x93
         };
 
-        /*
-         * 【正常系】正数のパターン：999999999999999999（18桁）はOK。
-         */
-        byte[] convertOnWrite = packedType.convertOnWrite(new BigDecimal("999999999999999999"));
-        assertTrue(isSameSequence(bytes, convertOnWrite));
-        
-        /*
-         * 【異常系】正数のパターン：1000000000000000000（19桁）はNG。
-         */
-        try {
-            packedType.convertOnWrite("1000000000000000000");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. the number of parameter digits must be 18 or less, but was '19'. parameter=[1000000000000000000]."));
-        }
-        
-        /*
-         * 【正常系】正数＆小数点のパターン：99999999999.9999999（小数点を除くと18桁）はOK。
-         */
-        convertOnWrite = packedType.convertOnWrite(new BigDecimal("99999999999.9999999"));
-        assertTrue(isSameSequence(bytes, convertOnWrite));
-        
-        /*
-         * 【異常系】正数＆小数点のパターン：1000000000000.000000（小数点を除くと19桁）はNG。
-         */
-        try {
-            packedType.convertOnWrite("1000000000000.000000");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. the number of unscaled parameter digits must be 18 or less, but was '19'. unscaled parameter=[1000000000000000000], original parameter=[1000000000000.000000]."));
-        }
-        
-        
-        bytes = new byte[] {
+        assertThat(sut.convertOnWrite("999999999999999999"), is(maxBytes));
+    }
+
+    /**
+     * 最大値+1の書き込みテスト。
+     * 正の整数。
+     */
+    @Test
+    public void testWriteMaxValuePlus1() throws Exception {
+        sut.init(field, 10, 0);
+        sut.setPackNibble(packNibble);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. the number of parameter digits must be 18 or less, but was '19'. parameter=[1000000000000000000].");
+
+        sut.convertOnWrite("1000000000000000000");
+    }
+
+    /**
+     * 小数点を含む最大桁数の書き込みテスト。
+     * 正の小数。
+     */
+    @Test
+    public void testWriteMaxLengthValue() throws Exception {
+        sut.init(field, 10, 0);
+        sut.setPackNibble(packNibble);
+
+        byte[] maxBytes = new byte[] {
+                0x09, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x93
+        };
+
+        assertThat(sut.convertOnWrite("9999999999.99999999"), is(maxBytes));
+    }
+
+    /**
+     * 小数点を含む最大桁数+1の書き込みテスト。
+     * 正の小数。
+     */
+    @Test
+    public void testWriteMaxLengthValuePlus1() throws Exception {
+        sut.init(field, 10, 0);
+        sut.setPackNibble(packNibble);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. the number of unscaled parameter digits must be 18 or less, but was '19'. unscaled parameter=[1000000000000000000], original parameter=[1000000000000.000000].");
+
+        sut.convertOnWrite("1000000000000.000000");
+    }
+
+    /**
+     * スケールありの最大桁数の書き込みテスト。
+     * 正の整数。
+     */
+    @Test
+    public void testWriteMaxValueWithScale() throws Exception {
+        sut.init(field, 10, 0);
+        sut.setPackNibble(packNibble);
+
+        byte[] maxBytes = new byte[] {
                 0x01, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x03
         };
 
-        /*
-         * 【正常系】正数＆小数点（スケール5）のパターン：1000000000000[.00000]（スケールを追加すると18桁）はOK。
-         */
-        convertOnWrite = packedType.convertOnWrite(new BigDecimal("1000000000000").setScale(5));
-        assertTrue(isSameSequence(bytes, convertOnWrite));
-        
-        /*
-         * 【正常系】正数＆小数点（スケール6）のパターン：1000000000000[.000000]（スケールを追加すると19桁）はNG。
-         */
-        try {
-            convertOnWrite = packedType.convertOnWrite(new BigDecimal("1000000000000").setScale(6));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. the number of unscaled parameter digits must be 18 or less, but was '19'. unscaled parameter=[1000000000000000000], original parameter=[1000000000000.000000]."));
-        }
-        
-        /*
-         * 符号ありパック10進のテスト。
-         */
-        DataType<BigDecimal, byte[]> st = factory.typeOf("SP", field, 10, 0);
-        SignedPackedDecimal signedPackType = (SignedPackedDecimal)st;
-
-        packNibble = (byte) 0x30;
-        signedPackType.setPackSignNibblePositive(4);
-        signedPackType.setPackSignNibbleNegative(7);
-        
-        bytes = new byte[] {
-                0x09, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x94
-        };
-
-        /*
-         * 【正常系】正数のパターン：999999999999999999（18桁）はOK。
-         */
-        convertOnWrite = signedPackType.convertOnWrite(new BigDecimal("999999999999999999"));
-        assertTrue(isSameSequence(bytes, convertOnWrite));
-        
-        /*
-         * 【異常系】正数のパターン：1000000000000000000（19桁）はNG。
-         */
-        try {
-            signedPackType.convertOnWrite("1000000000000000000");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. the number of parameter digits must be 18 or less, but was '19'. parameter=[1000000000000000000]."));
-        }
-        
-
-        bytes = new byte[] {
-                0x09, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x97
-        };
-        
-        /*
-         * 【正常系】負数のパターン：-999999999999999999（18桁）はOK。
-         */
-        convertOnWrite = signedPackType.convertOnWrite(new BigDecimal("-999999999999999999"));
-        assertTrue(isSameSequence(bytes, convertOnWrite));
-        
-        /*
-         * 【正常系】負数＆小数点のパターン：-99999999999.9999999（18桁）はOK。
-         */
-        convertOnWrite = signedPackType.convertOnWrite(new BigDecimal("-99999999999.9999999"));
-        assertTrue(isSameSequence(bytes, convertOnWrite));
-
-        /*
-         * 【異常系】負数のパターン：-1000000000000000000（19桁）はNG。
-         */
-        try {
-            signedPackType.convertOnWrite("-1000000000000000000");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. the number of parameter digits must be 18 or less, but was '19'. parameter=[-1000000000000000000]."));
-        }
-
-        /*
-         * 【異常系】負数＆小数点のパターン：-10000000000000.00000（19桁）はNG。
-         */
-        try {
-            signedPackType.convertOnWrite("-10000000000000.00000");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. the number of unscaled parameter digits must be 18 or less, but was '19'. unscaled parameter=[-1000000000000000000], original parameter=[-10000000000000.00000]."));
-        }
+        assertThat(sut.convertOnWrite(new BigDecimal("1000000000000").setScale(5)), is(maxBytes));
     }
 
+    /**
+     * スケールありの最大桁数+1の書き込みテスト。
+     * 正の整数。
+     */
+    @Test
+    public void testWriteMaxValuePlus1WithScale() throws Exception {
+        sut.init(field, 10, 0);
+        sut.setPackNibble(packNibble);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. the number of unscaled parameter digits must be 18 or less, but was '19'. unscaled parameter=[1000000000000000000], original parameter=[1000000000000.000000].");
+
+        sut.convertOnWrite(new BigDecimal("1000000000000").setScale(6));
+    }
 }

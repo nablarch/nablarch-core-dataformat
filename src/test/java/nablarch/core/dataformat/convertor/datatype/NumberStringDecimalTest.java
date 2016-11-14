@@ -1,34 +1,18 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import nablarch.core.dataformat.DataRecord;
-import nablarch.core.dataformat.DataRecordFormatter;
 import nablarch.core.dataformat.FieldDefinition;
-import nablarch.core.dataformat.FormatterFactory;
 import nablarch.core.dataformat.InvalidDataFormatException;
 import nablarch.core.dataformat.SyntaxErrorException;
-import nablarch.core.util.FilePathSetting;
-import nablarch.test.support.tool.Hereis;
-import org.hamcrest.Description;
-import org.hamcrest.TypeSafeMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * {@link NumberStringDecimal}の固定長テスト。
@@ -36,20 +20,32 @@ import static org.junit.Assert.fail;
  */
 public class NumberStringDecimalTest {
 
+    private NumberStringDecimal sut = new NumberStringDecimal();
+
+    /** テスト共通で使用するフィールド定義 */
+    private static final FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+
     @Rule
     public ExpectedException exception = ExpectedException.none();
+
+    private byte[] toBytesNull() {
+        return null;
+    }
+
+    /** 文字列をバイトに変換する */
+    private byte[] toBytes(String str) throws UnsupportedEncodingException {
+        return str.getBytes("ms932");
+    }
 
     /**
      * 初期化時にnullをわたすと例外がスローされること。
      */
     @Test
     public void testInitializeNull() {
-        NumberStringDecimal datatype = new NumberStringDecimal();
-
         exception.expect(SyntaxErrorException.class);
         exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[NumberStringDecimal].");
 
-        datatype.initialize(null);
+        sut.initialize(null);
     }
 
     /**
@@ -57,12 +53,10 @@ public class NumberStringDecimalTest {
      */
     @Test
     public void testInitialize1stParameterNull() {
-        NumberStringDecimal datatype = new NumberStringDecimal();
-
         exception.expect(SyntaxErrorException.class);
         exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
 
-        datatype.initialize(null, "hoge");
+        sut.initialize(null, "hoge");
     }
 
     /**
@@ -71,762 +65,492 @@ public class NumberStringDecimalTest {
      */
     @Test
     public void testInitNull() {
-        NumberStringDecimal datatype = new NumberStringDecimal();
-
         exception.expect(SyntaxErrorException.class);
         exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
 
-        datatype.init(null, null, "hoge");
+        sut.init(null, null, "hoge");
     }
 
     /**
-     * 読み込みテスト。スケールなし。
+     * 初期化時にスケールに文字列が渡されたときのテスト。
      */
     @Test
-    public void testReadNonScale() throws Exception {
-        doTestReadNonScale(NumberStringDecimal.class);
-    }
-    
-    /**
-     * 読み込みテスト。スケールなしの浮動小数点。（SignedSingleByteNumberTestでもこのメソッドのテストを行うため、publicメソッドとして切り出す）
-     */
-    private void doTestReadNonScale(Class<? extends NumberStringDecimal> target) throws Exception {
-        
-        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
-        NumberStringDecimal convertor = (NumberStringDecimal) target.newInstance().init(field, new Object[]{10});
+    public void testInitStringScale() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid parameter type was specified. 2nd parameter type must be Integer. parameter=[10, abc]. convertor=[NumberStringDecimal].");
 
-        // 入力データがnull
-        assertThat(convertor.convertOnRead(toBytesNull()), is(new BigDecimal("0")));
-
-        // 入力データが空のバイト配列
-        assertThat(convertor.convertOnRead(toBytes("")), is(new BigDecimal("0")));
-
-        // 入力データが不正な数値
-        try {
-            convertor.convertOnRead(toBytes("1.23."));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[1.23.]."));
-        }
-
-        // 入力データが0
-        BigDecimal result = convertor.convertOnRead(toBytes("0"));
-        assertThat(result, is(new BigDecimal("0")));
-
-        // 入力データが1
-        result = convertor.convertOnRead(toBytes("1"));
-        assertThat(result, is(new BigDecimal("1")));
-        
-        // 入力データが整数
-        result = convertor.convertOnRead(toBytes("12340"));
-        assertThat(result, is(new BigDecimal("12340")));
-
-        // 入力データが小数
-        result = convertor.convertOnRead(toBytes("1.23"));
-        assertThat(result, is(new BigDecimal("1.23")));
-
-    }
-
-    private byte[] toBytesNull() {
-        return null;
+        sut.init(field, 10, "abc");
     }
 
     /**
-     * 読み込みテスト。スケールあり。
+     * 初期化時にスケールに数字（数値ではない）が渡されたときのテスト。
      */
     @Test
-    public void testReadScale() throws Exception {
-        doTestReadScale(NumberStringDecimal.class);
+    public void testInitNumberStringScale() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid parameter type was specified. 2nd parameter type must be Integer. parameter=[10, 0]. convertor=[NumberStringDecimal].");
+
+        sut.init(field, 10, "0");
     }
-    
+
     /**
-     * 読み込みテスト。スケールありの固定小数点。（SignedSingleByteNumberTestでもこのメソッドのテストを行うため、publicメソッドとして切り出す）
-     */
-    private void doTestReadScale(Class<? extends NumberStringDecimal> target) throws Exception {
-
-        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
-        /*
-         * スケールが0の場合。
-         */
-        NumberStringDecimal convertor = (NumberStringDecimal) target.newInstance().init(field, new Object[]{10, 0});
-
-        // 入力データが空のバイト文字列
-        assertThat(convertor.convertOnRead(toBytes("")), is(new BigDecimal("0")));
-
-        // 入力データが0
-        BigDecimal result = convertor.convertOnRead(toBytes("0"));
-        assertThat(result, is(new BigDecimal("0")));
-
-        // 入力データが1
-        result = convertor.convertOnRead(toBytes("1"));
-        assertThat(result, is(new BigDecimal("1")));
-
-        // 入力データが整数
-        result = convertor.convertOnRead(toBytes("12340"));
-        assertThat(result, is(new BigDecimal("12340")));
-        
-        // 入力データが小数（スケールは無視される）
-        result = convertor.convertOnRead(toBytes("123.4"));
-        assertThat(result, is(new BigDecimal("123.4")));
-
-        /*
-         * スケールが3の場合。
-         */
-        convertor = (NumberStringDecimal) target.newInstance().init(field, new Object[]{10, 3});
-
-        // 入力データが空のバイト文字列
-        assertThat(convertor.convertOnRead(toBytes("")), is(new BigDecimal("0.000")));
-
-        // 入力データが0
-        result = convertor.convertOnRead(toBytes("0"));
-        assertThat(result, is(new BigDecimal("0.000")));
-
-        // 入力データが1
-        result = convertor.convertOnRead(toBytes("1"));
-        assertThat(result, is(new BigDecimal("0.001")));
-        
-        // 入力データが整数
-        result = convertor.convertOnRead(toBytes("12340"));
-        assertThat(result, is(new BigDecimal("12.340")));
-
-        /*
-         * スケールが-3の場合。
-         */
-        convertor = (NumberStringDecimal) target.newInstance().init(field, new Object[]{10, -3});
-
-        // 入力データが整数
-        result = convertor.convertOnRead(toBytes("123"));
-        assertThat(result.toPlainString(), is("123000"));
-        
-    }
-    
-    /**
-     * 読み込みテスト。パディング指定あり。
+     * 初期化時にスケールにnull, 空文字が渡されたときのテスト。
      */
     @Test
-    public void testReadPadding() throws Exception {
+    public void testInitNullScale() throws Exception {
+        sut.init(field, 10, null);
+        assertThat(sut.convertOnRead(toBytes("12300")), is(new BigDecimal("12300")));
 
-        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
-        DataType<BigDecimal, byte[]> convertor = new NumberStringDecimal().init(field, new Object[]{10});
-
-        // パディング（デフォルト）
-        BigDecimal result = convertor.convertOnRead(toBytes("0000012345"));
-        assertThat(result, is(new BigDecimal("12345")));
-        
-        // パディング（空白）
-        field.setPaddingValue(" ");
-        convertor = new NumberStringDecimal().init(field, new Object[]{10});
-        result = convertor.convertOnRead(toBytes("     12345"));
-        assertThat(result, is(new BigDecimal("12345")));
-
-        // パディング（0）
-        field.setPaddingValue("0");
-        convertor = new NumberStringDecimal().init(field, new Object[]{10});
-        result = convertor.convertOnRead(toBytes("0000012345"));
-        assertThat(result, is(new BigDecimal("12345")));
-
-        // パディング（X）
-        field.setPaddingValue("X");
-        convertor = new NumberStringDecimal().init(field, new Object[]{10});
-        result = convertor.convertOnRead(toBytes("XXXXX12345"));
-        assertThat(result, is(new BigDecimal("12345")));
-
-        // パディング（x）
-        field.setPaddingValue("x");
-        convertor = new NumberStringDecimal().init(field, new Object[]{10});
-        result = convertor.convertOnRead(toBytes("xxxxx00005"));
-        assertThat(result, is(new BigDecimal("5")));
-
-        // パディング（0）かつ、入力データが0
-        field.setPaddingValue("0");
-        convertor = new NumberStringDecimal().init(field, new Object[]{10});
-        result = convertor.convertOnRead(toBytes("0"));
-        assertThat(result, is(new BigDecimal("0")));
-
-        // パディング（0）かつ、入力データが0000000000
-        convertor = new NumberStringDecimal().init(field, new Object[]{10});
-        result = convertor.convertOnRead(toBytes("0000000000"));
-        assertThat(result, is(new BigDecimal("0")));
+        sut.init(field, 10, "");
+        assertThat(sut.convertOnRead(toBytes("1230")), is(new BigDecimal("1230")));
     }
-    
+
     /**
-     * トリム後およびパディング前の文字のバリエーションテスト。
-     * <p/>
-     * トリム後およびパディング前の最初の文字が符号の場合に例外がスローされる。
+     * 読込テスト。スケールなし。
+     * null, 空文字のケース。
      */
     @Test
-    public void testFirstCharVariation() throws Exception {
+    public void testReadNonScaleNullOrEmpty() throws Exception {
+        sut.init(field, 10);
 
-        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
-        DataType<BigDecimal, byte[]> convertor = new NumberStringDecimal().init(field, new Object[]{10});
-
-        /*
-         * トリム後の文字が符号の場合
-         */
-        // 先頭が1
-        BigDecimal result = convertor.convertOnRead(toBytes("0000112345"));
-        assertThat(result, is(new BigDecimal("112345")));
-        // 先頭が2
-        result = convertor.convertOnRead(toBytes("0000212345"));
-        assertThat(result, is(new BigDecimal("212345")));
-        // 先頭が3
-        result = convertor.convertOnRead(toBytes("0000312345"));
-        assertThat(result, is(new BigDecimal("312345")));
-        // 先頭が4
-        result = convertor.convertOnRead(toBytes("0000412345"));
-        assertThat(result, is(new BigDecimal("412345")));
-        // 先頭が5
-        result = convertor.convertOnRead(toBytes("0000512345"));
-        assertThat(result, is(new BigDecimal("512345")));
-        // 先頭が6
-        result = convertor.convertOnRead(toBytes("0000612345"));
-        assertThat(result, is(new BigDecimal("612345")));
-        // 先頭が7
-        result = convertor.convertOnRead(toBytes("0000712345"));
-        assertThat(result, is(new BigDecimal("712345")));
-        // 先頭が8
-        result = convertor.convertOnRead(toBytes("0000812345"));
-        assertThat(result, is(new BigDecimal("812345")));
-        // 先頭が9
-        result = convertor.convertOnRead(toBytes("0000912345"));
-        assertThat(result, is(new BigDecimal("912345")));
-
-        // 入力データが文字列
-        try {
-            convertor.convertOnRead(toBytes("abc"));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[abc]."));
-        }
-
-        //先頭が+
-        try {
-            result = convertor.convertOnRead(toBytes("0000+12340"));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[0000+12340]."));
-        }
-        
-        //先頭が-
-        try {
-            result = convertor.convertOnRead(toBytes("0000-12340"));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[0000-12340]."));
-        } 
-        
-        /*
-         * パディング前の文字が符号の場合
-         */
-        // 先頭が1
-        assertThat((new String(convertor.convertOnWrite("112345"), "ms932")), is("0000112345"));
-        // 先頭が2
-        assertThat((new String(convertor.convertOnWrite("212345"), "ms932")), is("0000212345"));
-        // 先頭が3
-        assertThat((new String(convertor.convertOnWrite("312345"), "ms932")), is("0000312345"));
-        // 先頭が4
-        assertThat((new String(convertor.convertOnWrite("412345"), "ms932")), is("0000412345"));
-        // 先頭が5
-        assertThat((new String(convertor.convertOnWrite("512345"), "ms932")), is("0000512345"));
-        // 先頭が6
-        assertThat((new String(convertor.convertOnWrite("612345"), "ms932")), is("0000612345"));
-        // 先頭が7
-        assertThat((new String(convertor.convertOnWrite("712345"), "ms932")), is("0000712345"));
-        // 先頭が8
-        assertThat((new String(convertor.convertOnWrite("812345"), "ms932")), is("0000812345"));
-        // 先頭が9
-        assertThat((new String(convertor.convertOnWrite("912345"), "ms932")), is("0000912345"));
-        // 先頭が正の符号（符号は削除される）
-        assertThat((new String(convertor.convertOnWrite("+12345"), "ms932")), is("0000012345"));
-
-        
-        // 先頭が負の符号（文字列）
-        try {
-            convertor.convertOnWrite("-12345");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must not be minus. parameter=[-12345]."));
-        }
-
-        // 先頭が負の符号（BigDecimal）
-        try {
-            convertor.convertOnWrite(BigDecimal.valueOf((long)-12345, 2));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must not be minus. parameter=[-123.45]."));
-        }
+        assertThat(sut.convertOnRead(toBytesNull()), is(new BigDecimal("0")));
+        assertThat(sut.convertOnRead(toBytes("")), is(new BigDecimal("0")));
     }
-    
+
+    /**
+     * 読込テスト。スケールなし。
+     * 不正な数値のケース。
+     */
+    @Test
+    public void testReadNonScaleInvalidNumber() throws Exception {
+        sut.init(field, 10);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[1.23.].");
+
+        sut.convertOnRead(toBytes("1.23."));
+    }
+
+    /**
+     * 読込テスト。スケールなし。
+     * 正常な数値のケース。
+     */
+    @Test
+    public void testReadNonScaleValidNumber() throws Exception {
+        sut.init(field, 10);
+
+        assertThat(sut.convertOnRead(toBytes("0")), is(new BigDecimal("0")));
+        assertThat(sut.convertOnRead(toBytes("1")), is(new BigDecimal("1")));
+        assertThat(sut.convertOnRead(toBytes("12340")), is(new BigDecimal("12340")));
+        assertThat(sut.convertOnRead(toBytes("1.23")), is(new BigDecimal("1.23")));
+    }
+
+    /**
+     * 読込テスト。スケールあり（スケール:0）。
+     * null, 空文字のケース。
+     */
+    @Test
+    public void testReadScale0NullOrEmpty() throws Exception {
+        sut.init(field, 10, 0);
+
+        assertThat(sut.convertOnRead(toBytesNull()), is(new BigDecimal("0")));
+        assertThat(sut.convertOnRead(toBytes("")), is(new BigDecimal("0")));
+    }
+
+    /**
+     * 読込テスト。スケールあり（スケール:0）。
+     * 正常な数値のケース。
+     */
+    @Test
+    public void testReadScale0ValidNumber() throws Exception {
+        sut.init(field, 10, 0);
+
+        assertThat(sut.convertOnRead(toBytes("0")), is(new BigDecimal("0")));
+        assertThat(sut.convertOnRead(toBytes("1")), is(new BigDecimal("1")));
+        assertThat(sut.convertOnRead(toBytes("12340")), is(new BigDecimal("12340")));
+        assertThat(sut.convertOnRead(toBytes("123.4")), is(new BigDecimal("123.4")));
+    }
+
+    /**
+     * 読込テスト。スケールあり（スケール:3）。
+     * null, 空文字のケース。
+     */
+    @Test
+    public void testReadScale3NullOrEmpty() throws Exception {
+        sut.init(field, 10, 3);
+
+        assertThat(sut.convertOnRead(toBytesNull()).toPlainString(), is("0.000"));
+        assertThat(sut.convertOnRead(toBytes("")).toPlainString(), is("0.000"));
+    }
+
+    /**
+     * 読込テスト。スケールあり（スケール:3）。
+     * 正常な数値のケース。
+     */
+    @Test
+    public void testReadScale3ValidNumber() throws Exception {
+        sut.init(field, 10, 3);
+
+        assertThat(sut.convertOnRead(toBytes("0")).toPlainString(), is("0.000"));
+        assertThat(sut.convertOnRead(toBytes("1")).toPlainString(), is("0.001"));
+        assertThat(sut.convertOnRead(toBytes("12340")).toPlainString(), is("12.340"));
+        assertThat(sut.convertOnRead(toBytes("123.4")).toPlainString(), is("123.4"));
+    }
+
+    /**
+     * 読込テスト。スケールあり（スケール:-3）。
+     * null, 空文字のケース。
+     */
+    @Test
+    public void testReadScaleMinus3NullOrEmpty() throws Exception {
+        sut.init(field, 10, -3);
+
+        assertThat(sut.convertOnRead(toBytesNull()).toPlainString(), is("0"));
+        assertThat(sut.convertOnRead(toBytes("")).toPlainString(), is("0"));
+    }
+
+    /**
+     * 読込テスト。スケールあり（スケール:-3）。
+     * 正常な数値のケース。
+     */
+    @Test
+    public void testReadScaleMinus3ValidNumber() throws Exception {
+        sut.init(field, 10, -3);
+
+        assertThat(sut.convertOnRead(toBytes("0")).toPlainString(), is("0"));
+        assertThat(sut.convertOnRead(toBytes("1")).toPlainString(), is("1000"));
+        assertThat(sut.convertOnRead(toBytes("12340")).toPlainString(), is("12340000"));
+        assertThat(sut.convertOnRead(toBytes("123.4")).toPlainString(), is("123.4"));
+    }
+
+    /**
+     * 読込時、デフォルトで"0"をトリムするテスト。
+     */
+    @Test
+    public void testReadTrimDefault() throws Exception {
+        sut.init(field, 10);
+
+        assertThat(sut.convertOnRead(toBytes("0000012345")), is(new BigDecimal("12345")));
+    }
+
+    /**
+     * 読込時、トリム（パディング）文字指定するテスト。
+     */
+    @Test
+    public void testReadTrimCustom() throws Exception {
+        final FieldDefinition otherField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+        otherField.setPaddingValue(" ");
+        sut.init(otherField, 10);
+
+        assertThat(sut.convertOnRead(toBytes("     12345")), is(new BigDecimal("12345")));
+    }
+
+    /**
+     * 読込時、トリム(パディング)文字が0の場合でも正しく読み込むテスト。
+     */
+    @Test
+    public void testReadTrimZero() throws Exception {
+        final FieldDefinition otherField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+        otherField.setPaddingValue("0");
+        sut.init(otherField, 10);
+
+        assertThat(sut.convertOnRead(toBytes("0")), is(new BigDecimal("0")));
+        assertThat(sut.convertOnRead(toBytes("0000000000")), is(new BigDecimal("0")));
+    }
+
+    /**
+     * 読込時、文字の場合例外を発生するテスト。
+     */
+    @Test
+    public void testReadString() throws Exception {
+        sut.init(field, 10);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[000abc].");
+
+        sut.convertOnRead(toBytes("000abc"));
+    }
+
+    /**
+     * 読込時、+符号がある場合例外を発生するテスト。
+     */
+    @Test
+    public void testReadPlusSign() throws Exception {
+        sut.init(field, 10);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[000+123].");
+
+        sut.convertOnRead(toBytes("000+123"));
+    }
+
+    /**
+     * 読込時、-符号がある場合例外を発生するテスト。
+     */
+    @Test
+    public void testReadMinusSign() throws Exception {
+        sut.init(field, 10);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[000-321].");
+
+        sut.convertOnRead(toBytes("000-321"));
+    }
+
+    /**
+     * 書き込み時、正しくパディングされるテスト。
+     */
+    @Test
+    public void testWritePadding() throws Exception {
+        sut.init(field, 10);
+
+        assertThat(sut.convertOnWrite("12345"), is("0000012345".getBytes(Charset.forName("ms932"))));
+    }
+
+    /**
+     * 書き込み時、+符号が付いていても正しくパディングされるテスト。
+     */
+    @Test
+    public void testWritePaddingPlusSign() throws Exception {
+        sut.init(field, 10);
+
+        assertThat(sut.convertOnWrite("+12345"), is("0000012345".getBytes(Charset.forName("ms932"))));
+    }
+
+    /**
+     * 書き込み時、-符号が付いていると例外が発生するテスト。
+     */
+    @Test
+    public void testWritePaddingMinusSign() throws Exception {
+        sut.init(field, 10);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. parameter must not be minus. parameter=[-12345].");
+
+        sut.convertOnWrite("-12345");
+    }
+
+    /**
+     * 書き込み時、負の数（BigDecimal)の場合、例外が発生するテスト。
+     */
+    @Test
+    public void testWritePaddingMinusValue() throws Exception {
+        sut.init(field, 10);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. parameter must not be minus. parameter=[-123.45].");
+
+        sut.convertOnWrite(BigDecimal.valueOf((long)-12345, 2));
+    }
+
+    /**
+     * 書き込み時、パディング文字指定するテスト。
+     */
+    @Test
+    public void testWriteTrimCustom() throws Exception {
+        final FieldDefinition otherField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+        otherField.setPaddingValue(" ");
+        sut.init(otherField, 10);
+
+        assertThat(sut.convertOnWrite("12345"), is("     12345".getBytes(Charset.forName("ms932"))));
+    }
+
     /**
      * 書き込みテスト。
+     * null, 空文字のケース。
      */
     @Test
-    public void testWrite() throws Exception {
-        doWrite(NumberStringDecimal.class);
+    public void testWriteNullOrEmpty() throws Exception {
+        sut.init(field, 10);
+
+        assertThat(sut.convertOnWrite(null), is("0000000000".getBytes(Charset.forName("ms932"))));
+        assertThat(sut.convertOnWrite(""), is("0000000000".getBytes(Charset.forName("ms932"))));
     }
 
     /**
-     * 書き込み時のパディングに着目したテスト。
+     * 書き込みテスト。
+     * 文字列のケース。
      */
     @Test
-    public void testWriteAndPadding() {
-        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+    public void testWriteString() throws Exception {
+        sut.init(field, 10);
 
-        // パディング文字指定なし(デフォルトの0が使用される。)
-        DataType<BigDecimal, byte[]> dataType = new NumberStringDecimal().init(field, 10);
-        assertThat(dataType.convertOnWrite("12345"), IsByte.is("0000012345"));
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[abc].");
 
-        // パディング文字指定：0
-        field.setPaddingValue("0");
-        dataType = new NumberStringDecimal().init(field, 10);
-        assertThat(dataType.convertOnWrite("12345"), IsByte.is("0000012345"));
-
-        // パディング文字指定：スペース
-        field.setPaddingValue(" ");
-        dataType = new NumberStringDecimal().init(field, 10);
-        assertThat(dataType.convertOnWrite("12345"), IsByte.is("     12345"));
-
-        // パディング文字指定：X
-        field.setPaddingValue("X");
-        dataType = new NumberStringDecimal().init(field, 10);
-        assertThat(dataType.convertOnWrite("12345"), IsByte.is("XXXXX12345"));
-
-        // パディング文字指定：9
-        field.setPaddingValue("!");
-        dataType = new NumberStringDecimal().init(field, 10);
-        assertThat(dataType.convertOnWrite("12345"), IsByte.is("!!!!!12345"));
-
-    }
-
-    private static class IsByte extends TypeSafeMatcher<byte[]> {
-
-        private String expected;
-
-        private IsByte(String expected) {
-            this.expected = expected;
-        }
-        public static IsByte is(String expected) {
-            return new IsByte(expected);
-        }
-
-        @Override
-        public boolean matchesSafely(byte[] bytes) {
-            return Arrays.equals(bytes, expected.getBytes());
-        }
-
-        public void describeTo(Description description) {
-            description.appendValue(expected.getBytes());
-        }
-    }
-    
-    /**
-     * 書き込みテスト。（SignedSingleByteNumberTestでもこのメソッドのテストを行うため、publicメソッドとして切り出す）
-     */
-    private void doWrite(Class<? extends NumberStringDecimal> target) throws Exception {
-        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
-        DataType<BigDecimal, byte[]> convertor = target.newInstance().init(field, new Object[]{10});
-
-        // 出力データがnull
-        assertThat(new String(convertor.convertOnWrite(null), "ms932"), is("0000000000"));
-        
-        /*
-         * 以降、出力データが文字列のパターン
-         */
-        
-        // 出力データが空文字
-        assertThat(new String(convertor.convertOnWrite(""), "ms932"), is("0000000000"));
-
-        // 出力データが文字列
-        try {
-            convertor.convertOnWrite("abc");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[abc]."));
-        }
-
-        // 出力データが不正な数値
-        try {
-            convertor.convertOnWrite("1.23.");
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[1.23.]."));
-        }
-
-        // 出力データが0
-        assertThat(new String(convertor.convertOnWrite("0"), "ms932"), is("0000000000"));
-
-        // 出力データが1
-        assertThat(new String(convertor.convertOnWrite("1"), "ms932"), is("0000000001"));
-        
-        // 出力データが整数
-        convertor = target.newInstance().init(field, new Object[]{10, 3});
-        assertThat(new String(convertor.convertOnWrite("12345"), "ms932"), is("012345.000"));
-
-        
-        // 出力データが小数
-        convertor = target.newInstance().init(field, new Object[]{10, 2});
-        assertThat(new String(convertor.convertOnWrite("1.23"), "ms932"), is("0000001.23"));
-
-        // 出力データの桁数がバイト長と一致
-        convertor = target.newInstance().init(field, new Object[]{10, 0});
-        assertThat(new String(convertor.convertOnWrite("1234567890"), "ms932"), is("1234567890"));
-
-        /*
-         * 以降、出力データがBigDecimalのパターン
-         */
-
-        // 出力データが小数点1桁、小数点位置は1
-        convertor = target.newInstance().init(field, new Object[]{10, 1});
-        assertThat(new String(convertor.convertOnWrite(new BigDecimal("12.3")), "ms932"), is("00000012.3"));
-
-        // 出力データが小数点1桁、小数点位置は2
-        convertor = target.newInstance().init(field, new Object[]{10, 2});
-        assertThat(new String(convertor.convertOnWrite(BigDecimal.valueOf((long)123, 1)), "ms932"), is("0000012.30"));
-        
-        // 出力データが小数点1桁、小数点位置は0（指定されたスケールが、出力データのスケールより小さい）
-        convertor = target.newInstance().init(field, new Object[]{10, 0});
-        try {
-            convertor.convertOnWrite(new BigDecimal("1.23"));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid scale was specified. specify scale must be greater than the parameter scale. specified scale=[0], parameter scale=[2], parameter=[1.23]."));
-        }
-        
-        // 出力データは小数点1桁、小数点位置は-3
-        convertor = new NumberStringDecimal().init(field, new Object[]{10, -3});
-        assertThat(new String(convertor.convertOnWrite(new BigDecimal("123000")), "ms932"), is("0000000123"));
-
-
-        // 出力データは小数点0桁、小数点位置は-4（桁落ちが発生するので例外で落ちる）
-        convertor = new NumberStringDecimal().init(field, new Object[]{10, -4});
-        assertThat(new String(convertor.convertOnWrite(new BigDecimal("123000")), "ms932"), is("00000012.3"));
-
+        sut.convertOnWrite("abc");
     }
 
     /**
-     * 小数点が不要の場合のテスト。
+     * 書き込みテスト。
+     * 不正な数値のケース。
      */
     @Test
-    public void testDecimalPoint() throws Exception {
+    public void testWriteInvalidNumber() throws Exception {
+        sut.init(field, 10);
 
-        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[1.23.].");
 
-        // 出力データは小数点0桁、小数点位置は0
-        NumberStringDecimal convertor = (NumberStringDecimal) new NumberStringDecimal().init(field, new Object[]{10, 0});
-        ((NumberStringDecimal) convertor).setRequiredDecimalPoint(false);
-        assertThat(new String(convertor.convertOnWrite(BigDecimal.valueOf((long)123, 0)), "ms932"), is("0000000123"));
-
-        // 出力データは小数点0桁、小数点位置は1
-        convertor = (NumberStringDecimal) new NumberStringDecimal().init(field, new Object[]{10, 1});
-        ((NumberStringDecimal) convertor).setRequiredDecimalPoint(false);
-        assertThat(new String(convertor.convertOnWrite(BigDecimal.valueOf((long)123, 0)), "ms932"), is("0000001230"));
-
-        // 出力データは小数点0桁、小数点位置は-1
-        convertor = (NumberStringDecimal) new NumberStringDecimal().init(field, new Object[]{10, 0});
-        ((NumberStringDecimal) convertor).setRequiredDecimalPoint(false);
-        try {
-            convertor.convertOnWrite(BigDecimal.valueOf((long)123, 1));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid scale was specified. specify scale must be greater than the parameter scale. specified scale=[0], parameter scale=[1], parameter=[12.3]."));
-        }
-
-        // 出力データは小数点1桁、小数点位置は-3
-        convertor = (NumberStringDecimal) new NumberStringDecimal().init(field, new Object[]{10, -3});
-        ((NumberStringDecimal) convertor).setRequiredDecimalPoint(false);
-        assertThat(new String(convertor.convertOnWrite(new BigDecimal("123000")), "ms932"), is("0000000123"));
-        
-
-        // 出力データは小数点0桁、小数点位置は-4（桁落ちが発生するので例外で落ちる）
-        convertor = (NumberStringDecimal) new NumberStringDecimal().init(field, new Object[]{10, -4});
-        ((NumberStringDecimal) convertor).setRequiredDecimalPoint(false);
-        try {
-            assertThat(new String(convertor.convertOnWrite(new BigDecimal("123000")), "ms932"), is("0000000123"));
-            fail();
-        } catch (InvalidDataFormatException e) {
-            assertThat(e.getMessage(), is("invalid scale was specified. scaled data should not have a decimal point. scale=[-4], scaled data=[12.3], write data=[123000]."));
-        }
-        
+        sut.convertOnWrite("1.23.");
     }
-    
+
     /**
-     * スケールの数字のバリエーション。
+     * 書き込みテスト。スケールなし。
+     * 正常な数値のケース。
      */
     @Test
-    public void testInvalidScaleVariation() throws Exception {
-        FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+    public void testWriteNonScaleValidNumber() throws Exception {
+        sut.init(field, 10);
 
-        // スケールがnullの場合、スケールは0として扱われる
-        DataType<BigDecimal, byte[]> convertor = new NumberStringDecimal().init(field, new Object[]{10, null});
-        BigDecimal result = convertor.convertOnRead(toBytes("12340"));
-        assertThat(result, is(new BigDecimal("12340")));
-
-        // スケールが空の場合、スケールは0として扱われる
-        convertor = new NumberStringDecimal().init(field, new Object[]{10, ""});
-        result = convertor.convertOnRead(toBytes("12340"));
-        assertThat(result, is(new BigDecimal("12340")));
-
-        // スケールがInteger型でない場合、例外がスローされる
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10, "abc"}); // abc
-            fail();
-        } catch(SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid parameter type was specified. 2nd parameter type must be Integer. parameter=[10, abc]. convertor=[NumberStringDecimal]."));
-        }
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10, "123"}); // 文字列の123
-            fail();
-        } catch(SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid parameter type was specified. 2nd parameter type must be Integer. parameter=[10, 123]. convertor=[NumberStringDecimal]."));
-        }
+        assertThat(sut.convertOnWrite("0"), is("0000000000".getBytes(Charset.forName("ms932"))));
+        assertThat(sut.convertOnWrite("1"), is("0000000001".getBytes(Charset.forName("ms932"))));
+        assertThat(sut.convertOnWrite("12340"), is("0000012340".getBytes(Charset.forName("ms932"))));
+        assertThat(sut.convertOnWrite("1234567890"), is("1234567890".getBytes(Charset.forName("ms932"))));
     }
 
+    /**
+     * 書き込みテスト。スケールあり。
+     * 正常な数値のケース。
+     */
+    @Test
+    public void testWriteScaleValidNumber() throws Exception {
+        sut.init(field, 10, 2);
+
+        assertThat(sut.convertOnWrite("12.34"), is("0000012.34".getBytes(Charset.forName("ms932"))));
+    }
+
+    /**
+     * 書き込みテスト。スケールあり。
+     * 出力対象のスケールが設定値より大きいケース。
+     */
+    @Test
+    public void testWriteInvalidScaleNumber() throws Exception {
+        sut.init(field, 10);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid scale was specified. specify scale must be greater than the parameter scale. specified scale=[0], parameter scale=[1], parameter=[1.2].");
+
+        sut.convertOnWrite("1.2");
+    }
+
+    /**
+     * 書き込みテスト。スケールあり。
+     * 正常な数値(BigDecimal)のケース。
+     */
+    @Test
+    public void testWriteScaleValidBigDecimal() throws Exception {
+        sut.init(field, 10, 1);
+        assertThat(sut.convertOnWrite(new BigDecimal("12.3")), is("00000012.3".getBytes(Charset.forName("ms932"))));
+
+        sut.init(field, 10, 2);
+        assertThat(sut.convertOnWrite(BigDecimal.valueOf((long)123, 1)), is("0000012.30".getBytes(Charset.forName("ms932"))));
+
+        sut.init(field, 10, -3);
+        assertThat(sut.convertOnWrite(new BigDecimal("123000")), is("0000000123".getBytes(Charset.forName("ms932"))));
+
+        sut.init(field, 10, -4);
+        assertThat(sut.convertOnWrite(new BigDecimal("123000")), is("00000012.3".getBytes(Charset.forName("ms932"))));
+    }
+
+    /**
+     * 小数点が不要な書き込みのテスト。
+     * 正常系。
+     */
+    @Test
+    public void testNoDecimalPoint() throws Exception {
+        // スケール : 0
+        sut.init(field, 10, 0);
+        sut.setRequiredDecimalPoint(false);
+        assertThat(sut.convertOnWrite(BigDecimal.valueOf((long)123, 0)), is("0000000123".getBytes(Charset.forName("ms932"))));
+
+        // スケール : 1
+        sut.init(field, 10, 1);
+        sut.setRequiredDecimalPoint(false);
+        assertThat(sut.convertOnWrite(BigDecimal.valueOf((long)123, 0)), is("0000001230".getBytes(Charset.forName("ms932"))));
+
+        // スケール : -3
+        sut.init(field, 10, -3);
+        sut.setRequiredDecimalPoint(false);
+        assertThat(sut.convertOnWrite(BigDecimal.valueOf((long)123000, 0)), is("0000000123".getBytes(Charset.forName("ms932"))));
+    }
+
+    /**
+     * 小数点が不要な書き込みのテスト。
+     * 異常系。スケールにより小数となるケース。
+     */
+    @Test
+    public void testNoDecimalPointInvalidValue() throws Exception {
+        sut.init(field, 10, -4);
+        sut.setRequiredDecimalPoint(false);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid scale was specified. scaled data should not have a decimal point. scale=[-4], scaled data=[12.3], write data=[123000].");
+        sut.convertOnWrite(BigDecimal.valueOf((long)123000, 0));
+    }
+
+    ///////////////////////////////////////////////////
 
     /**
      * 不正なパディング文字が設定された場合のテスト。
+     * 全角数字のケース。
      */
     @Test
-    public void testInvalidPaddingStr() throws Exception {
+    public void testInvalidPaddingStringZenkaku() throws Exception {
+        final FieldDefinition paddingField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("０");
 
-        FieldDefinition field = (FieldDefinition) new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("1");
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid parameter was specified. the length of padding bytes must be '1', but was '2'. padding string=[０].");
 
-        // パディング文字に1
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10});
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid padding character was specified. padding character must not be [1-9] pattern. padding character=[1], convertor=[NumberStringDecimal]."));
-        }
-        // パディング文字に2
-        field = (FieldDefinition) new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("2");
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10});
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid padding character was specified. padding character must not be [1-9] pattern. padding character=[2], convertor=[NumberStringDecimal]."));
-        }
-        // パディング文字に3
-        field = (FieldDefinition) new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("3");
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10});
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid padding character was specified. padding character must not be [1-9] pattern. padding character=[3], convertor=[NumberStringDecimal]."));
-        }
-        // パディング文字に4
-        field = (FieldDefinition) new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("4");
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10});
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid padding character was specified. padding character must not be [1-9] pattern. padding character=[4], convertor=[NumberStringDecimal]."));
-        }
-        // パディング文字に5
-        field = (FieldDefinition) new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("5");
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10});
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid padding character was specified. padding character must not be [1-9] pattern. padding character=[5], convertor=[NumberStringDecimal]."));
-        }
-        // パディング文字に6
-        field = (FieldDefinition) new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("6");
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10});
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid padding character was specified. padding character must not be [1-9] pattern. padding character=[6], convertor=[NumberStringDecimal]."));
-        }
-        // パディング文字に7
-        field = (FieldDefinition) new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("7");
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10});
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid padding character was specified. padding character must not be [1-9] pattern. padding character=[7], convertor=[NumberStringDecimal]."));
-        }
-        // パディング文字に8
-        field = (FieldDefinition) new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("8");
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10});
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid padding character was specified. padding character must not be [1-9] pattern. padding character=[8], convertor=[NumberStringDecimal]."));
-        }
-        // パディング文字に9
-        field = (FieldDefinition) new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("9");
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10});
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid padding character was specified. padding character must not be [1-9] pattern. padding character=[9], convertor=[NumberStringDecimal]."));
-        }
-        // パディング文字に全角
-        field = (FieldDefinition) new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("０");
-        try {
-            new NumberStringDecimal().init(field, new Object[]{10});
-            fail();
-        } catch (SyntaxErrorException e) {
-            assertThat(e.getMessage(), is("invalid parameter was specified. the length of padding bytes must be '1', but was '2'. padding string=[０]."));
-        }
+        sut.init(paddingField, 10);
     }
 
     /**
-     * フォーマット定義ファイルを使用した読み込みテスト。
+     * 不正なパディング文字が設定された場合のテスト。
+     * 数字下限のケース。
      */
     @Test
-    public void testReadFormatFile() throws Exception {
+    public void testReadTrimNumberBottom() throws Exception {
+        final FieldDefinition otherField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+        otherField.setPaddingValue("1");
 
-        File formatFile = Hereis.file("./format.fmt");
-        /**********************************************
-        # ファイルタイプ
-        file-type:    "Fixed"
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "ms932"
-        
-        # 各レコードの長さ
-        record-length: 20
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid padding character was specified. padding character must not be [1-9] pattern."
+                + " padding character=[1], convertor=[NumberStringDecimal].");
 
-        # データレコード定義
-        [Default]
-        1  number  X9(10, "")   
-        11  number2  SX9(10, 3)  
-        ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                                 .addBasePathSetting("format", "file:./")
-                                 .addFileExtensions("format", "fmt");
-        
-        byte[] bytes = "0000123.45".getBytes("ms932");
-        byte[] bytes2 = "0000012345".getBytes("ms932");
-        
-        OutputStream dest = new FileOutputStream("./record.dat", false);
-        dest.write(bytes);
-        dest.write(bytes2);
-        dest.close();
-
-        InputStream source = new BufferedInputStream(
-                new FileInputStream("record.dat"));
-
-        DataRecordFormatter formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).
-        createFormatter(formatFile).setInputStream(source).initialize();
-        
-        DataRecord record = formatter.readRecord();
-        
-        assertEquals(2, record.size());
-        assertEquals(new BigDecimal("123.45"),          record.get("number"));
-        assertEquals(new BigDecimal("12.345"),          record.get("number2"));
-        
-        source.close();
-        new File("record.dat").deleteOnExit();
-    }
-    
-
-    
-    /**
-     * フォーマット定義ファイルを使用した書き込みテスト。
-     */
-    @Test
-    public void testWriteFormatFile() throws Exception {
-        File formatFile = Hereis.file("./format.fmt");
-        /**********************************************
-        # ファイルタイプ
-        file-type:    "Fixed"
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "ms932"
-        
-        # 各レコードの長さ
-        record-length: 20
-
-        # データレコード定義
-        [Default]
-        1  number  X9(10, 2)   
-        11  number2  SX9(10, 4)    
-        ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                                 .addBasePathSetting("format", "file:./")
-                                 .addFileExtensions("format", "fmt");
-        
-
-        OutputStream dest = new FileOutputStream("./record.dat", false);
-        
-        DataRecordFormatter formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).
-        createFormatter(formatFile).setOutputStream(dest).initialize();
-        
-        formatter.writeRecord(new DataRecord(){{
-            put("number", "123.45");
-            put("number2", String.valueOf(BigDecimal.valueOf(12345, 3)));
-        }});
-        
-        dest.close();
-
-        InputStream source = new BufferedInputStream(
-                new FileInputStream("record.dat"));
-
-        byte[] bytes = new byte[10];
-        
-        source.read(bytes);
-        assertEquals("0000123.45", new String(bytes, "ms932"));
-
-        source.read(bytes);
-        assertEquals("00012.3450", new String(bytes, "ms932"));
-
-        source.close();
-        new File("record.dat").deleteOnExit();
+        sut.init(otherField, 10);
     }
 
     /**
-     * 書き込み時にパラメータがnullの場合にデフォルト値が出力されるテスト。
+     * 不正なパディング文字が設定された場合のテスト。
+     * 数字上限のケース。
      */
     @Test
-    public void testWriteDefault() throws Exception {
-        File formatFile = Hereis.file("./format.fmt");
-        /**********************************************
-         # ファイルタイプ
-         file-type:    "Fixed"
-         # 文字列型フィールドの文字エンコーディング
-         text-encoding: "ms932"
+    public void testReadTrimNumberTop() throws Exception {
+        final FieldDefinition otherField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+        otherField.setPaddingValue("9");
 
-         # 各レコードの長さ
-         record-length: 20
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid padding character was specified. padding character must not be [1-9] pattern."
+                + " padding character=[9], convertor=[NumberStringDecimal].");
 
-         # データレコード定義
-         [Default]
-         1  number  X9(10, 2)   123
-         11  number2  SX9(10, 4)   321
-         ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                .addBasePathSetting("format", "file:./")
-                .addFileExtensions("format", "fmt");
+        sut.init(otherField, 10);
+    }
 
+    /**
+     * 不正なパディング文字が設定された場合のテスト。
+     * 数字中間のケース。
+     */
+    @Test
+    public void testReadTrimNumberMiddle() throws Exception {
+        final FieldDefinition otherField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
+        otherField.setPaddingValue("5");
 
-        OutputStream dest = new FileOutputStream("./record.dat", false);
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid padding character was specified. padding character must not be [1-9] pattern."
+                + " padding character=[5], convertor=[NumberStringDecimal].");
 
-        DataRecordFormatter formatter = FormatterFactory.getInstance().setCacheLayoutFileDefinition(false).
-                createFormatter(formatFile).setOutputStream(dest).initialize();
-
-        formatter.writeRecord(new DataRecord(){{
-            put("number", null);
-            put("number2", null);
-        }});
-
-        dest.close();
-
-        InputStream source = new BufferedInputStream(
-                new FileInputStream("record.dat"));
-
-        byte[] bytes = new byte[10];
-
-        source.read(bytes);
-        assertEquals("0000123.00", new String(bytes, "ms932"));
-
-        source.read(bytes);
-        assertEquals("00321.0000", new String(bytes, "ms932"));
-
-        source.close();
-        new File("record.dat").deleteOnExit();
+        sut.init(otherField, 10);
     }
 
     /**
@@ -836,13 +560,7 @@ public class NumberStringDecimalTest {
      */
     @Test
     public void testTrimEmptyString() {
-        NumberStringDecimal sut = new NumberStringDecimal();
         assertThat(sut.trim(""), is(""));
-    }
-
-    /** 文字列をバイトに変換する */
-    private byte[] toBytes(String str) throws UnsupportedEncodingException {
-        return str.getBytes("ms932");
     }
     
 }

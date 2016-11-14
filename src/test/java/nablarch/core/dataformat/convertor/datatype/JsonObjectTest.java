@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -15,15 +16,15 @@ import static org.junit.Assert.assertThat;
  */
 public class JsonObjectTest {
 
+    private JsonObject sut = new JsonObject();
+
     /**
      * 初期化時にnullが渡されたときのテスト。
      * {@link JsonObject}では初期化時になにもしないため、nullを許容する。
      */
     @Test
     public void testInitializeNull() {
-        JsonObject dataType = new JsonObject();
-
-        assertThat(dataType.initialize(null), is((DataType<String, String>)dataType));
+        assertThat(sut.initialize(null), is((DataType<String, String>)sut));
     }
 
     /**
@@ -32,13 +33,12 @@ public class JsonObjectTest {
     @Test
     public void testConvertOnRead() {
         // 入力値がそのまま返却される
-        JsonObject converter = new JsonObject();
-        assertEquals("\"data\"", converter.convertOnRead("\"data\""));
-        assertEquals("data", converter.convertOnRead("data"));
-        assertEquals("\"data", converter.convertOnRead("\"data"));
-        assertEquals("data\"", converter.convertOnRead("data\""));
-        assertEquals("", converter.convertOnRead(""));
-        assertEquals(null, converter.convertOnRead(null));
+        assertThat(sut.convertOnRead("\"data\""), is("\"data\""));
+        assertThat(sut.convertOnRead("data"), is("data"));
+        assertThat(sut.convertOnRead("\"data"), is("\"data"));
+        assertThat(sut.convertOnRead("data\""), is("data\""));
+        assertThat(sut.convertOnRead(""), is(""));
+        assertThat(sut.convertOnRead(null), is(nullValue()));
     }
     
     /**
@@ -47,14 +47,13 @@ public class JsonObjectTest {
     @Test
     public void testConvertOnWrite() {
         // 入力値がそのまま返却される
-        JsonObject converter = new JsonObject();
-        assertEquals("data", converter.convertOnWrite("data"));
-        assertEquals("\"data\"", converter.convertOnWrite("\"data\""));
-        assertEquals("\"data", converter.convertOnWrite("\"data"));
-        assertEquals("data\"", converter.convertOnWrite("data\""));
-        assertEquals("", converter.convertOnWrite(""));
+        assertThat(sut.convertOnWrite("data"), is("data"));
+        assertThat(sut.convertOnWrite("\"data\""), is("\"data\""));
+        assertThat(sut.convertOnWrite("\"data"), is("\"data"));
+        assertThat(sut.convertOnWrite("data\""), is("data\""));
+        assertThat(sut.convertOnWrite(""), is(""));
         // nullはnull
-        assertEquals(null, converter.convertOnWrite(null));
+        assertThat(sut.convertOnWrite(null), is(nullValue()));
     }
 
     /**
@@ -63,8 +62,6 @@ public class JsonObjectTest {
      */
     @Test
     public void testConvertOnWrite_BigDecimal() throws Exception {
-        final JsonObject sut = new JsonObject();
-
         assertThat(sut.convertOnWrite(BigDecimal.ONE), is("1"));
         assertThat("指数表記とならないこと", sut.convertOnWrite(new BigDecimal("0.0000000001")), is("0.0000000001"));
     }

@@ -5,15 +5,17 @@ import org.junit.Test;
 import java.math.BigDecimal;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
  * {@link NullableString}のテスト
- * 
+ *
  * @author TIS
  */
 public class NullableStringTest {
+
+    private NullableString sut = new NullableString();
 
     /**
      * 初期化時にnullが渡されたときのテスト。
@@ -21,9 +23,7 @@ public class NullableStringTest {
      */
     @Test
     public void testInitializeNull() {
-        NullableString dataType = new NullableString();
-
-        assertThat(dataType.initialize(null), is((DataType<String, String>)dataType));
+        assertThat(sut.initialize(null), is((DataType<String, String>)sut));
     }
 
     /**
@@ -32,29 +32,27 @@ public class NullableStringTest {
     @Test
     public void testConvertOnRead() {
         // 入力値がそのまま返却される
-        NullableString converter = new NullableString();
-        assertEquals("\"data\"", converter.convertOnRead("\"data\""));
-        assertEquals("data", converter.convertOnRead("data"));
-        assertEquals("\"data", converter.convertOnRead("\"data"));
-        assertEquals("data\"", converter.convertOnRead("data\""));
-        assertEquals("", converter.convertOnRead(""));
-        assertEquals(null, converter.convertOnRead(null));
+        assertThat(sut.convertOnRead("\"data\""), is("\"data\""));
+        assertThat(sut.convertOnRead("data"), is("data"));
+        assertThat(sut.convertOnRead("\"data"), is("\"data"));
+        assertThat(sut.convertOnRead("data\""), is("data\""));
+        assertThat(sut.convertOnRead(""), is(""));
+        assertThat(sut.convertOnRead(null), is(nullValue()));
     }
-    
+
     /**
      * 書き込み時のテスト
      */
     @Test
     public void testConvertOnWrite() {
         // 入力値がそのまま返却される
-        NullableString converter = new NullableString();
-        assertEquals("data", converter.convertOnWrite("data"));
-        assertEquals("\"data\"", converter.convertOnWrite("\"data\""));
-        assertEquals("\"data", converter.convertOnWrite("\"data"));
-        assertEquals("data\"", converter.convertOnWrite("data\""));
-        assertEquals("", converter.convertOnWrite(""));
+        assertThat(sut.convertOnWrite("data"), is("data"));
+        assertThat(sut.convertOnWrite("\"data\""), is("\"data\""));
+        assertThat(sut.convertOnWrite("\"data"), is("\"data"));
+        assertThat(sut.convertOnWrite("data\""), is("data\""));
+        assertThat(sut.convertOnWrite(""), is(""));
         // nullは空文字に変換する
-        assertEquals("", converter.convertOnWrite(null));
+        assertThat(sut.convertOnWrite(null), is(""));
     }
 
     /**
@@ -62,8 +60,6 @@ public class NullableStringTest {
      */
     @Test
     public void testConvertOnWrite_BigDecimal() throws Exception {
-        final NullableString sut = new NullableString();
-
         assertThat(sut.convertOnWrite(BigDecimal.ONE), is("1"));
         assertThat(sut.convertOnWrite(new BigDecimal("0.0000000002")), is("0.0000000002"));
     }
