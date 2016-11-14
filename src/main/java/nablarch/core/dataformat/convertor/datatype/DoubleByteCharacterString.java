@@ -32,7 +32,7 @@ public class DoubleByteCharacterString extends ByteStreamDataString {
         if (getSize() % 2 != 0) {
             throw new SyntaxErrorException(Builder.concat(
                     "invalid field size was specified. the length of DoubleByteCharacter data field must be a even number. ", 
-                    "field size=[", getSize(), "]. convertor=[", getClass().getName(), "]."));
+                    "field size=[", getSize(), "]. convertor=[", getClass().getSimpleName(), "]."));
         }
         return this;
     }
