@@ -489,8 +489,6 @@ public class NumberStringDecimalTest {
         sut.convertOnWrite(BigDecimal.valueOf((long)123000, 0));
     }
 
-    ///////////////////////////////////////////////////
-
     /**
      * 不正なパディング文字が設定された場合のテスト。
      * 全角数字のケース。

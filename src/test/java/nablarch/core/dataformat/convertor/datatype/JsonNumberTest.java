@@ -1,13 +1,11 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -63,7 +61,7 @@ public class JsonNumberTest {
      */
     @Test
     public void testConvertOnWrite_BigDecimal() throws Exception {
-        Assert.assertThat(sut.convertOnWrite(new BigDecimal(("1"))), is("1"));
-        Assert.assertThat(sut.convertOnWrite(new BigDecimal("0.0000000001")), is("0.0000000001"));
+        assertThat(sut.convertOnWrite(new BigDecimal(("1"))), is("1"));
+        assertThat(sut.convertOnWrite(new BigDecimal("0.0000000001")), is("0.0000000001"));
     }
 }

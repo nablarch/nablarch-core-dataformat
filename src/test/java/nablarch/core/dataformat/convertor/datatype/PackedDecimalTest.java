@@ -3,7 +3,6 @@ package nablarch.core.dataformat.convertor.datatype;
 import nablarch.core.dataformat.FieldDefinition;
 import nablarch.core.dataformat.InvalidDataFormatException;
 import nablarch.core.dataformat.SyntaxErrorException;
-import nablarch.core.dataformat.convertor.FixedLengthConvertorFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
