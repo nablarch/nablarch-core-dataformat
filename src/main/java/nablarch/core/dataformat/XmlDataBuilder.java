@@ -214,19 +214,19 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
      */
     private void writeStringArray(XMLStreamWriter writer, FieldDefinition fd, String currentKeyBase, String mapKey, Map<String, ?> map)
             throws XMLStreamException {
-        if (map != null && map.containsKey(mapKey) && map.get(mapKey) != null) {
+        if (map != null && map.get(mapKey) != null) {
             String[] arr = (String[]) map.get(mapKey);
 
             // 配列の長さチェック実施
             checkArrayLength(fd, arr.length, currentKeyBase);
 
-            for (int i = 0; i < arr.length; i++) {
-                Object writeVal = convertToFieldOnWrite(arr[i], fd);
+            for (String arrayVal : arr) {
+                Object writeVal = convertToFieldOnWrite(arrayVal, fd);
                 CharacterStreamDataString dataType = (CharacterStreamDataString) fd.getDataType();
                 // データタイプのコンバータを実行する
-                writeVal = dataType.convertOnWrite(writeVal);
+                String writeStringValue = dataType.convertOnWrite(writeVal);
                 writer.writeStartElement(fd.getName());
-                writer.writeCharacters(StringUtil.toString(writeVal));
+                writer.writeCharacters(writeStringValue);
                 writer.writeEndElement();
             }
         } else {
