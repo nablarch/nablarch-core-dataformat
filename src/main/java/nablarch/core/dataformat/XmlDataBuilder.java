@@ -221,13 +221,12 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
             checkArrayLength(fd, arr.length, currentKeyBase);
 
             for (int i = 0; i < arr.length; i++) {
-                // 必須チェック実施
-                checkIndispensable(currentKeyBase, fd, arr[i]);
-            }
-
-            for (int i = 0; i < arr.length; i++) {
+                Object writeVal = convertToFieldOnWrite(arr[i], fd);
+                CharacterStreamDataString dataType = (CharacterStreamDataString) fd.getDataType();
+                // データタイプのコンバータを実行する
+                writeVal = dataType.convertOnWrite(writeVal);
                 writer.writeStartElement(fd.getName());
-                writer.writeCharacters(arr[i]);
+                writer.writeCharacters(StringUtil.toString(writeVal));
                 writer.writeEndElement();
             }
         } else {
@@ -293,15 +292,17 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
         if (map != null) {
             String mapVal = map.get(mapKey) == null ? null : StringUtil.toString(map.get(mapKey));
             writeVal = convertToFieldOnWrite(mapVal, fd);
+            if(map.containsKey(mapKey)) {
+                CharacterStreamDataString dataType = (CharacterStreamDataString) fd.getDataType();
+                // データタイプのコンバータを実行する
+                writeVal = dataType.convertOnWrite(writeVal);
+            }
         }
 
         // 必須チェック実施
         checkIndispensable(currentKeyBase, fd, writeVal);
 
         if (map != null && map.containsKey(mapKey) || writeVal != null) {
-            CharacterStreamDataString dataType = (CharacterStreamDataString) fd.getDataType();
-            // データタイプのコンバータを実行する
-            writeVal = dataType.convertOnWrite(writeVal);
             if (fd.isAttribute()) {
                 writer.writeAttribute(fd.getName(), StringUtil.toString(writeVal));
             } else if (fd.getName().equals(contentName)) {
