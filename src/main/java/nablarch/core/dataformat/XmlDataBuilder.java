@@ -288,28 +288,28 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
     private void writeValue(XMLStreamWriter writer, FieldDefinition fd, String mapKey, Map<String, ?> map, String currentKeyBase)
         throws XMLStreamException {
 
-        Object writeVal = null;
+        String writeStringVal = null;
         if (map != null) {
             String mapVal = map.get(mapKey) == null ? null : StringUtil.toString(map.get(mapKey));
-            writeVal = convertToFieldOnWrite(mapVal, fd);
-            if(map.containsKey(mapKey)) {
+            Object writeVal = convertToFieldOnWrite(mapVal, fd);
+            if(map.containsKey(mapKey) || writeVal != null) {
                 CharacterStreamDataString dataType = (CharacterStreamDataString) fd.getDataType();
                 // データタイプのコンバータを実行する
-                writeVal = dataType.convertOnWrite(writeVal);
+                writeStringVal = dataType.convertOnWrite(writeVal);
             }
         }
 
         // 必須チェック実施
-        checkIndispensable(currentKeyBase, fd, writeVal);
+        checkIndispensable(currentKeyBase, fd, writeStringVal);
 
-        if (map != null && map.containsKey(mapKey) || writeVal != null) {
+        if (map != null && map.containsKey(mapKey) || writeStringVal != null) {
             if (fd.isAttribute()) {
-                writer.writeAttribute(fd.getName(), StringUtil.toString(writeVal));
+                writer.writeAttribute(fd.getName(), writeStringVal);
             } else if (fd.getName().equals(contentName)) {
-                writer.writeCharacters(StringUtil.toString(writeVal));
+                writer.writeCharacters(writeStringVal);
             } else {
                 writer.writeStartElement(fd.getName());
-                writer.writeCharacters(StringUtil.toString(writeVal));
+                writer.writeCharacters(writeStringVal);
                 writer.writeEndElement();
             }
         }
