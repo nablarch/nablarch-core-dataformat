@@ -88,20 +88,20 @@ public class PackedDecimal extends ByteStreamDataSupport<BigDecimal> {
     /** {@inheritDoc} */
     public PackedDecimal initialize(Object... args) {
         if (args == null) {
-            throw new SyntaxErrorException("initialize parameter was null. parameter must be specified. convertor=[PackedDecimal].");
+            throw new SyntaxErrorException("initialize parameter was null. parameter must be specified. convertor=[" + getClass().getSimpleName() + "].");
         }
         if (args.length == 0) {
-            throw new SyntaxErrorException("parameter was not specified. parameter must be specified. convertor=[PackedDecimal].");
+            throw new SyntaxErrorException("parameter was not specified. parameter must be specified. convertor=[" + getClass().getSimpleName() + "].");
         }
         if (args[0] == null) {
             throw new SyntaxErrorException(concat(
-                    "1st parameter was null. parameter=", Arrays.toString(args), ". convertor=[PackedDecimal]."));
+                    "1st parameter was null. parameter=", Arrays.toString(args), ". convertor=[" + getClass().getSimpleName() + "]."));
         }
         if (!(args[0] instanceof Integer)) {
             throw new SyntaxErrorException(concat(
                             "invalid parameter type was specified. "
                           , "1st parameter type must be 'Integer' but was: '", args[0].getClass().getName(), "'. "
-                          , "parameter=", Arrays.toString(args), ". convertor=[PackedDecimal]."));
+                          , "parameter=", Arrays.toString(args), ". convertor=[" + getClass().getSimpleName() + "]."));
         }
 
         setSize((Integer) args[0]);
