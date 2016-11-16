@@ -13,14 +13,15 @@ import java.nio.charset.Charset;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertThat;
 
 /**
- * バイト文字コンバータのテスト。
+ * バイト文字コンバータ{@link ByteStreamDataString}のテスト。
  * 
- * @author Masato Inoue
+ * @author TIS
  */
 public class ByteStreamDataStringTest {
 
@@ -28,6 +29,8 @@ public class ByteStreamDataStringTest {
     public ExpectedException exception = ExpectedException.none();
 
     private ByteStreamDataString sut = new ByteStreamDataString();
+
+    final private FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("utf-8"));
 
     /**
      * 初期化時にnullをわたすと例外がスローされること。
@@ -52,40 +55,25 @@ public class ByteStreamDataStringTest {
     }
 
     /**
-     * 入力時にパラメータが空白の場合のテスト。
-     * 固定長を扱うため、nullがわたされることはないため考慮しない。
+     * 入力時にパラメータがnullの場合のテスト。
+     * nullは空文字として読み込む。
+     */
+    @Test
+    public void testReadParameterNull() throws Exception {
+        sut.init(field, 10);
+
+        assertThat(sut.convertOnRead(null), is(nullValue()));
+    }
+
+    /**
+     * 入力時にパラメータが空文字の場合のテスト。
+     * 読込時はバイト長のチェックをしないため、空文字は空文字として読み込む。
      */
     @Test
     public void testReadParameterEmpty() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
+        sut.init(field, 10);
+
         assertThat(sut.convertOnRead("".getBytes()), is(""));
-    }
-
-    /**
-     * シングルバイト文字が読み込めること。
-     */
-    @Test
-    public void testReadSingleByteString() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
-        assertThat(sut.convertOnRead("0123456789".getBytes("utf-8")), is("0123456789"));
-    }
-
-    /**
-     * ダブルバイト文字が読み込めること。
-     */
-    @Test
-    public void testReadDoubleByteString() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
-        assertThat(sut.convertOnRead("αβγδε".getBytes("utf-8")), is("αβγδε"));
-    }
-
-    /**
-     * ３バイト文字が読み込めること。
-     */
-    @Test
-    public void testReadMultiByteString() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
-        assertThat(sut.convertOnRead("なぶらーく名武羅亜区".getBytes("utf-8")), is("なぶらーく名武羅亜区"));
     }
 
     /**
@@ -93,7 +81,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testReadCombinationByteString() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
+        sut.init(field, 10);
         assertThat(sut.convertOnRead("01α名武2β4羅5678".getBytes("utf-8")), is("01α名武2β4羅5678"));
     }
 
@@ -102,7 +90,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testReadNoLeftTrim() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
+        sut.init(field, 10);
         assertThat(sut.convertOnRead("    0α名".getBytes("utf-8")), is("    0α名"));
     }
 
@@ -111,7 +99,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testReadTrimDefault() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
+        sut.init(field, 10);
         assertThat(sut.convertOnRead("0α名    ".getBytes("utf-8")), is("0α名"));
     }
 
@@ -125,7 +113,7 @@ public class ByteStreamDataStringTest {
     }
 
     /**
-     * 出力時にパラメータがnullまたは空白の場合のテスト。
+     * 出力時にパラメータがnullまたは空文字の場合のテスト。
      */
     @Test
     public void testWriteParameterNullOrEmpty() throws Exception {
@@ -139,7 +127,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWriteSingleByteString() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
+        sut.init(field, 10);
         assertThat(sut.convertOnWrite("0123456789"), is("0123456789".getBytes("utf-8")));
     }
 
@@ -148,7 +136,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWriteDoubleByteString() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
+        sut.init(field, 10);
         assertThat(sut.convertOnWrite("αβγδε"), is("αβγδε".getBytes("utf-8")));
     }
 
@@ -157,7 +145,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWriteMultiByteString() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 9);
+        sut.init(field, 9);
         assertThat(sut.convertOnWrite("名武羅"), is("名武羅".getBytes("utf-8")));
     }
 
@@ -166,7 +154,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWriteCombinationByteString() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 20);
+        sut.init(field, 20);
         assertThat(sut.convertOnWrite("01α名武2β4羅567"), is("01α名武2β4羅567".getBytes("utf-8")));
     }
 
@@ -175,7 +163,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWriteNoPadding() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
+        sut.init(field, 10);
         assertThat(sut.convertOnWrite("1000000001"), is("1000000001".getBytes("utf-8")));
     }
 
@@ -184,7 +172,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWritePaddingDefault() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
+        sut.init(field, 10);
         assertThat(sut.convertOnWrite("10001"), is("10001     ".getBytes("utf-8")));
     }
 
@@ -193,7 +181,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWritePadding() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")).setPaddingValue("0"), 10);
+        sut.init(field.setPaddingValue("0"), 10);
         assertThat(sut.convertOnWrite("1α名"), is("1α名0000".getBytes("utf-8")));
     }
 
@@ -202,7 +190,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWriteLargeBytes() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 10);
+        sut.init(field, 10);
 
         exception.expect(allOf(
                 instanceOf(InvalidDataFormatException.class),
@@ -259,7 +247,7 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWriteBigDecimal() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 12);
+        sut.init(field, 12);
 
         assertThat(sut.convertOnWrite(BigDecimal.ONE), is("1           ".getBytes(Charset.forName("utf-8"))));
         assertThat(sut.convertOnWrite(new BigDecimal("0.0000000001")),
@@ -271,11 +259,26 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWriteBigDecimal_SizeOver() throws Exception {
-        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")), 11);
+        sut.init(field, 11);
 
         exception.expect(InvalidDataFormatException.class);
         exception.expectMessage("field size = '11' data size = '12'. data: 0.0000000001");
 
         sut.convertOnWrite(new BigDecimal("0.0000000001"));
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされていたらトリム。されていなければ、そのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        sut.init(field, 10);
+
+        String data = "expected  ";
+        String expected = "expected";
+
+        assertThat(sut.removePadding(data), is(expected));
+        assertThat(sut.removePadding(expected), is(expected));
     }
 }

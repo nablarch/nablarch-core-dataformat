@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * @{link DoubleByteCharacterString}の機能結合テストクラス。
+ * {@link DoubleByteCharacterString}の機能結合テストクラス。
  *
  * @author  TIS
  */
@@ -54,6 +54,66 @@ public class DoubleByteCharacterStringIntegrationTest {
     }
 
     /**
+     * 正常系の読込テスト。
+     */
+    @Test
+    public void testRead() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 10",
+                "",
+                "[Default]",
+                "1    doubleByteString     N(10) "
+        );
+        createFormatter(formatFile);
+
+
+        final InputStream inputStream = new ByteArrayInputStream("あいうえおかきく　　".getBytes("sjis"));
+        formatter.setInputStream(inputStream)
+                .initialize();
+
+        DataRecord record = formatter.readRecord();
+        assertThat(record.getString("doubleByteString"), is("あいうえお"));
+        record = formatter.readRecord();
+        assertThat(record.getString("doubleByteString"), is("かきく"));
+    }
+
+    /**
+     * 正常系の書き込みテスト。
+     */
+    @Test
+    public void testWrite() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 10",
+                "",
+                "[Default]",
+                "1    doubleByteString     N(10)"
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord();
+        record.put("doubleByteString", "あいうえお");
+        formatter.writeRecord(record);
+        record.put("doubleByteString", "かきく");
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toString("sjis"), is("あいうえおかきく　　"));
+    }
+
+    /**
      * 出力時にパラメータがnullのとき、デフォルト値を書き込めることのテスト。
      */
     @Test
@@ -66,7 +126,7 @@ public class DoubleByteCharacterStringIntegrationTest {
                 "record-length: 20",
                 "",
                 "[Default]",
-                "1    doubleByteString     XN(20)  \"０１２３４５６７８９\" "
+                "1    doubleByteString     N(20)  \"０１２３４５６７８９\" "
         );
         createFormatter(formatFile);
 

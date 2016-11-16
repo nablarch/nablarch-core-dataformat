@@ -20,10 +20,11 @@ public class JsonStringTest {
     /**
      * 初期化時にnullが渡されたときのテスト。
      * {@link JsonString}では初期化時になにもしないため、nullを許容する。
+     * 例外が発生しないこと。
      */
     @Test
     public void testInitializeNull() {
-        assertThat(sut.initialize(null), is((DataType<String, String>)sut));
+        sut.initialize(null);
     }
 
     /**
@@ -62,5 +63,16 @@ public class JsonStringTest {
     public void testConvertOnWrite_BigDecimal() throws Exception {
         assertThat(sut.convertOnWrite(BigDecimal.ONE), is("1"));
         assertThat(sut.convertOnWrite(new BigDecimal("0.0000000003")), is("0.0000000003"));
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされないのでそのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        String expected = "expected  ";
+
+        assertThat(sut.removePadding(expected), is(expected));
     }
 }

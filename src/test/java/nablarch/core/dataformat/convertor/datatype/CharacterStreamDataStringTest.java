@@ -5,12 +5,13 @@ import org.junit.Test;
 import java.math.BigDecimal;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
  * {@link CharacterStreamDataSupport}のテスト。
  * 
- * @author Masato Inoue
+ * @author TIS
  */
 public class CharacterStreamDataStringTest {
 
@@ -22,15 +23,16 @@ public class CharacterStreamDataStringTest {
      */
     @Test
     public void testInitializeNull() {
-        assertThat(sut.initialize(null), is((DataType<String, String>)sut));
+        sut.initialize(null);
     }
 
     /**
      * 読込のテスト。
-     * 空文字とそれ以外をテストする。
+     * null, 空文字, 文字列をテストする。
      */
     @Test
     public void testRead() {
+        assertThat(sut.convertOnRead(null), is(nullValue()));
         assertThat(sut.convertOnRead(""), is(""));
         assertThat(sut.convertOnRead("abc"), is("abc"));
     }
@@ -46,9 +48,23 @@ public class CharacterStreamDataStringTest {
         assertThat(sut.convertOnWrite(""), is(""));
     }
 
+    /**
+     * {@link BigDecimal}の出力テスト。
+     */
     @Test
     public void testWriteObject_BigDecimal() throws Exception {
         assertThat(sut.convertOnWrite(BigDecimal.ONE), is("1"));
         assertThat(sut.convertOnWrite(new BigDecimal("0.0000000001")), is("0.0000000001"));
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされないのでそのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        String expected = "expected  ";
+
+        assertThat(sut.removePadding(expected), is(expected));
     }
 }

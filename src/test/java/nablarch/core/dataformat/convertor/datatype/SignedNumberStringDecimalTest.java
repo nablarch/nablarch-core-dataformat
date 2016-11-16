@@ -16,8 +16,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * {@lins SignedNumberString}の固定長テスト。
- * @author Masato Inoue
+ * {@link SignedNumberStringDecimal}の固定長テスト。
+ *
+ * @author TIS
  */
 public class SignedNumberStringDecimalTest {
 
@@ -74,13 +75,15 @@ public class SignedNumberStringDecimalTest {
     }
 
     /**
-     * 空文字を読み込む場合のテスト。
+     * null, 空文字を読み込む場合のテスト。
      */
     @Test
-    public void testReadEmpty() {
+    public void testReadNullOrEmpty() {
         sut.init(field, 10, "");
 
-        assertThat(sut.convertOnRead(""), is(new BigDecimal("0")));
+        assertThat(sut.convertOnRead((byte[])null), is(BigDecimal.ZERO));
+        assertThat(sut.convertOnRead((String)null), is(BigDecimal.ZERO));
+        assertThat(sut.convertOnRead(""), is(BigDecimal.ZERO));
     }
 
     /**
@@ -472,7 +475,7 @@ public class SignedNumberStringDecimalTest {
     }
 
     /**
-     * 書き込み時、バイト長が場合に例外を送出すること。
+     * 書き込み時、出力対象のバイト長が大きい場合に例外を送出すること。
      */
     @Test
     public void testWriteLargeByteLength() throws Exception {
@@ -485,8 +488,26 @@ public class SignedNumberStringDecimalTest {
     }
 
     /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされていたらトリム。されていなければ、そのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        sut.init(field, 10);
+
+        String data = "001234";
+        String expectedString = "1234";
+        BigDecimal expected = new BigDecimal("1234");
+
+        assertThat(sut.removePadding(data), is(expected));
+        assertThat(sut.removePadding(expectedString), is(expected));
+        assertThat(sut.removePadding(expected), is(expected));
+    }
+
+    /**
      * 符号として'■'および'▲'を使用する拡張クラス。
-     * @author Masato Inoue
+     *
+     * @author TIS
      */
     private class SignedNumberStringDecimalExtends extends SignedNumberStringDecimal {
         @Override

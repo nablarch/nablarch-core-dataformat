@@ -15,7 +15,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * @{link NumberStringDecimal}の機能結合テストクラス。
+ * {@link NumberStringDecimal}の機能結合テストクラス。
  *
  * @author  TIS
  */
@@ -55,10 +55,10 @@ public class NumberStringDecimalIntegrationTest {
     }
 
     /**
-     * フォーマット定義ファイルを使用した読み込みテスト。
+     * 正常系の読み込みテスト。
      */
     @Test
-    public void testReadFormatFile() throws Exception {
+    public void testRead() throws Exception {
 
         final File formatFile = temporaryFolder.newFile("format.fmt");
         createFile(formatFile,
@@ -85,7 +85,7 @@ public class NumberStringDecimalIntegrationTest {
 
 
     /**
-     * フォーマット定義ファイルを使用した書き込みテスト。
+     * 正常系の書き込みテスト。
      */
     @Test
     public void testWriteFormatFile() throws Exception {

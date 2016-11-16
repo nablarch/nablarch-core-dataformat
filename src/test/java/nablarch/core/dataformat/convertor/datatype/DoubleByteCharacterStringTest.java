@@ -8,17 +8,14 @@ import org.junit.rules.ExpectedException;
 import java.nio.charset.Charset;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 
 /**
- * ダブルバイト文字のコンバートテスト。
+ * ダブルバイト文字のコンバータ{@link DoubleByteCharacterString}のテスト。
  * 
- * 観点：
- * 正常系はフォーマッタのテストで確認しているので、ここではオプション設定関連のテストを行う。
- *   ・全角文字のパディング、トリムのテスト。
- * 
- * @author Masato Inoue
+ * @author TIS
  */
 public class DoubleByteCharacterStringTest {
 
@@ -76,14 +73,15 @@ public class DoubleByteCharacterStringTest {
 
     /**
      * 読込のテスト。
-     * 空文字とそれ以外をテストする。
+     * 文字列, null, 空文字をテストする。
      */
     @Test
     public void testRead() {
         sut.init(new FieldDefinition().setEncoding(Charset.forName("utf8")), 10);
 
-        assertThat(sut.convertOnRead("".getBytes()), is(""));
         assertThat(sut.convertOnRead("あいう".getBytes()), is("あいう"));
+        assertThat(sut.convertOnRead(null), is(nullValue()));
+        assertThat(sut.convertOnRead("".getBytes()), is(""));
     }
 
     /**
@@ -98,7 +96,7 @@ public class DoubleByteCharacterStringTest {
 
     /**
      * 書き込みのテスト。
-     * 文字列, null, 空白の場合のテスト。
+     * 文字列, null, 空文字の場合のテスト。
      */
     @Test
     public void testWrite() throws Exception {
@@ -117,5 +115,20 @@ public class DoubleByteCharacterStringTest {
         sut.init(new FieldDefinition().setEncoding(Charset.forName("sjis")), 10);
 
         assertThat(sut.convertOnWrite("あいう"), is("あいう　　".getBytes(Charset.forName("sjis"))));
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされていたらトリム。されていなければ、そのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        sut.init(new FieldDefinition().setEncoding(Charset.forName("sjis")), 10);
+
+        String data = "期待値　　";
+        String expected = "期待値";
+
+        assertThat(sut.removePadding(data), is(expected));
+        assertThat(sut.removePadding(expected), is(expected));
     }
 }

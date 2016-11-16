@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertThat;
 
 /**
- * @{link ByteStreamDataString}の機能結合テストクラス。
+ * {@link ByteStreamDataString}の機能結合テストクラス。
  *
  * @author  TIS
  */
@@ -74,19 +74,18 @@ public class ByteStreamDataStringIntegrationTest {
                 "record-length: 10",
                 "",
                 "[Default]",
-                "1    multiByteString     XN(10)   "
+                "1    byteStreamString     XN(10)   "
         );
         createFormatter(formatFile);
-
 
         final InputStream inputStream = new ByteArrayInputStream("abc       01αあ名  ".getBytes("sjis"));
         formatter.setInputStream(inputStream)
                 .initialize();
 
         DataRecord record = formatter.readRecord();
-        assertThat(record.getString("multiByteString"), is("abc"));
+        assertThat(record.getString("byteStreamString"), is("abc"));
         record = formatter.readRecord();
-        assertThat(record.getString("multiByteString"), is("01αあ名"));
+        assertThat(record.getString("byteStreamString"), is("01αあ名"));
     }
 
     /**
@@ -103,7 +102,7 @@ public class ByteStreamDataStringIntegrationTest {
                 "record-length: 10",
                 "",
                 "[Default]",
-                "1    multiByteString     XN(10)   "
+                "1    byteStreamString     XN(10)   "
         );
         createFormatter(formatFile);
 
@@ -112,9 +111,9 @@ public class ByteStreamDataStringIntegrationTest {
                 .initialize();
 
         DataRecord record = new DataRecord();
-        record.put("multiByteString", "0123456789");
+        record.put("byteStreamString", "0123456789");
         formatter.writeRecord(record);
-        record.put("multiByteString", "01αあ名");
+        record.put("byteStreamString", "01αあ名");
         formatter.writeRecord(record);
 
         assertThat(outputStream.toString("sjis"), is("012345678901αあ名  "));
@@ -135,7 +134,7 @@ public class ByteStreamDataStringIntegrationTest {
                 "record-length: 10",
                 "",
                 "[Default]",
-                "1    multiByteString     XN(10)  \"123А名\" "
+                "1    byteStreamString     XN(10)  \"123А名\" "
         );
         createFormatter(formatFile);
 
@@ -144,7 +143,7 @@ public class ByteStreamDataStringIntegrationTest {
                 .initialize();
 
         DataRecord record = new DataRecord();
-        record.put("multiByteString", null);
+        record.put("byteStreamString", null);
         formatter.writeRecord(record);
 
         assertThat(outputStream.toString("utf8"), is("123А名  "));
@@ -164,12 +163,9 @@ public class ByteStreamDataStringIntegrationTest {
                 "record-length: 10",
                 "",
                 "[Default]",
-                "1    multiByteString     XN(\"a\")   "
+                "1    byteStreamString     XN(\"a\")   "
         );
         createFormatter(formatFile);
-
-
-        final InputStream inputStream = new ByteArrayInputStream("0123456789".getBytes("sjis"));
 
         exception.expect(allOf(
                 instanceOf(SyntaxErrorException.class),
@@ -178,7 +174,7 @@ public class ByteStreamDataStringIntegrationTest {
                 hasProperty("filePath", is(endsWith("format.fmt")))
         ));
 
-        formatter.setInputStream(inputStream).initialize();
+        formatter.initialize();
     }
 
     /**
@@ -195,12 +191,9 @@ public class ByteStreamDataStringIntegrationTest {
                 "record-length: 10",
                 "",
                 "[Default]",
-                "1    multiByteString     XN()   "
+                "1    byteStreamString     XN()   "
         );
         createFormatter(formatFile);
-
-
-        final InputStream inputStream = new ByteArrayInputStream("0123456789".getBytes("sjis"));
 
         exception.expect(allOf(
                 instanceOf(SyntaxErrorException.class),
@@ -209,7 +202,7 @@ public class ByteStreamDataStringIntegrationTest {
                 hasProperty("filePath", is(endsWith("format.fmt")))
         ));
 
-        formatter.setInputStream(inputStream).initialize();
+        formatter.initialize();
     }
 
 }

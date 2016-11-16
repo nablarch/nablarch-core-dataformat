@@ -20,7 +20,7 @@ import static org.junit.Assert.assertThat;
 /**
  * {@link PackedDecimal}のテスト。
  *   
- * @author Masato Inoue
+ * @author TIS
  */
 public class PackedDecimalTest {
 
@@ -92,13 +92,14 @@ public class PackedDecimalTest {
     }
 
     /**
-     * 空文字を読み込む場合のテスト。
+     * null, 空文字を読み込む場合のテスト。
      */
     @Test
-    public void testReadEmpty() {
+    public void testReadNullOrEmpty() {
         sut.init(field, 0, 0);
 
-        assertThat(sut.convertOnRead("".getBytes()), is(new BigDecimal("0")));
+        assertThat(sut.convertOnRead(null), is(BigDecimal.ZERO));
+        assertThat(sut.convertOnRead("".getBytes()), is(BigDecimal.ZERO));
     }
 
     /**
@@ -369,5 +370,23 @@ public class PackedDecimalTest {
         exception.expectMessage("invalid parameter was specified. the number of unscaled parameter digits must be 18 or less, but was '19'. unscaled parameter=[1000000000000000000], original parameter=[1000000000000.000000].");
 
         sut.convertOnWrite(new BigDecimal("1000000000000").setScale(6));
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされていたらトリム。されていなければ、そのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        sut.init(field, 10, 0);
+        sut.setPackNibble(packNibble);
+
+        String data = "001234";
+        String expectedString = "1234";
+        BigDecimal expected = new BigDecimal("1234");
+
+        assertThat(sut.removePadding(data), is(expected));
+        assertThat(sut.removePadding(expectedString), is(expected));
+        assertThat(sut.removePadding(expected), is(expected));
     }
 }

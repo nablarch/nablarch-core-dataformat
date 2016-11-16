@@ -16,7 +16,8 @@ import static org.junit.Assert.assertThat;
 
 /**
  * {@link NumberStringDecimal}の固定長テスト。
- * @author Masato Inoue
+ *
+ * @author TIS
  */
 public class NumberStringDecimalTest {
 
@@ -560,5 +561,21 @@ public class NumberStringDecimalTest {
     public void testTrimEmptyString() {
         assertThat(sut.trim(""), is(""));
     }
-    
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされていたらトリム。されていなければ、そのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        sut.init(field, 10);
+
+        String data = "001234";
+        String expectedString = "1234";
+        BigDecimal expected = new BigDecimal("1234");
+
+        assertThat(sut.removePadding(data), is(expected));
+        assertThat(sut.removePadding(expectedString), is(expected));
+        assertThat(sut.removePadding(expected), is(expected));
+    }
 }

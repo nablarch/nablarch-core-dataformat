@@ -10,18 +10,13 @@ import org.junit.rules.ExpectedException;
 import java.nio.charset.Charset;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
- * シングルバイト文字コンバータのテスト。
+ * シングルバイト文字コンバータ{@link SingleByteCharacterString}のテスト。
  * 
- * 観点：
- * 正常系はフォーマッタのテストで確認しているので、ここでは異常系のテストを行う。
- *   ・レイアウト定義ファイルのパラメータ不正
- *   ・レイアウト定義ファイルで設定したフィールド長を超えるサイズの書き込み
- *   ・パディング文字に２バイト文字を設定
- * 
- * @author Masato Inoue
+ * @author TIS
  */
 public class SingleByteCharacterStringTest {
 
@@ -79,12 +74,13 @@ public class SingleByteCharacterStringTest {
     }
 
     /**
-     * 入力時にパラメータが空白の場合のテスト。
+     * 入力時にパラメータがnull, 空文字の場合のテスト。
      */
     @Test
-    public void testReadEmpty() throws Exception {
+    public void testReadNullOrEmpty() throws Exception {
         sut.init(field, 10);
 
+        assertThat(sut.convertOnRead(null), is(nullValue()));
         assertThat(sut.convertOnRead("".getBytes()), is(""));
     }
 
@@ -99,7 +95,7 @@ public class SingleByteCharacterStringTest {
     }
 
     /**
-     * 出力時にパラメータがnullまたは空白の場合のテスト。
+     * 出力時にパラメータがnullまたは空文字の場合のテスト。
      */
     @Test
     public void testWriteParameterNullOrEmpty() throws Exception {
@@ -146,5 +142,18 @@ public class SingleByteCharacterStringTest {
         assertThat(sut.convertOnWrite("abc0123"), is("abc0123   ".getBytes()));
     }
 
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされていたらトリム。されていなければ、そのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        sut.init(field, 10);
 
+        String data = "expected  ";
+        String expected = "expected";
+
+        assertThat(sut.removePadding(data), is(expected));
+        assertThat(sut.removePadding(expected), is(expected));
+    }
 }

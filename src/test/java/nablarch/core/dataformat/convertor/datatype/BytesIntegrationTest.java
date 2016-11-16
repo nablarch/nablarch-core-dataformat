@@ -78,19 +78,20 @@ public class BytesIntegrationTest {
         );
         createFormatter(formatFile);
 
-
-        final InputStream inputStream = new ByteArrayInputStream("abc".getBytes("sjis"));
+        byte[] bytes = new byte[] {
+            0x01, 0x02, 0x03
+        };
+        final InputStream inputStream = new ByteArrayInputStream(bytes);
         formatter.setInputStream(inputStream)
                  .initialize();
 
         DataRecord record = formatter.readRecord();
 
-        assertThat(record.getBytes("byteString"), is("abc".getBytes("sjis")));
+        assertThat(record.getBytes("byteString"), is(bytes));
     }
 
     /**
      * 正常系の、バイト配列の出力テスト。
-     * CI上でconvertOnWriteメソッドのカバレッジが通っていなかったので、念のため追加。
      */
     @Test
     public void testWrite() throws Exception {
@@ -111,13 +112,44 @@ public class BytesIntegrationTest {
         formatter.setOutputStream(outputStream)
                  .initialize();
 
+        byte[] bytes = new byte[] {
+                0x01, 0x02, 0x03
+        };
         DataRecord record = new DataRecord();
-        record.put("byteString", "abc".getBytes());
+        record.put("byteString", bytes);
         formatter.writeRecord(record);
 
-        final String actual = outputStream.toString("sjis");
+        final byte[] actual = outputStream.toByteArray();
 
-        assertThat(actual, is("abc"));
+        assertThat(actual, is(bytes));
+    }
+
+    /**
+     * デフォルト値を設定した場合のテスト。
+     * バイナリのデフォルト値は設定できない。
+     */
+    @Test
+    public void testSetDefaultValue() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 3",
+                "",
+                "[Default]",
+                "1    byteString     B(3)  0x03 # バイト列"
+        );
+        createFormatter(formatFile);
+
+        exception.expect(allOf(
+                instanceOf(SyntaxErrorException.class),
+                hasProperty("message", is(startsWith("unknown value convertor name was specified."))),
+                hasProperty("filePath", is(endsWith("format.fmt")))
+        ));
+
+        formatter.initialize();
     }
 
     /**
@@ -137,16 +169,13 @@ public class BytesIntegrationTest {
         );
         createFormatter(formatFile);
 
-        InputStream source = new ByteArrayInputStream(
-                "testtesttest".getBytes("sjis"));
-
         exception.expect(allOf(
                 instanceOf(SyntaxErrorException.class),
                 hasProperty("message", is(startsWith("parameter was not specified. parameter must be specified. convertor=[Bytes]."))),
                 hasProperty("filePath", is(endsWith("format.fmt")))
         ));
 
-        formatter.setInputStream(source).initialize();
+        formatter.initialize();
     }
 
     /**
@@ -165,9 +194,6 @@ public class BytesIntegrationTest {
         );
         createFormatter(formatFile);
 
-        InputStream source = new ByteArrayInputStream(
-                "testtesttest".getBytes("sjis"));
-
         exception.expect(allOf(
                 instanceOf(SyntaxErrorException.class),
                 hasProperty("message", is(startsWith("invalid parameter type was specified. parameter type must be 'Integer' " +
@@ -175,6 +201,6 @@ public class BytesIntegrationTest {
                 hasProperty("filePath", is(endsWith("format.fmt")))
         ));
 
-        formatter.setInputStream(source).initialize();
+        formatter.initialize();
     }
 }

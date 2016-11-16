@@ -20,10 +20,11 @@ public class JsonNumberTest {
     /**
      * 初期化時にnullが渡されたときのテスト。
      * {@link JsonNumber}では初期化時になにもしないため、nullを許容する。
+     * 例外が発生しないこと。
      */
     @Test
     public void testInitializeNull() {
-        assertThat(sut.initialize(null), is((DataType<String, String>)sut));
+        sut.initialize(null);
     }
 
     /**
@@ -57,11 +58,21 @@ public class JsonNumberTest {
 
     /**
      * BigDecimalの書き込みのテスト
-     * @throws Exception
      */
     @Test
     public void testConvertOnWrite_BigDecimal() throws Exception {
         assertThat(sut.convertOnWrite(new BigDecimal(("1"))), is("1"));
         assertThat(sut.convertOnWrite(new BigDecimal("0.0000000001")), is("0.0000000001"));
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされないのでそのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        String expected = "00123";
+
+        assertThat(sut.removePadding(expected), is(expected));
     }
 }

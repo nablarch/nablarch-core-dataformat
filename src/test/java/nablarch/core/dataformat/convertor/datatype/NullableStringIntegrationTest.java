@@ -15,7 +15,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * @{link NullableString}の機能結合テストクラス。
+ * {@link NullableString}の機能結合テストクラス。
  *
  * @author  TIS
  */
@@ -52,6 +52,59 @@ public class NullableStringIntegrationTest {
         if(formatter != null) {
             formatter.close();
         }
+    }
+
+    /**
+     * 正常系の読込テスト。
+     */
+    @Test
+    public void testRead() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"XML\"",
+                "text-encoding: \"UTF-8\"",
+                "",
+                "[Default]",
+                "1    string     X  "
+        );
+        createFormatter(formatFile);
+
+        final InputStream inputStream = new ByteArrayInputStream("<Default><string>ABC</string></Default>".getBytes("UTF-8"));
+        formatter.setInputStream(inputStream)
+                .initialize();
+
+        DataRecord record = formatter.readRecord();
+        assertThat(record.getString("string"), is("ABC"));
+    }
+
+    /**
+     * 正常系の書き込みテスト。
+     */
+    @Test
+    public void testWrite() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"XML\"",
+                "text-encoding: \"UTF-8\"",
+                "",
+                "[Default]",
+                "1    string     X  "
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord();
+        record.put("string", "ABC");
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toString("UTF-8"), is(containsString("<Default><string>ABC</string></Default>")));
     }
 
     /**

@@ -20,10 +20,11 @@ public class JsonBooleanTest {
     /**
      * 初期化時にnullが渡されたときのテスト。
      * {@link JsonBoolean}では初期化時になにもしないため、nullを許容する。
+     * 例外が発生しないこと。
      */
     @Test
     public void testInitializeNull() {
-        assertThat(sut.initialize(null), is((DataType<String, String>)sut));
+        sut.initialize(null);
     }
 
     /**
@@ -62,5 +63,16 @@ public class JsonBooleanTest {
     public void testConvertOnWrite_BigDecimal() throws Exception {
         assertThat(sut.convertOnWrite(BigDecimal.ONE), is("1"));
         assertThat(sut.convertOnWrite(new BigDecimal("0.0000000001")), is("0.0000000001"));
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされないのでそのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        String expected = "true  ";
+
+        assertThat(sut.removePadding(expected), is(expected));
     }
 }

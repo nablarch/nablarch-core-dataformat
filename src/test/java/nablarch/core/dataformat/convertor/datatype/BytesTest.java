@@ -15,12 +15,9 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertThat;
 
 /**
- * バイト型コンバータのテスト。
+ * バイト型コンバータ{@link Bytes}のテスト。
  *
- * 観点：
- * 正常系はフォーマッタのテストで確認しているので、ここではBytesクラスで発生する例外系を網羅する。
- *
- * @author Masato Inoue
+ * @author TIS
  */
 public class BytesTest {
 
@@ -84,17 +81,6 @@ public class BytesTest {
     }
 
     /**
-     * 入力時にパラメータが空文字の場合のテスト。
-     * 固定長を扱うため、nullがわたされることはないため考慮しない。
-     */
-    @Test
-    public void testReadParameterEmpty() {
-        sut.init(new FieldDefinition(), 2);
-
-        assertThat(sut.convertOnRead("".getBytes()), is("".getBytes()));
-    }
-
-    /**
      * 正常に出力できること。
      */
     @Test
@@ -115,19 +101,6 @@ public class BytesTest {
         exception.expectMessage("invalid parameter was specified. parameter must be not null.");
 
         sut.convertOnWrite(null);
-    }
-
-    /**
-     * 出力時にパラメータが空文字のテスト。
-     */
-    @Test
-    public void testWriteParameterEmpty() {
-        sut.init(new FieldDefinition(), 1);
-
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid parameter was specified. parameter length = [0], expected = [1].");
-
-        sut.convertOnWrite("".getBytes());
     }
 
     /**
@@ -170,5 +143,20 @@ public class BytesTest {
         ));
 
         sut.convertOnWrite("abc");
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * {@link Bytes}はトリム・パディングをしない。
+     */
+    @Test
+    public void testRemovePadding() {
+        sut.init(new FieldDefinition(), 5);
+
+        byte[] data = new byte[] {
+            0x00, 0x01, 0x02, 0x03, 0x04
+        };
+
+        assertThat(sut.removePadding(data), is(data));
     }
 }

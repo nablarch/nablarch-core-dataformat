@@ -2,6 +2,7 @@ package nablarch.core.dataformat.convertor.datatype;
 
 import nablarch.core.dataformat.FieldDefinition;
 import nablarch.core.dataformat.InvalidDataFormatException;
+import nablarch.core.dataformat.SyntaxErrorException;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,7 +12,7 @@ import java.math.BigDecimal;
 import java.nio.charset.Charset;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThat;
 
 /**
  * {@link SignedPackedDecimal}のテスト。
@@ -31,6 +32,72 @@ public class SignedPackedDecimalTest {
         sut.setPackNibble(packNibble);
         sut.setPackSignNibblePositive(signNibblePositive);
         sut.setPackSignNibbleNegative(signNibbleNegative);
+    }
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitNull() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("parameter was not specified. parameter must be specified. convertor=[SignedPackedDecimal].");
+
+        sut.init(null);
+    }
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNull() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[SignedPackedDecimal].");
+
+        sut.init(null, null);
+    }
+
+    /**
+     * 初期化時に空オブジェクト配列をわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeEmpty() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("parameter was not specified. parameter must be specified. convertor=[SignedPackedDecimal].");
+
+        sut.init(null, new Object[]{});
+    }
+
+    /**
+     * 初期化時にバイト配列として文字列をわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeString() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("invalid parameter type was specified. 1st parameter type must be 'Integer' but was: 'java.lang.String'. parameter=[a]. convertor=[SignedPackedDecimal].");
+
+        sut.init(null, "a");
+    }
+
+    /**
+     * 初期化時にバイト配列としてnullをわたすと例外がスローされること。
+     */
+    @Test
+    public void testInitializeNullByteLength() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[SignedPackedDecimal].");
+
+        sut.init(null, null, "hoge");
+    }
+
+    /**
+     * null, 空文字を読み込む場合のテスト。
+     */
+    @Test
+    public void testReadNullOrEmpty() {
+        sut.init(field, 0, 0);
+
+        assertThat(sut.convertOnRead(null), is(BigDecimal.ZERO));
+        assertThat(sut.convertOnRead("".getBytes()), is(BigDecimal.ZERO));
     }
 
     /**
@@ -135,6 +202,21 @@ public class SignedPackedDecimalTest {
     }
 
     /**
+     * null と 空文字を出力するテスト。
+     * デフォルト値(0)を出力する。
+     */
+    @Test
+    public void testWriteValidSingularValue() {
+        sut.init(field, 5);
+        setParameter((byte) 0x03, 3, 7);
+
+        byte[] bytes = { 0x00, 0x00, 0x00, 0x00, 0x03 };
+
+        assertThat(sut.convertOnWrite(null), is(bytes));
+        assertThat(sut.convertOnWrite(""), is(bytes));
+    }
+
+    /**
      * EBCDIC規格での符号ありパック10進の正常系書き込みテスト。
      * 正の数。
      */
@@ -201,7 +283,7 @@ public class SignedPackedDecimalTest {
                 0x09, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x94
         };
 
-        Assert.assertThat(sut.convertOnWrite("999999999999999999"), is(maxBytes));
+        assertThat(sut.convertOnWrite("999999999999999999"), is(maxBytes));
     }
 
     /**
@@ -232,7 +314,7 @@ public class SignedPackedDecimalTest {
                 0x09, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x97
         };
 
-        Assert.assertThat(sut.convertOnWrite("-999999999999999999"), is(maxBytes));
+        assertThat(sut.convertOnWrite("-999999999999999999"), is(maxBytes));
     }
 
     /**
@@ -247,7 +329,7 @@ public class SignedPackedDecimalTest {
                 0x09, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x99, (byte)0x97
         };
 
-        Assert.assertThat(sut.convertOnWrite("-99999999999.9999999"), is(maxBytes));
+        assertThat(sut.convertOnWrite("-99999999999.9999999"), is(maxBytes));
     }
 
     /**
@@ -278,5 +360,23 @@ public class SignedPackedDecimalTest {
         exception.expectMessage("invalid parameter was specified. the number of unscaled parameter digits must be 18 or less, but was '19'. unscaled parameter=[-1000000000000000000], original parameter=[-10000000000000.00000].");
 
         sut.convertOnWrite("-10000000000000.00000");
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされていたらトリム。されていなければ、そのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        sut.init(field, 10, 0);
+        setParameter(packNibble, 4, 7);
+
+        String data = "001234";
+        String expectedString = "1234";
+        BigDecimal expected = new BigDecimal("1234");
+
+        assertThat(sut.removePadding(data), is(expected));
+        assertThat(sut.removePadding(expectedString), is(expected));
+        assertThat(sut.removePadding(expected), is(expected));
     }
 }

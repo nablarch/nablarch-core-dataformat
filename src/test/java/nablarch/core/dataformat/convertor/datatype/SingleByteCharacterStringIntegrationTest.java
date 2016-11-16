@@ -12,7 +12,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * @{link SingleByteCharacterString}の機能結合テストクラス。
+ * {@link SingleByteCharacterString}の機能結合テストクラス。
  *
  * @author  TIS
  */

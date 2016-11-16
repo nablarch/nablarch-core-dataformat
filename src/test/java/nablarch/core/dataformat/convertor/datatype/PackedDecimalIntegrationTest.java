@@ -15,7 +15,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
- * @{link PackedDecimal}の機能結合テストクラス。
+ * {@link PackedDecimal}の機能結合テストクラス。
  *
  * @author  TIS
  */
@@ -55,10 +55,10 @@ public class PackedDecimalIntegrationTest {
     }
 
     /**
-     * 正常系のテスト。レイアウト定義ファイルからパラメータを設定する。
+     * 正常系の読込テスト。
      */
     @Test
-    public void testNormal() throws Exception {
+    public void testRead() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");
         createFile(formatFile,
                 "file-type:    \"Fixed\"",
@@ -93,6 +93,46 @@ public class PackedDecimalIntegrationTest {
      * 出力時のパラメータがnullのときデフォルト値が出力されるテスト。
      */
     @Test
+    public void testWrite() throws Exception{
+
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 20",
+                "",
+                "[Default]",
+                "1   signedPDigit     SP(10, \"\", \"7\", \"4\")",
+                "11  unsignedPDigit     P(10)"
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord(){{
+            put("signedPDigit", new BigDecimal("-87654321"));
+            put("unsignedPDigit", new BigDecimal(("87654321")));
+        }};
+        formatter.writeRecord(record);
+
+        byte[] expected = new byte[] {
+                // -87654321
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x08, 0x76, 0x54, 0x32, 0x14,
+                // 87654321
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x08, 0x76, 0x54, 0x32, 0x13
+        };
+
+        assertThat(outputStream.toByteArray(), is(expected));
+    }
+
+    /**
+     * 出力時のパラメータがnullのときデフォルト値が出力されるテスト。
+     */
+    @Test
     public void testWriteDefault() throws Exception{
 
         final File formatFile = temporaryFolder.newFile("format.fmt");
@@ -111,7 +151,7 @@ public class PackedDecimalIntegrationTest {
                 .initialize();
 
         DataRecord record = new DataRecord(){{
-            put("signedZDigits", null);
+            put("signedPDigit", null);
         }};
         formatter.writeRecord(record);
 

@@ -15,7 +15,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
- * @{link SignedNumberStringDecimal}の機能結合テストクラス。
+ * {@link SignedNumberStringDecimal}の機能結合テストクラス。
  *
  * @author  TIS
  */
@@ -58,7 +58,7 @@ public class SignedNumberStringDecimalIntegrationTest {
      * ディレクティブを省略した読み込みテスト。
      */
     @Test
-    public void testReadNormal() throws Exception {
+    public void testRead() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");
         createFile(formatFile,
                 "file-type:    \"Fixed\"",
@@ -82,7 +82,7 @@ public class SignedNumberStringDecimalIntegrationTest {
      * ディレクティブを指定した読み込みテスト。
      */
     @Test
-    public void testReadNormalDirective() throws Exception {
+    public void testReadDirective() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");
         createFile(formatFile,
                 "file-type:    \"Fixed\"",
@@ -139,7 +139,7 @@ public class SignedNumberStringDecimalIntegrationTest {
      * ディレクティブを省略した書き込みテスト。
      */
     @Test
-    public void testWriteNormal() throws Exception {
+    public void testWrite() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");
         createFile(formatFile,
                 "file-type:    \"Fixed\"",
@@ -167,7 +167,7 @@ public class SignedNumberStringDecimalIntegrationTest {
      * ディレクティブを指定した書き込みテスト。
      */
     @Test
-    public void testWriteNormalDirective() throws Exception {
+    public void testWriteDirective() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");
         createFile(formatFile,
                 "file-type:    \"Fixed\"",

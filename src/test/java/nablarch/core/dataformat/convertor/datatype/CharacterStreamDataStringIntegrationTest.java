@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * @{link CharacterStreamDataString}の機能結合テストクラス。
+ * {@link CharacterStreamDataString}の機能結合テストクラス。
  *
  * @author  TIS
  */
@@ -51,6 +51,67 @@ public class CharacterStreamDataStringIntegrationTest {
         if(formatter != null) {
             formatter.close();
         }
+    }
+
+    /**
+     * 正常系の読込テスト。
+     */
+    @Test
+    public void testRead() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Variable\"",
+                "text-encoding: \"utf8\"",
+                "record-separator: \"\\r\\n\"",
+                "field-separator: \",\"",
+                "",
+                "[Default]",
+                "1    string     X "
+        );
+        createFormatter(formatFile);
+
+        final InputStream inputStream = new ByteArrayInputStream("abc       \r\n01αあ名".getBytes("utf8"));
+        formatter.setInputStream(inputStream)
+                .initialize();
+
+        DataRecord record = formatter.readRecord();
+        assertThat(record.getString("string"), is("abc       "));
+        record = formatter.readRecord();
+        assertThat(record.getString("string"), is("01αあ名"));
+    }
+
+    /**
+     * 正常系の書き込みテスト。
+     */
+    @Test
+    public void testWrite() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Variable\"",
+                "text-encoding: \"utf8\"",
+                "record-separator: \"\\r\\n\"",
+                "field-separator: \",\"",
+                "",
+                "[Default]",
+                "1    string     X "
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord();
+        record.put("string", "0123456789");
+        formatter.writeRecord(record);
+        record.put("string", "01αあ名");
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toString("utf8"), is("0123456789\r\n01αあ名\r\n"));
     }
 
     /**

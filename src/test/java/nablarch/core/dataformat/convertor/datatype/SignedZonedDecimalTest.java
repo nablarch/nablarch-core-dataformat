@@ -37,11 +37,22 @@ public class SignedZonedDecimalTest {
      * 初期化時にnullをわたすと例外がスローされること。
      */
     @Test
+    public void testInitNull() {
+        exception.expect(SyntaxErrorException.class);
+        exception.expectMessage("parameter was not specified. parameter must be specified. convertor=[SignedZonedDecimal].");
+
+        sut.init(null);
+    }
+
+    /**
+     * 初期化時にnullをわたすと例外がスローされること。
+     */
+    @Test
     public void testInitializeNull() {
         exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[ZonedDecimal].");
+        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[SignedZonedDecimal].");
 
-        sut.initialize(null);
+        sut.init(null, null);
     }
 
     /**
@@ -50,9 +61,9 @@ public class SignedZonedDecimalTest {
     @Test
     public void testInitializeEmpty() {
         exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("parameter was not specified. parameter must be specified. convertor=[ZonedDecimal].");
+        exception.expectMessage("parameter was not specified. parameter must be specified. convertor=[SignedZonedDecimal].");
 
-        sut.initialize(new Object[]{});
+        sut.init(null, new Object[]{});
     }
 
     /**
@@ -61,9 +72,9 @@ public class SignedZonedDecimalTest {
     @Test
     public void testInitializeString() {
         exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("invalid parameter type was specified. 1st parameter type must be 'Integer' but was: 'java.lang.String'. parameter=[a]. convertor=[ZonedDecimal].");
+        exception.expectMessage("invalid parameter type was specified. 1st parameter type must be 'Integer' but was: 'java.lang.String'. parameter=[a]. convertor=[SignedZonedDecimal].");
 
-        sut.initialize("a");
+        sut.init(null, "a");
     }
 
     /**
@@ -72,9 +83,9 @@ public class SignedZonedDecimalTest {
     @Test
     public void testInitializeNullByteLength() {
         exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[ZonedDecimal].");
+        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[SignedZonedDecimal].");
 
-        sut.initialize(null, "hoge");
+        sut.init(null, null, "hoge");
     }
 
     /**
@@ -371,5 +382,23 @@ public class SignedZonedDecimalTest {
         exception.expectMessage("invalid parameter was specified. the number of unscaled parameter digits must be 18 or less, but was '19'. unscaled parameter=[-1000000000000000000], original parameter=[-1000000000000.000000].");
 
         sut.convertOnWrite("-1000000000000.000000");
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされていたらトリム。されていなければ、そのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        sut.init(field, 10, 0);
+        setParameter(zoneNibbleASCII, 4, 7);
+
+        String data = "001234";
+        String expectedString = "1234";
+        BigDecimal expected = new BigDecimal("1234");
+
+        assertThat(sut.removePadding(data), is(expected));
+        assertThat(sut.removePadding(expectedString), is(expected));
+        assertThat(sut.removePadding(expected), is(expected));
     }
 }

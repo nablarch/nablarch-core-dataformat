@@ -14,9 +14,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * ゾーン10進整数データタイプのテスト
+ * ゾーン10進整数データタイプ{@link ZonedDecimal}のテスト
  * 
- * @author Iwauo Tajima
+ * @author TIS
  */
 public class ZonedDecimalTest {
 
@@ -245,14 +245,15 @@ public class ZonedDecimalTest {
     }
 
     /**
-     * 空文字を入力するテスト。
+     * null, 空文字を入力するテスト。
      */
     @Test
-    public void testReadEmpty() {
+    public void testReadNullOrEmpty() {
         sut.init(field, 0, 0);
         sut.setZoneNibble(zoneNibbleASCII);
 
-        assertThat(sut.convertOnRead("".getBytes()), is(new BigDecimal("0")));
+        assertThat(sut.convertOnRead(null), is(BigDecimal.ZERO));
+        assertThat(sut.convertOnRead("".getBytes()), is(BigDecimal.ZERO));
     }
 
     /**
@@ -383,5 +384,23 @@ public class ZonedDecimalTest {
         exception.expectMessage("invalid parameter was specified. the number of unscaled parameter digits must be 18 or less, but was '19'. unscaled parameter=[1000000000000000000], original parameter=[1000000000000.000000].");
 
         sut.convertOnWrite(new BigDecimal("1000000000000").setScale(6));
+    }
+
+    /**
+     * {@link DataType#removePadding}のテスト。
+     * パディングされていたらトリム。されていなければ、そのまま。
+     */
+    @Test
+    public void testRemovePadding() {
+        sut.init(field, 10, 0);
+        sut.setZoneNibble(zoneNibbleASCII);
+
+        String data = "001234";
+        String expectedString = "1234";
+        BigDecimal expected = new BigDecimal("1234");
+
+        assertThat(sut.removePadding(data), is(expected));
+        assertThat(sut.removePadding(expectedString), is(expected));
+        assertThat(sut.removePadding(expected), is(expected));
     }
 }

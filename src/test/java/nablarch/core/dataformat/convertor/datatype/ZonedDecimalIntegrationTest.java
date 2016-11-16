@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * @{link ZonedDecimal}の機能結合テストクラス。
+ * {@link ZonedDecimal}の機能結合テストクラス。
  *
  * @author TIS
  */
@@ -51,6 +51,76 @@ public class ZonedDecimalIntegrationTest {
         if(formatter != null) {
             formatter.close();
         }
+    }
+
+    /**
+     * 正常系の読み込みテスト。
+     */
+    @Test
+    public void testRead() throws Exception {
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 20",
+                "",
+                "[Default]",
+                "1    signedZDigit     SZ(10)",
+                "11   unsignedZDigit    Z(10)"
+        );
+        createFormatter(formatFile);
+
+        byte[] bytes = new byte[20];
+        ByteBuffer buff = ByteBuffer.wrap(bytes);
+        buff.put("123456789".getBytes("sjis"))
+                .put((byte) 0x70); // -1234567890
+        buff.put("123456789".getBytes("sjis"))
+                .put((byte) 0x30); // 1234567890
+        final InputStream inputStream = new ByteArrayInputStream(bytes);
+
+        formatter.setInputStream(inputStream)
+                .initialize();
+
+        DataRecord record = formatter.readRecord();
+        assertThat(record.getBigDecimal("signedZDigit"), is(new BigDecimal("-1234567890")));
+        assertThat(record.getBigDecimal("unsignedZDigit"), is(new BigDecimal("1234567890")));
+    }
+
+    /**
+     * 正常系の書き込みテスト。
+     */
+    @Test
+    public void testWrite() throws Exception {
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 20",
+                "",
+                "[Default]",
+                "1    signedZDigit     SZ(10)",
+                "11   unsignedZDigit    Z(10)"
+        );
+        createFormatter(formatFile);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord() {{
+            put("signedZDigit", new BigDecimal("-1234567890"));
+            put("unsignedZDigit", new BigDecimal("1234567890"));
+        }};
+        formatter.writeRecord(record);
+
+        byte[] expected = new byte[20];
+        ByteBuffer buff = ByteBuffer.wrap(expected);
+        buff.put("123456789".getBytes("sjis"))
+                .put((byte) 0x70); // -1234567890
+        buff.put("123456789".getBytes("sjis"))
+                .put((byte) 0x30); // 1234567890
+
+        assertThat(outputStream.toByteArray(), is(expected));
     }
 
     /**
@@ -102,15 +172,15 @@ public class ZonedDecimalIntegrationTest {
         );
         createFormatter(formatFile);
 
-        OutputStream outputStream = new ByteArrayOutputStream();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         formatter.setOutputStream(outputStream)
                  .initialize();
 
         DataRecord record = new DataRecord() {{
-            put("signedZDigits", null);
+            put("signedZDigit", null);
         }};
         formatter.writeRecord(record);
 
-        assertThat(outputStream.toString(), is("0000000123"));
+        assertThat(outputStream.toByteArray(), is("0000000123".getBytes("sjis")));
     }
 }
