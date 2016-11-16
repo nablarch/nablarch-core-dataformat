@@ -116,9 +116,9 @@ public class JsonDataBuilder extends StructuredDataEditorSupport implements Stru
 
                     CharacterStreamDataString dataType = (CharacterStreamDataString) fd.getDataType();
                     // データタイプのコンバータを実行する
-                    writeVal = dataType.convertOnWrite(writeVal);
+                    String writeStringVal = dataType.convertOnWrite(writeVal);
                     
-                    outCount += writeValue(sb, fd, mapKey, map, writeVal);
+                    outCount += writeValue(sb, fd, mapKey, map, writeStringVal);
                 }
             }
             
@@ -219,9 +219,9 @@ public class JsonDataBuilder extends StructuredDataEditorSupport implements Stru
                     Object writeVal = convertToFieldOnWrite(arr[i], fd);
                     CharacterStreamDataString dataType = (CharacterStreamDataString) fd.getDataType();
                     // データタイプのコンバータを実行する
-                    writeVal = dataType.convertOnWrite(writeVal);
+                    String writeStringVal = dataType.convertOnWrite(writeVal);
 
-                    sb.append(editJsonDataString(writeVal, fd));
+                    sb.append(editJsonDataString(writeStringVal, fd));
                     outCount++;
                 }
                 sb.append("]");
