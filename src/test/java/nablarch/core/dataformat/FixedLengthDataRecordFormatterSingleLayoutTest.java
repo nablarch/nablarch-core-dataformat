@@ -1510,7 +1510,6 @@ public class FixedLengthDataRecordFormatterSingleLayoutTest {
     }
 
     @Test
-    @Ignore("不具合によりテストが失敗する")
     public void decimalPointをoffにした場合X9とSX9に小数点が出力されないこと() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");
 
@@ -1534,7 +1533,7 @@ public class FixedLengthDataRecordFormatterSingleLayoutTest {
         record.put("SX9", "-12.4");
         formatter.writeRecord(record);
 
-        assertThat("小数点は出力されない", outputStream.toString("sjis"), is("00112-01240"));
+        assertThat("小数点は出力されない", outputStream.toString("sjis"), is("00112-1240"));
     }
     
     @Test
