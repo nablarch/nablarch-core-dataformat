@@ -12,6 +12,7 @@ import nablarch.core.dataformat.convertor.ConvertorSetting;
 import nablarch.core.dataformat.convertor.FixedLengthConvertorSetting;
 import nablarch.core.dataformat.convertor.datatype.ByteStreamDataSupport;
 import nablarch.core.dataformat.convertor.datatype.DataType;
+import nablarch.core.dataformat.convertor.datatype.NumberStringDecimal;
 import nablarch.core.dataformat.convertor.datatype.PackedDecimal;
 import nablarch.core.dataformat.convertor.datatype.SignedNumberStringDecimal;
 import nablarch.core.dataformat.convertor.datatype.ZonedDecimal;
@@ -491,9 +492,14 @@ public class FixedLengthDataRecordFormatter extends DataRecordFormatterSupport {
             packType.setDefaultPackSignNibbleNegative(packSignNibbleNegative);
             packType.setDefaultPackSignNibblePositive(packSignNibblePositive);
         }
+
+        if (dataType instanceof NumberStringDecimal) {
+            final NumberStringDecimal numberStringDecimal = (NumberStringDecimal) dataType;
+            numberStringDecimal.setRequiredDecimalPoint(isRequiredDecimalPoint);
+        }
+        
         if (dataType instanceof SignedNumberStringDecimal) {
             SignedNumberStringDecimal signedNumberType = (SignedNumberStringDecimal) dataType;
-            signedNumberType.setRequiredDecimalPoint(isRequiredDecimalPoint);
             signedNumberType.setFixedSignPosition(isFixedSignPosition);
             signedNumberType.setRequiredPlusSign(isRequiredPlusSign);
          }
