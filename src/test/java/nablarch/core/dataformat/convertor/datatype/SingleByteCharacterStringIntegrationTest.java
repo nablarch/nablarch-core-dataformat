@@ -115,6 +115,36 @@ public class SingleByteCharacterStringIntegrationTest {
      * 出力時にパラメータがnullの場合にデフォルト値を出力するテスト。
      */
     @Test
+    public void testWriteNull() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 10",
+                "",
+                "[Default]",
+                "1    singleByteString     X(10)  "
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord();
+        record.put("singleByteString", null);
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toString("sjis"), is("          "));
+    }
+
+    /**
+     * 出力時にパラメータがnullの場合に
+     * レイアウト定義に指定されたデフォルト値を出力するテスト。
+     */
+    @Test
     public void testWriteDefault() throws Exception {
 
         // レイアウト定義ファイル

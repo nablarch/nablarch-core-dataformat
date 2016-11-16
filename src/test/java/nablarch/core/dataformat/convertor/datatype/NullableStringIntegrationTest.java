@@ -111,6 +111,35 @@ public class NullableStringIntegrationTest {
      * 出力時にnullが渡された場合、デフォルト値を出力するテスト。
      */
     @Test
+    public void testWriteNull() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"XML\"",
+                "text-encoding: \"UTF-8\"",
+                "",
+                "[Default]",
+                "1    string     X  "
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord();
+        record.put("string", null);
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toString("UTF-8"), is(containsString("<string></string>")));
+    }
+
+    /**
+     * 出力時にnullが渡された場合、
+     * レイアウト定義に指定されたデフォルト値を出力するテスト。
+     */
+    @Test
     public void testWriteDefault() throws Exception {
 
         // レイアウト定義ファイル

@@ -62,9 +62,6 @@ public class ByteStreamDataString extends ByteStreamDataSupport<String> {
      */
     @Override
     public String convertOnRead(byte[] bytes) {
-        if (bytes == null) {
-            return null;
-        }
         String str = null;
         try {
             str = new String(bytes, getField().getEncoding().name());

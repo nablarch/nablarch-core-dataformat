@@ -110,6 +110,36 @@ public class SignedNumberStringDecimalIntegrationTest {
      * 出力時のパラメータがnullのときデフォルト値が出力されるテスト。
      */
     @Test
+    public void testWriteNull() throws Exception{
+
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"ms932\"",
+                "record-length: 10",
+                "",
+                "[Default]",
+                "1   signedNumber SX9(10, 3) "
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord(){{
+            put("signedNumber", null);
+        }};
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toByteArray(), is("000000.000".getBytes("ms932")));
+    }
+
+    /**
+     * 出力時のパラメータがnullのとき
+     * レイアウト定義に指定されたデフォルト値が出力されるテスト。
+     */
+    @Test
     public void testWriteDefault() throws Exception{
 
         final File formatFile = temporaryFolder.newFile("format.fmt");

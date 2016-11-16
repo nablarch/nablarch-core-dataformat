@@ -74,7 +74,7 @@ public class BytesIntegrationTest {
                 "record-length: 3",
                 "",
                 "[Default]",
-                "1    byteString     B(3)   # バイト列"
+                "1    bytes     B(3)   # バイト列"
         );
         createFormatter(formatFile);
 
@@ -87,7 +87,7 @@ public class BytesIntegrationTest {
 
         DataRecord record = formatter.readRecord();
 
-        assertThat(record.getBytes("byteString"), is(bytes));
+        assertThat(record.getBytes("bytes"), is(bytes));
     }
 
     /**
@@ -104,7 +104,7 @@ public class BytesIntegrationTest {
                 "record-length: 3",
                 "",
                 "[Default]",
-                "1    byteString     B(3)   # バイト列"
+                "1    bytes     B(3)   # バイト列"
          );
         createFormatter(formatFile);
 
@@ -116,7 +116,7 @@ public class BytesIntegrationTest {
                 0x01, 0x02, 0x03
         };
         DataRecord record = new DataRecord();
-        record.put("byteString", bytes);
+        record.put("bytes", bytes);
         formatter.writeRecord(record);
 
         final byte[] actual = outputStream.toByteArray();
@@ -139,7 +139,7 @@ public class BytesIntegrationTest {
                 "record-length: 3",
                 "",
                 "[Default]",
-                "1    byteString     B(3)  0x03 # バイト列"
+                "1    bytes     B(3)  0x03 # バイト列"
         );
         createFormatter(formatFile);
 
@@ -150,6 +150,37 @@ public class BytesIntegrationTest {
         ));
 
         formatter.initialize();
+    }
+
+    /**
+     * 異常系出力テスト。
+     * nullを出力するケース。バイナリ型はnullを許容しない。
+     */
+    @Test
+    public void testWriteNull() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 3",
+                "",
+                "[Default]",
+                "1    bytes     B(3)"
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+        DataRecord record = new DataRecord();
+        record.put("bytes", null);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. parameter must be not null.");
+
+        formatter.writeRecord(record);
     }
 
     /**
@@ -165,7 +196,7 @@ public class BytesIntegrationTest {
                 "record-length: 10",
                 "",
                 "[Default]",
-                "1    byteString     B()   # バイト列（引数を指定しない）"
+                "1    bytes     B()   # バイト列（引数を指定しない）"
         );
         createFormatter(formatFile);
 
@@ -190,7 +221,7 @@ public class BytesIntegrationTest {
                 "record-length: 10",
                 "",
                 "[Default]",
-                "1    byteString     B(\"a\")   # バイト列（引数を指定しない）"
+                "1    bytes     B(\"a\")   # バイト列（引数を指定しない）"
         );
         createFormatter(formatFile);
 

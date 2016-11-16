@@ -74,13 +74,12 @@ public class SingleByteCharacterStringTest {
     }
 
     /**
-     * 入力時にパラメータがnull, 空文字の場合のテスト。
+     * 入力時にパラメータが空文字の場合のテスト。
      */
     @Test
-    public void testReadNullOrEmpty() throws Exception {
+    public void testReadEmpty() throws Exception {
         sut.init(field, 10);
 
-        assertThat(sut.convertOnRead(null), is(nullValue()));
         assertThat(sut.convertOnRead("".getBytes()), is(""));
     }
 

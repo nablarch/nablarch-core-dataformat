@@ -55,17 +55,6 @@ public class ByteStreamDataStringTest {
     }
 
     /**
-     * 入力時にパラメータがnullの場合のテスト。
-     * nullは空文字として読み込む。
-     */
-    @Test
-    public void testReadParameterNull() throws Exception {
-        sut.init(field, 10);
-
-        assertThat(sut.convertOnRead(null), is(nullValue()));
-    }
-
-    /**
      * 入力時にパラメータが空文字の場合のテスト。
      * 読込時はバイト長のチェックをしないため、空文字は空文字として読み込む。
      */

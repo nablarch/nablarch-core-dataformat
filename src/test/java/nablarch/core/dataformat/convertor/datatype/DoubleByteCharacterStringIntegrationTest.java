@@ -117,6 +117,35 @@ public class DoubleByteCharacterStringIntegrationTest {
      * 出力時にパラメータがnullのとき、デフォルト値を書き込めることのテスト。
      */
     @Test
+    public void testWriteNull() throws Exception {
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 20",
+                "",
+                "[Default]",
+                "1    doubleByteString     N(20) "
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord();
+        record.put("multiByteString", null);
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toString("sjis"), is("　　　　　　　　　　")); //　全角スペース１０ケタ
+    }
+
+    /**
+     * 出力時にパラメータがnullのとき、
+     * レイアウト定義で指定されたデフォルト値を書き込めることのテスト。
+     */
+    @Test
     public void testWriteDefault() throws Exception {
         // レイアウト定義ファイル
         final File formatFile = temporaryFolder.newFile("format.fmt");

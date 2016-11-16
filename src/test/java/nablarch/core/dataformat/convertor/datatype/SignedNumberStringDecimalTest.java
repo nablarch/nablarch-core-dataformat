@@ -75,14 +75,12 @@ public class SignedNumberStringDecimalTest {
     }
 
     /**
-     * null, 空文字を読み込む場合のテスト。
+     * 空文字を読み込む場合のテスト。
      */
     @Test
-    public void testReadNullOrEmpty() {
+    public void testReadEmpty() {
         sut.init(field, 10, "");
 
-        assertThat(sut.convertOnRead((byte[])null), is(BigDecimal.ZERO));
-        assertThat(sut.convertOnRead((String)null), is(BigDecimal.ZERO));
         assertThat(sut.convertOnRead(""), is(BigDecimal.ZERO));
     }
 

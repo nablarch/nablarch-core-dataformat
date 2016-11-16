@@ -29,10 +29,6 @@ public class NumberStringDecimalTest {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
-    private byte[] toBytesNull() {
-        return null;
-    }
-
     /** 文字列をバイトに変換する */
     private byte[] toBytes(String str) throws UnsupportedEncodingException {
         return str.getBytes("ms932");
@@ -108,13 +104,12 @@ public class NumberStringDecimalTest {
 
     /**
      * 読込テスト。スケールなし。
-     * null, 空文字のケース。
+     * 空文字のケース。
      */
     @Test
-    public void testReadNonScaleNullOrEmpty() throws Exception {
+    public void testReadNonScaleEmpty() throws Exception {
         sut.init(field, 10);
 
-        assertThat(sut.convertOnRead(toBytesNull()), is(new BigDecimal("0")));
         assertThat(sut.convertOnRead(toBytes("")), is(new BigDecimal("0")));
     }
 
@@ -148,13 +143,12 @@ public class NumberStringDecimalTest {
 
     /**
      * 読込テスト。スケールあり（スケール:0）。
-     * null, 空文字のケース。
+     * 空文字のケース。
      */
     @Test
-    public void testReadScale0NullOrEmpty() throws Exception {
+    public void testReadScale0Empty() throws Exception {
         sut.init(field, 10, 0);
 
-        assertThat(sut.convertOnRead(toBytesNull()), is(new BigDecimal("0")));
         assertThat(sut.convertOnRead(toBytes("")), is(new BigDecimal("0")));
     }
 
@@ -174,13 +168,12 @@ public class NumberStringDecimalTest {
 
     /**
      * 読込テスト。スケールあり（スケール:3）。
-     * null, 空文字のケース。
+     * 空文字のケース。
      */
     @Test
-    public void testReadScale3NullOrEmpty() throws Exception {
+    public void testReadScale3Empty() throws Exception {
         sut.init(field, 10, 3);
 
-        assertThat(sut.convertOnRead(toBytesNull()).toPlainString(), is("0.000"));
         assertThat(sut.convertOnRead(toBytes("")).toPlainString(), is("0.000"));
     }
 
@@ -200,13 +193,12 @@ public class NumberStringDecimalTest {
 
     /**
      * 読込テスト。スケールあり（スケール:-3）。
-     * null, 空文字のケース。
+     * 空文字のケース。
      */
     @Test
-    public void testReadScaleMinus3NullOrEmpty() throws Exception {
+    public void testReadScaleMinus3Empty() throws Exception {
         sut.init(field, 10, -3);
 
-        assertThat(sut.convertOnRead(toBytesNull()).toPlainString(), is("0"));
         assertThat(sut.convertOnRead(toBytes("")).toPlainString(), is("0"));
     }
 

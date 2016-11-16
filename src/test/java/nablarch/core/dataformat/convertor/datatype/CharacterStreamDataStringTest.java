@@ -28,11 +28,10 @@ public class CharacterStreamDataStringTest {
 
     /**
      * 読込のテスト。
-     * null, 空文字, 文字列をテストする。
+     * 空文字, 文字列をテストする。
      */
     @Test
     public void testRead() {
-        assertThat(sut.convertOnRead(null), is(nullValue()));
         assertThat(sut.convertOnRead(""), is(""));
         assertThat(sut.convertOnRead("abc"), is("abc"));
     }

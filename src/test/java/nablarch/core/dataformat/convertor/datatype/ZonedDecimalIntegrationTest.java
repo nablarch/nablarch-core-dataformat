@@ -160,6 +160,35 @@ public class ZonedDecimalIntegrationTest {
      * 出力時のパラメータがnullの場合にデフォルト値を出力するテスト。
      */
     @Test
+    public void testWriteNull() throws Exception {
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 10",
+                "",
+                "[Default]",
+                "1    signedZDigit     SZ(10, \"\", \"3\", \"7\")"
+        );
+        createFormatter(formatFile);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord() {{
+            put("signedZDigit", null);
+        }};
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toByteArray(), is("0000000000".getBytes("sjis")));
+    }
+
+    /**
+     * 出力時のパラメータがnullの場合に
+     * レイアウト定義に指定されたデフォルト値を出力するテスト。
+     */
+    @Test
     public void testWriteDefault() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");
         createFile(formatFile,

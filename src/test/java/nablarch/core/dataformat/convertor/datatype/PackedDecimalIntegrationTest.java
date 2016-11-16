@@ -133,6 +133,41 @@ public class PackedDecimalIntegrationTest {
      * 出力時のパラメータがnullのときデフォルト値が出力されるテスト。
      */
     @Test
+    public void testWriteNull() throws Exception{
+
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 10",
+                "",
+                "[Default]",
+                "1   signedPDigit     SP(10, \"\", \"7\", \"4\")"
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord(){{
+            put("signedPDigit", null);
+        }};
+        formatter.writeRecord(record);
+
+        byte[] expected = new byte[] {
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x07
+        };
+
+        assertThat(outputStream.toByteArray(), is(expected));
+    }
+
+    /**
+     * 出力時のパラメータがnullのとき
+     * レイアウト定義に指定されたデフォルト値が出力されるテスト。
+     */
+    @Test
     public void testWriteDefault() throws Exception{
 
         final File formatFile = temporaryFolder.newFile("format.fmt");

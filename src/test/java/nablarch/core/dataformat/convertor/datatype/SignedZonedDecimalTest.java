@@ -89,6 +89,30 @@ public class SignedZonedDecimalTest {
     }
 
     /**
+     * 空文字を入力するテスト。
+     */
+    @Test
+    public void testReadEmpty() {
+        sut.init(field, 0, 0);
+        setParameter(zoneNibbleASCII, 3, 7);
+
+        assertThat(sut.convertOnRead("".getBytes()), is(BigDecimal.ZERO));
+    }
+
+    /**
+     * null と 空文字を出力するテスト。
+     * デフォルト値(0)を出力する。
+     */
+    @Test
+    public void testWriteValidSingularValue() {
+        sut.init(field, 5, 0);
+        setParameter(zoneNibbleASCII, 3, 7);
+
+        assertThat(sut.convertOnWrite(null), is("00000".getBytes()));
+        assertThat(sut.convertOnWrite(""), is("00000".getBytes()));
+    }
+
+    /**
      * ASCII規格での符号つきゾーン10進のテスト
      * 正常系読込。正数。
      */

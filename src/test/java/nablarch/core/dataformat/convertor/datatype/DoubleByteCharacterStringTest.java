@@ -73,14 +73,13 @@ public class DoubleByteCharacterStringTest {
 
     /**
      * 読込のテスト。
-     * 文字列, null, 空文字をテストする。
+     * 文字列, 空文字をテストする。
      */
     @Test
     public void testRead() {
         sut.init(new FieldDefinition().setEncoding(Charset.forName("utf8")), 10);
 
         assertThat(sut.convertOnRead("あいう".getBytes()), is("あいう"));
-        assertThat(sut.convertOnRead(null), is(nullValue()));
         assertThat(sut.convertOnRead("".getBytes()), is(""));
     }
 

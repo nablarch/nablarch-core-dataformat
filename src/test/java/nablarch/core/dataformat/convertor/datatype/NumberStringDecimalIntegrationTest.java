@@ -118,6 +118,39 @@ public class NumberStringDecimalIntegrationTest {
      * 書き込み時にパラメータがnullの場合にデフォルト値が出力されるテスト。
      */
     @Test
+    public void testWriteNull() throws Exception {
+
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"ms932\"",
+                "record-length: 20",
+                "",
+                "[Default]",
+                "1   number    X9(10, 2)  ",
+                "11  number2  SX9(10, 4)  "
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord();
+        record.put("number", null);
+        record.put("number2", null);
+        formatter.writeRecord(record);
+
+        // スケール違いの10ケタの0 が二つ
+        // 0000000.00 と　00000.0000
+        assertThat(outputStream.toString("ms932"), is("0000000.0000000.0000"));
+    }
+
+    /**
+     * 書き込み時にパラメータがnullの場合に、
+     * レイアウト定義に指定されたデフォルト値が出力されるテスト。
+     */
+    @Test
     public void testWriteDefault() throws Exception {
 
         final File formatFile = temporaryFolder.newFile("format.fmt");
@@ -143,5 +176,4 @@ public class NumberStringDecimalIntegrationTest {
 
         assertThat(outputStream.toString("ms932"), is("0000123.0000321.0000"));
     }
-
 }

@@ -120,6 +120,36 @@ public class ByteStreamDataStringIntegrationTest {
     }
 
     /**
+     * 正常系の書き込みテスト。
+     * デフォルト値を設定しない null 出力のケース。
+     */
+    @Test
+    public void testWriteNull() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 10",
+                "",
+                "[Default]",
+                "1    byteStreamString     XN(10)   "
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord();
+        record.put("byteStreamString", null);
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toString("sjis"), is("          "));
+    }
+
+    /**
      * 出力対象がnullの場合に
      * シングルバイト・ダブルバイト・３バイト文字が混在したデフォルト値を書き込めることのテスト。
      */

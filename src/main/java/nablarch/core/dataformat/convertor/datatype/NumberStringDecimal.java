@@ -370,9 +370,6 @@ public class NumberStringDecimal extends ByteStreamDataSupport<BigDecimal> {
      * </p>
      */
     public BigDecimal convertOnRead(byte[] data) {
-        if (data == null) {
-            return new BigDecimal(BigInteger.ZERO, this.scale);
-        }
         String strData;
         try {
             strData = new String(data, getField().getEncoding().name());
@@ -392,9 +389,6 @@ public class NumberStringDecimal extends ByteStreamDataSupport<BigDecimal> {
      * @return 数値
      */
     protected BigDecimal convertOnRead(String strData) {
-        if (strData == null) {
-            return new BigDecimal(BigInteger.ZERO, this.scale);
-        }
         validateReadDataFormat(strData);
         String trimmedStr = trim(strData);
         BigDecimal bigDecimal = toBigDecimal(trimmedStr);
