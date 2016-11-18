@@ -370,9 +370,6 @@ public class NumberStringDecimal extends ByteStreamDataSupport<BigDecimal> {
      * </p>
      */
     public BigDecimal convertOnRead(byte[] data) {
-        if (data == null) {
-            return new BigDecimal(BigInteger.ZERO, this.scale);
-        }
         String strData;
         try {
             strData = new String(data, getField().getEncoding().name());
@@ -627,21 +624,6 @@ public class NumberStringDecimal extends ByteStreamDataSupport<BigDecimal> {
         Object padding = getField().getPaddingValue();
         return (padding == null) ? String.valueOf(DEFAULT_PADDING_VALUE)
                                  : padding.toString();
-    }
-
-    /**
-     * パディング/トリム文字のバイト長を返却する。
-     * @param paddingStr パディング/トリム文字のバイト長
-     */
-    protected void checkPaddingStrLength(String paddingStr) {
-        byte[] bytes = convertToBytes(paddingStr);
-        if (bytes.length != PADDING_CHAR_LENGTH) {
-            throw new SyntaxErrorException(
-                    Builder.concat(
-                            "invalid parameter was specified. the length of padding bytes must be '"
-                          , PADDING_CHAR_LENGTH, "', but was '", bytes.length
-                          , "'. padding string=[", getPaddingStr(), "]."));
-        }
     }
     
     /**
