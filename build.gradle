@@ -26,9 +26,6 @@ targetCompatibility=JavaVersion.VERSION_1_6
 dependencies {
   compile "com.nablarch.framework:nablarch-core:${nablarchCoreVersion}"
 
-  testCompile "com.nablarch.framework:nablarch-fw-batch:${nablarchFwBatchVersion}"
-  testCompile "com.nablarch.framework:nablarch-common-jdbc:${nablarchCommonJdbcVersion}"
-
   testCompile 'org.jmockit:jmockit:1.13'
   testCompile 'junit:junit:4.12'
   testCompile 'org.hamcrest:hamcrest-all:1.3'
