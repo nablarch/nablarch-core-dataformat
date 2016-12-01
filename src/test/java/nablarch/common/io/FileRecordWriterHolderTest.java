@@ -1,5 +1,7 @@
 package nablarch.common.io;
 
+import mockit.Mocked;
+import mockit.Verifications;
 import nablarch.core.dataformat.DataRecord;
 import nablarch.core.dataformat.FileRecordWriter;
 import nablarch.core.repository.SystemRepository;
@@ -7,9 +9,6 @@ import nablarch.core.repository.di.ComponentDefinitionLoader;
 import nablarch.core.repository.di.DiContainer;
 import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
 import nablarch.core.util.FilePathSetting;
-import nablarch.fw.launcher.CommandLine;
-import nablarch.fw.launcher.Main;
-import nablarch.test.support.handler.CatchingHandler;
 import nablarch.test.support.tool.Hereis;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,11 +19,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -36,9 +36,6 @@ import static org.junit.matchers.JUnitMatchers.containsString;
  * 
  * 観点：
  * 正常系、異常系の網羅。
- * 親スレッドから子スレッドにインスタンスが引き継がれることの確認（{@link TestFileRecordWriterBatchAction}）。
- * リポジトリに、{@link FileRecordWriterDisposeHandler}を設定しておくことで、
- * 自動的にスレッド上に保持しているるWriterのクローズが行われることの確認。
  * 
  * @author Masato Inoue
  */
@@ -427,215 +424,6 @@ public class FileRecordWriterHolderTest {
         }
     }
 
-
-    /**
-     * バッチActionでFileRecordHolderを使用し、可変長ファイルが正常に書き込まれることの確認。
-     * FileRecordWriterDisposeHandlerを使用し、FileRecordWriterがスレッドから削除されることも確認する。
-     */
-    @Test
-    public void testBasicUsage() throws Exception {
-
-        FilePathSetting.getInstance().getFileExtensions().clear();
-        FilePathSetting.getInstance()
-                .addBasePathSetting("output", "file:./")
-                .addBasePathSetting("outputTest", "file:./")
-                .addBasePathSetting("format", "file:./")
-                .addFileExtensions("format", "fmt");
-
-        // FileRecordWriterDisposeHandlerを使用するので、FileRecordWriterのインスタンスはスレッドローカルから削除される。
-        File diConfig = Hereis.file("./batch-config.xml");
-        /***********************************************************************
-        <?xml version="1.0" encoding="UTF-8"?>
-        <component-configuration
-          xmlns = "http://tis.co.jp/nablarch/component-configuration">
-
-          <!-- ハンドラーキュー構成 -->
-          <list name="handlerQueue">
-            <!-- 終了コードマッピング -->
-            <component class="nablarch.fw.handler.StatusCodeConvertHandler" />
-          
-            <!-- 共通エラーハンドラー -->
-            <component class="nablarch.fw.handler.GlobalErrorHandler" />
-              
-            <!-- スレッドコンテキスト管理ハンドラ-->
-            <component class="nablarch.common.handler.threadcontext.ThreadContextHandler">
-              <property name="attributes">
-                <list>
-                <!-- ユーザID -->
-                <component class="nablarch.common.handler.threadcontext.UserIdAttribute" />
-                <!-- リクエストID -->
-                <component class="nablarch.common.handler.threadcontext.RequestIdAttribute" />
-                </list>
-              </property>
-            </component>
-            
-            <!-- 業務アクションディスパッチハンドラ -->
-            <component class="nablarch.fw.handler.RequestPathJavaPackageMapping">
-              <property name="basePackage" value="nablarch.common.io"/>
-              <property name="immediate" value="false" />
-            </component>
-            
-            <!-- FileRecordWriterの後処理を行うハンドラ -->
-            <component class="nablarch.common.io.FileRecordWriterDisposeHandler" />
-            
-            <!-- マルチスレッド実行制御ハンドラ -->
-            <component class="nablarch.fw.handler.MultiThreadExecutionHandler" />
-
-            <!-- ループハンドラ -->
-            <component class="nablarch.fw.handler.DumbLoopHandler" />
-            
-            <!-- テスト用ハンドラ -->
-            <component class="nablarch.test.support.handler.CatchingHandler" />
-            
-            <!-- データリードハンドラ -->
-            <component class="nablarch.fw.handler.DataReadHandler" />
-            
-          </list>
-          <!-- ハンドラーキュー構成(END) -->
-        </component-configuration>
-        ************************************************************************/
-        diConfig.deleteOnExit();
-        
-        createDataFile();
-        CatchingHandler.clear();
-        
-        CommandLine commandline = new CommandLine(
-          "-diConfig",    "file:./batch-config.xml"
-        , "-requestPath", "TestFileRecordWriterBatchAction/req00001"
-        , "-userId",      "wetherreport"
-        );
-        
-        int exitCode = Main.execute(commandline);
-        
-        assertEquals(0, exitCode);
-
-        // result.datファイルが正常に書きだされていることの確認
-        BufferedReader reader = new BufferedReader(new InputStreamReader(
-                new FileInputStream("./result.dat"), "sjis"));
-        assertEquals("H,ヘッダ", reader.readLine());
-        assertEquals("D,1回目のデータ書き込み", reader.readLine());
-        assertEquals("D,2回目のデータ書き込み", reader.readLine());
-        assertEquals("D,3回目のデータ書き込み", reader.readLine());
-        assertEquals("T,3,5000", reader.readLine());
-        assertNull(reader.readLine());
-        reader.close();
-
-        // result2.datファイルが正常に書きだされていることの確認
-        reader = new BufferedReader(new InputStreamReader(
-               new FileInputStream("./result2.dat"), "sjis"));
-        assertEquals("D,result2 write", reader.readLine());
-        assertEquals("D,result2 write", reader.readLine());
-        assertEquals("D,result2 write", reader.readLine());
-        assertNull(reader.readLine()); 
-        reader.close();
-
-       new File("result.dat").deleteOnExit();
-       new File("result2.dat").deleteOnExit();
-    }
-    
-    /**
-     * バッチActionでFileRecordHolderを使用し、可変長ファイルが正常に書きだされることの確認。
-     * このテストでは、FileRecordWriterDisposeHandlerは使用せず、FileRecordWriterがスレッドから削除されないことを確認する。
-     */
-    @Test
-    public void testNotUseDataRecordWriterDisposeHandler() throws Exception {
-
-        FilePathSetting.getInstance().getFileExtensions().clear();
-        FilePathSetting.getInstance()
-                .addBasePathSetting("output", "file:./")
-                .addBasePathSetting("outputTest", "file:./")
-                .addBasePathSetting("format", "file:./")
-                .addFileExtensions("format", "fmt");
-
-        // FileRecordWriterDisposeHandlerは使用しないので、FileRecordWriterのインスタンスはスレッドローカルから削除されない。
-        File diConfig = Hereis.file("./batch-config.xml");
-        /***********************************************************************
-        <?xml version="1.0" encoding="UTF-8"?>
-        <component-configuration
-          xmlns = "http://tis.co.jp/nablarch/component-configuration">
-
-          <!-- ハンドラーキュー構成 -->
-          <list name="handlerQueue">
-            <!-- 終了コードマッピング -->
-            <component class="nablarch.fw.handler.StatusCodeConvertHandler" />
-          
-            <!-- 共通エラーハンドラー -->
-            <component class="nablarch.fw.handler.GlobalErrorHandler" />
-              
-            <!-- スレッドコンテキスト管理ハンドラ-->
-            <component class="nablarch.common.handler.threadcontext.ThreadContextHandler">
-              <property name="attributes">
-                <list>
-                <!-- ユーザID -->
-                <component class="nablarch.common.handler.threadcontext.UserIdAttribute" />
-                <!-- リクエストID -->
-                <component class="nablarch.common.handler.threadcontext.RequestIdAttribute" />
-                </list>
-              </property>
-            </component>
-            
-            <!-- 業務アクションディスパッチハンドラ -->
-            <component class="nablarch.fw.handler.RequestPathJavaPackageMapping">
-              <property name="basePackage" value="nablarch.common.io"/>
-              <property name="immediate" value="false" />
-            </component>
-            
-            <!-- マルチスレッド実行制御ハンドラ -->
-            <component class="nablarch.fw.handler.MultiThreadExecutionHandler" />
-
-            <!-- ループハンドラ -->
-            <component class="nablarch.fw.handler.DumbLoopHandler" />
-            
-            <!-- テスト用ハンドラ -->
-            <component class="nablarch.test.support.handler.CatchingHandler" />
-            
-            <!-- データリードハンドラ -->
-            <component class="nablarch.fw.handler.DataReadHandler" />
-            
-          </list>
-          <!-- ハンドラーキュー構成(END) -->
-        </component-configuration>
-        ************************************************************************/
-        diConfig.deleteOnExit();
-        
-        createDataFile();
-        CatchingHandler.clear();
-        
-        CommandLine commandline = new CommandLine(
-          "-diConfig",    "file:./batch-config.xml"
-        , "-requestPath", "TestFileRecordWriterBatchAction/req00001"
-        , "-userId",      "wetherreport"
-        );
-        
-        int exitCode = Main.execute(commandline);
-        
-        assertEquals(0, exitCode);
-
-        // ファイルが正常に書きだされていることの確認
-        BufferedReader reader = new BufferedReader(new InputStreamReader(
-                new FileInputStream("./result.dat"), "sjis"));
-           
-
-       assertEquals("H,ヘッダ", reader.readLine());
-       assertEquals("D,1回目のデータ書き込み", reader.readLine());
-       assertEquals("D,2回目のデータ書き込み", reader.readLine());
-       assertEquals("D,3回目のデータ書き込み", reader.readLine());
-       assertEquals("T,3,5000", reader.readLine());
-       assertNull(reader.readLine());
-       
-       reader.close();
-        
-        // FileRecordWriterDisposeHandlerを設定していないので、fileRecordWriterがスレッドから削除されていない
-       FileRecordWriter fileRecordWriter = FileRecordWriterHolder.get("result.dat");
-       assertNotNull(fileRecordWriter); 
-       fileRecordWriter = FileRecordWriterHolder.get("outputTest", "result2.dat");
-       assertNotNull(fileRecordWriter); 
-       
-       new File("result.dat").delete();
-       new File("result2.dat").delete();
-       
-    }
-    
     public void createDataFile() throws Exception {
         String data;
         data  = "H,inoue" + "\n";
@@ -660,56 +448,11 @@ public class FileRecordWriterHolderTest {
         <component-configuration
           xmlns = "http://tis.co.jp/nablarch/component-configuration">
 
-        
           <!-- FormatterFactoryの設定 -->
           <component name="fileRecordWriterHolder"
               class="nablarch.common.io.FileRecordWriterHolderStub">
           </component>
 
-
-          <!-- ハンドラーキュー構成 -->
-          <list name="handlerQueue">
-            <!-- 終了コードマッピング -->
-            <component class="nablarch.fw.handler.StatusCodeConvertHandler" />
-          
-            <!-- 共通エラーハンドラー -->
-            <component class="nablarch.fw.handler.GlobalErrorHandler" />
-              
-            <!-- スレッドコンテキスト管理ハンドラ-->
-            <component class="nablarch.common.handler.threadcontext.ThreadContextHandler">
-              <property name="attributes">
-                <list>
-                <!-- ユーザID -->
-                <component class="nablarch.common.handler.threadcontext.UserIdAttribute" />
-                <!-- リクエストID -->
-                <component class="nablarch.common.handler.threadcontext.RequestIdAttribute" />
-                </list>
-              </property>
-            </component>
-            
-            <!-- 業務アクションディスパッチハンドラ -->
-            <component class="nablarch.fw.handler.RequestPathJavaPackageMapping">
-              <property name="basePackage" value="nablarch.common.io"/>
-              <property name="immediate" value="false" />
-            </component>
-            
-            <!-- FileRecordWriterの後処理を行うハンドラ -->
-            <component class="nablarch.common.io.FileRecordWriterDisposeHandler" />
-            
-            <!-- マルチスレッド実行制御ハンドラ -->
-            <component class="nablarch.fw.handler.MultiThreadExecutionHandler" />
-
-            <!-- ループハンドラ -->
-            <component class="nablarch.fw.handler.DumbLoopHandler" />
-            
-            <!-- テスト用ハンドラ -->
-            <component class="nablarch.test.support.handler.CatchingHandler" />
-            
-            <!-- データリードハンドラ -->
-            <component class="nablarch.fw.handler.DataReadHandler" />
-            
-          </list>
-          <!-- ハンドラーキュー構成(END) -->
         </component-configuration>
         ************************************************************************/
         diConfig.deleteOnExit();
@@ -725,7 +468,6 @@ public class FileRecordWriterHolderTest {
         
         // FileRecordWriterのスタブを生成できている
         assertSame(writer.getClass(), FileRecordWriterHolderStub.FileRecordWriterStub.class);
-        
     }
 
     
@@ -802,7 +544,46 @@ public class FileRecordWriterHolderTest {
         FileRecordWriterHolder.close("test.dat");
         
     }
-    
+
+    /**
+     * 子スレッドで開いたファイルを親スレッドで閉じることができること
+     */
+    @Test
+    public void testMultiThread(@Mocked final FileRecordWriter writer) throws Exception {
+        FilePathSetting.getInstance()
+                .addBasePathSetting("output","file:./")
+                .addBasePathSetting("format", "file:./");
+
+        // 子スレッド内でファイルを開く
+        ExecutorService service = Executors.newFixedThreadPool(2);
+        Future future1 = service.submit(new Runnable() {
+            @Override
+            public void run() {
+                FileRecordWriterHolder.open("test1.dat", "test");
+            }
+        });
+        Future future2 = service.submit(new Runnable() {
+            @Override
+            public void run() {
+                FileRecordWriterHolder.open("test2.dat", "test");
+            }
+        });
+
+        // 子スレッドの処理が完了するまで待機
+        future1.get();
+        future2.get();
+
+        FileRecordWriterHolder.close("test1.dat");
+        FileRecordWriterHolder.close("test2.dat");
+
+        // Writerのクローズ処理が2回呼ばれていること
+        new Verifications() {{
+            writer.close();
+            times = 2;
+        }};
+
+        service.shutdown();
+    }
 
     /**
      * OS名を取得する。

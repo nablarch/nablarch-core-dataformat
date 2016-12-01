@@ -1,0 +1,7 @@
+file-type: "Variable"
+record-separator: "\n"
+field-separator: ","
+text-encoding: "sjis"
+
+[data]
+1 type X

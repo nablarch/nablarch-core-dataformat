@@ -8,21 +8,17 @@ import nablarch.core.repository.di.ComponentDefinitionLoader;
 import nablarch.core.repository.di.DiContainer;
 import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
 import nablarch.core.util.FilePathSetting;
-import nablarch.fw.launcher.CommandLine;
-import nablarch.fw.launcher.Main;
-import nablarch.test.support.handler.CatchingHandler;
 import nablarch.test.support.tool.Hereis;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
@@ -47,6 +43,9 @@ import static org.junit.Assert.fail;
  * @author Masato Inoue
  */
 public class FileRecordReaderTest {
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
     
     private FileRecordReader reader = null;
 
@@ -377,199 +376,6 @@ public class FileRecordReaderTest {
     }
 
     /**
-     * 5多重でマルチスレッド実行した場合に、それぞれのスレッドが正しいレコード番号を取得できることを確認する。
-     * （レコード番号と物理的なレコード番号が一致する）
-     */
-    @Test
-    public void testGetRecordNumber() throws Exception { 
-        
-        // データフォーマット定義ファイル
-        File formatFile = Hereis.file("./test.fmt");
-        /**********************************************
-        # ファイルタイプ
-        file-type: "Variable"
-        
-        # 文字列型フィールドの文字エンコーディング
-        record-separator: "\n"
-        
-        # 文字列型フィールドの文字エンコーディング
-        field-separator: ","
-        
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "sjis"
-        
-
-        # レコードタイプ定義
-        [classifier]
-        1 type X
-
-        # データレコード定義
-        [header]
-        type = "H"
-        1  type   X "H"
-        2  result   X
-        
-        [data]
-        type = "D"
-        1    type   X  "D"
-        2    result X  
-
-        [trailer]
-        type = "T"
-        1    type        X  "T"
-        2    result     X   # データレコード件数
-        
-        
-        [terminate]
-        type = "Terminate"
-        1    type       X  "Terminate"
-        2    result     X   # データレコード件数
-        ***************************************************/
-        formatFile.deleteOnExit();
-        
-        // FileRecordWriterDisposeHandlerを使用するので、FileRecordWriterのインスタンスはスレッドローカルから削除される。
-        File diConfig = Hereis.file("./batch-config.xml");
-        /***********************************************************************
-        <?xml version="1.0" encoding="UTF-8"?>
-        <component-configuration
-          xmlns = "http://tis.co.jp/nablarch/component-configuration">
-          
-          <!-- データベース接続構成 -->
-          <import file="db-default.xml"/>
-          
-          <!-- ハンドラーキュー構成 -->
-          <list name="handlerQueue">
-          
-            <!-- 共通エラーハンドラー -->
-            <component class="nablarch.fw.handler.GlobalErrorHandler" />
-              
-            <!-- スレッドコンテキスト管理ハンドラ-->
-            <component class="nablarch.common.handler.threadcontext.ThreadContextHandler">
-              <property name="attributes">
-                <list>
-                <!-- ユーザID -->
-                <component class="nablarch.common.handler.threadcontext.UserIdAttribute">
-                  <property name="sessionKey" value="user.id" />
-                  <property name="anonymousId" value="9999999999" />
-                </component>
-                <!-- リクエストID -->
-                <component class="nablarch.common.handler.threadcontext.RequestIdAttribute" />
-                <!-- 言語 -->
-                <component class="nablarch.common.handler.threadcontext.LanguageAttribute">
-                  <property name="defaultLanguage" value="ja" />
-                </component>
-                <!-- 実行時ID -->
-                <component class="nablarch.common.handler.threadcontext.ExecutionIdAttribute" />
-                </list>
-              </property>
-            </component>
-            
-            <!-- データベース接続管理ハンドラ -->
-            <component
-                name="dbConnectionManagementHandler" 
-                class="nablarch.common.handler.DbConnectionManagementHandler">
-            </component>
-
-            <!-- 業務アクションディスパッチハンドラ -->
-            <component class="nablarch.fw.handler.RequestPathJavaPackageMapping">
-              <property name="basePackage" value="nablarch.core.dataformat"/>
-              <property name="immediate" value="false" />
-            </component>
-            
-            <!-- FileRecordWriterの後処理を行うハンドラ -->
-            <component class="nablarch.core.dataformat.FileRecordWriterDisposeHandlerStub" />
-            
-            
-            <!-- マルチスレッド実行制御ハンドラ -->
-            <component class="nablarch.fw.handler.MultiThreadExecutionHandler">
-              <property name="concurrentNumber" value="5" />
-              <property name="terminationTimeout" value="600" />
-            </component>
-            
-            <!-- データベース接続管理ハンドラ -->
-            <component class="nablarch.common.handler.DbConnectionManagementHandler">
-            </component>
-            
-            <!-- ループハンドラ -->
-            <component class="nablarch.fw.handler.LoopHandler" />
-            
-            <!-- データリードハンドラ -->
-            <component class="nablarch.fw.handler.DataReadHandler">
-            </component>
-          </list>
-          <!-- ハンドラーキュー構成(END) -->
-        </component-configuration>
-        ************************************************************************/      
-        diConfig.deleteOnExit();
-        
-        String data  = "H,inoue" + "\n";
-        data += "D,10" + "\n";
-        data += "D,20" + "\n";
-        data += "D,30" + "\n";
-        data += "D,40" + "\n";
-        data += "D,50" + "\n";
-        data += "T,2" + "\n";
-       
-        FilePathSetting.getInstance()
-        .addBasePathSetting("input", "file:" + new File("./").getPath())
-        .addBasePathSetting("output", "file:" + new File("./").getPath())
-        .addBasePathSetting("format", "file:" + new File("./").getPath())
-        .addFileExtensions("input", "dat")
-        .addFileExtensions("format", "fmt");
-        
-        FileOutputStream dest = new FileOutputStream(new File("./test.dat"));
-        dest.write(data.getBytes("sjis"));
-        dest.close();
-        
-        CatchingHandler.clear();
-        
-        CommandLine commandline = new CommandLine(
-          "-diConfig",    "file:./batch-config.xml"
-        , "-requestPath", "FileRecordReaderRecordNumberTestAction/req00001"
-        , "-userId",      "wetherreport"
-        );
-        
-        int exitCode = Main.execute(commandline);
-        
-        assertEquals(0, exitCode);
-
-       // ファイルが正常に書きだされていることの確認
-       BufferedReader reader = new BufferedReader(new InputStreamReader(
-                new FileInputStream(new File("./result.dat")), "sjis"));
-       
-       
-       // ヘッダ、データ、トレイラ
-       for(int i = 0; i < 7; i++) {
-           String readLine = reader.readLine();
-           if(readLine.startsWith("H,レコード番号=[1")){
-               assertEquals("H,レコード番号=[1], 物理的に読み込んだレコード番号=[1]", readLine);
-           } else if(readLine.startsWith("D,レコード番号=[2")){
-               assertEquals("D,レコード番号=[2], 物理的に読み込んだレコード番号=[2]", readLine);
-           } else if(readLine.startsWith("D,レコード番号=[3")){
-               assertEquals("D,レコード番号=[3], 物理的に読み込んだレコード番号=[3]", readLine);
-           } else if(readLine.startsWith("D,レコード番号=[4")){
-               assertEquals("D,レコード番号=[4], 物理的に読み込んだレコード番号=[4]", readLine);
-           } else if(readLine.startsWith("D,レコード番号=[5")){
-               assertEquals("D,レコード番号=[5], 物理的に読み込んだレコード番号=[5]", readLine);
-           } else if(readLine.startsWith("D,レコード番号=[6")){
-               assertEquals("D,レコード番号=[6], 物理的に読み込んだレコード番号=[6]", readLine);
-           } else if(readLine.startsWith("T,レコード番号=[7")){
-               assertEquals("T,レコード番号=[7], 物理的に読み込んだレコード番号=[7]", readLine);
-           } else {
-               fail(readLine);
-           }
-       }
-
-       // terminate
-       assertEquals("Terminate,物理的に読み込んだレコード番号=[7]", reader.readLine());
-       
-       reader.close();
-       
-       new File("result.dat").delete();
-    }
-
-
-    /**
      * {@link InvalidDataFormatException}発生時に、
      * 入力ファイルのパス情報が付与されること。
      */
@@ -614,6 +420,44 @@ public class FileRecordReaderTest {
     }
 
     /**
+     * 現在読み込んでいるレコード番号を取得できることを確認する。
+     */
+    @Test
+    public void testGetRecordNumber() throws Exception {
+
+        // テスト用のデータファイルを作成
+        String data  = "test1\n" +
+                "test2\n" +
+                "test3\n" +
+                "test4\n" +
+                "test5\n";
+        File dataFile = folder.newFile("test.dat");
+        writeFile(dataFile, data);
+
+        // テスト用のフォーマット定義ファイルを作成
+        String format = "file-type: \"Variable\"\n" +
+                "record-separator: \"\\n\"\n" +
+                "field-separator: \",\"\n" +
+                "text-encoding: \"sjis\"\n" +
+                "[data]\n" +
+                "1 type X\n";
+        File formatFile = folder.newFile("test.fmt");
+        writeFile(formatFile, format);
+
+        FileRecordReader reader = new FileRecordReader(dataFile, formatFile);
+
+        assertThat("読み込み前なので0となること", reader.getRecordNumber(), is(0));
+
+        for (int i = 0; i < 5; i++) {
+            reader.read();
+            assertThat("読み込みを行うたびに行数が加算されること", reader.getRecordNumber(), is(i + 1));
+        }
+
+        reader.read();
+        assertThat("余分に読み込みを行っても、行数が加算されないこと", reader.getRecordNumber(), is(5));
+    }
+
+    /**
      * OS名を取得する。
      * @return OS名
      */
@@ -627,5 +471,17 @@ public class FileRecordReaderTest {
             reader.close();
         }
         SystemRepository.clear();
+    }
+
+    /**
+     * ファイルに書き込む
+     * @param file ファイル
+     * @param value 書き込む文字列
+     * @throws Exception
+     */
+    private void writeFile(File file, String value) throws Exception {
+        FileOutputStream dest = new FileOutputStream(file);
+        dest.write(value.getBytes("sjis"));
+        dest.close();
     }
 }
