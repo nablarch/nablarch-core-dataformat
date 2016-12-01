@@ -8,19 +8,17 @@ import nablarch.core.repository.di.ComponentDefinitionLoader;
 import nablarch.core.repository.di.DiContainer;
 import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
 import nablarch.core.util.FilePathSetting;
-import nablarch.test.support.handler.CatchingHandler;
 import nablarch.test.support.tool.Hereis;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
@@ -45,6 +43,9 @@ import static org.junit.Assert.fail;
  * @author Masato Inoue
  */
 public class FileRecordReaderTest {
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
     
     private FileRecordReader reader = null;
 
@@ -419,6 +420,44 @@ public class FileRecordReaderTest {
     }
 
     /**
+     * 現在読み込んでいるレコード番号を取得できることを確認する。
+     */
+    @Test
+    public void testGetRecordNumber() throws Exception {
+
+        // テスト用のデータファイルを作成
+        String data  = "test1\n" +
+                "test2\n" +
+                "test3\n" +
+                "test4\n" +
+                "test5\n";
+        File dataFile = folder.newFile("test.dat");
+        writeFile(dataFile, data);
+
+        // テスト用のフォーマット定義ファイルを作成
+        String format = "file-type: \"Variable\"\n" +
+                "record-separator: \"\\n\"\n" +
+                "field-separator: \",\"\n" +
+                "text-encoding: \"sjis\"\n" +
+                "[data]\n" +
+                "1 type X\n";
+        File formatFile = folder.newFile("test.fmt");
+        writeFile(formatFile, format);
+
+        FileRecordReader reader = new FileRecordReader(dataFile, formatFile);
+
+        assertThat("読み込み前なので0となること", reader.getRecordNumber(), is(0));
+
+        for (int i = 0; i < 5; i++) {
+            reader.read();
+            assertThat("読み込みを行うたびに行数が加算されること", reader.getRecordNumber(), is(i + 1));
+        }
+
+        reader.read();
+        assertThat("余分に読み込みを行っても、行数が加算されないこと", reader.getRecordNumber(), is(5));
+    }
+
+    /**
      * OS名を取得する。
      * @return OS名
      */
@@ -432,5 +471,17 @@ public class FileRecordReaderTest {
             reader.close();
         }
         SystemRepository.clear();
+    }
+
+    /**
+     * ファイルに書き込む
+     * @param file ファイル
+     * @param value 書き込む文字列
+     * @throws Exception
+     */
+    private void writeFile(File file, String value) throws Exception {
+        FileOutputStream dest = new FileOutputStream(file);
+        dest.write(value.getBytes("sjis"));
+        dest.close();
     }
 }
