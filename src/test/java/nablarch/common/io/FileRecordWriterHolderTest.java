@@ -9,7 +9,9 @@ import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
 import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -17,7 +19,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
@@ -35,6 +41,9 @@ import static org.junit.matchers.JUnitMatchers.containsString;
  * @author Masato Inoue
  */
 public class FileRecordWriterHolderTest {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Before
     @SuppressWarnings("serial")
@@ -539,7 +548,52 @@ public class FileRecordWriterHolderTest {
         FileRecordWriterHolder.close("test.dat");
         
     }
-    
+
+    /**
+     * 子スレッドで開いたファイルを親スレッドで閉じることができること
+     */
+    @Test
+    public void testMultiThread() throws Exception {
+
+        File file1 = temporaryFolder.newFile("test1.dat");
+        File file2 = temporaryFolder.newFile("test2.dat");
+
+        FilePathSetting.getInstance()
+                .addBasePathSetting("output","file:" + temporaryFolder.getRoot().getPath())
+                .addBasePathSetting("format", "file:./");
+
+        // 子スレッド内でファイルを開く
+        ExecutorService service = Executors.newFixedThreadPool(2);
+        Future future1 = service.submit(new Runnable() {
+            @Override
+            public void run() {
+                FileRecordWriterHolder.open("test1.dat", "test");
+            }
+        });
+        Future future2 = service.submit(new Runnable() {
+            @Override
+            public void run() {
+                FileRecordWriterHolder.open("test2.dat", "test");
+            }
+        });
+
+        // 子スレッドの処理が完了するまで待機
+        future1.get();
+        future2.get();
+
+        // ファイルが開かれているため、削除できないこと
+        assertThat(file1.delete(), is(false));
+        assertThat(file2.delete(), is(false));
+
+        FileRecordWriterHolder.close("test1.dat");
+        FileRecordWriterHolder.close("test2.dat");
+
+        // ファイルが閉じられているため、削除できること
+        assertThat(file1.delete(), is(true));
+        assertThat(file2.delete(), is(true));
+
+        service.shutdown();
+    }
 
     /**
      * OS名を取得する。
