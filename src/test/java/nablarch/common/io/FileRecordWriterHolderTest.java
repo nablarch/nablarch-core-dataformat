@@ -1,5 +1,7 @@
 package nablarch.common.io;
 
+import mockit.Mocked;
+import mockit.Verifications;
 import nablarch.core.dataformat.DataRecord;
 import nablarch.core.dataformat.FileRecordWriter;
 import nablarch.core.repository.SystemRepository;
@@ -9,9 +11,7 @@ import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
 import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,7 +23,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
@@ -41,9 +40,6 @@ import static org.junit.matchers.JUnitMatchers.containsString;
  * @author Masato Inoue
  */
 public class FileRecordWriterHolderTest {
-
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Before
     @SuppressWarnings("serial")
@@ -553,13 +549,9 @@ public class FileRecordWriterHolderTest {
      * 子スレッドで開いたファイルを親スレッドで閉じることができること
      */
     @Test
-    public void testMultiThread() throws Exception {
-
-        File file1 = temporaryFolder.newFile("test1.dat");
-        File file2 = temporaryFolder.newFile("test2.dat");
-
+    public void testMultiThread(@Mocked final FileRecordWriter writer) throws Exception {
         FilePathSetting.getInstance()
-                .addBasePathSetting("output","file:" + temporaryFolder.getRoot().getPath())
+                .addBasePathSetting("output","file:./")
                 .addBasePathSetting("format", "file:./");
 
         // 子スレッド内でファイルを開く
@@ -581,16 +573,14 @@ public class FileRecordWriterHolderTest {
         future1.get();
         future2.get();
 
-        // ファイルが開かれているため、削除できないこと
-        assertThat(file1.delete(), is(false));
-        assertThat(file2.delete(), is(false));
-
         FileRecordWriterHolder.close("test1.dat");
         FileRecordWriterHolder.close("test2.dat");
 
-        // ファイルが閉じられているため、削除できること
-        assertThat(file1.delete(), is(true));
-        assertThat(file2.delete(), is(true));
+        // Writerのクローズ処理が2回呼ばれていること
+        new Verifications() {{
+            writer.close();
+            times = 2;
+        }};
 
         service.shutdown();
     }
