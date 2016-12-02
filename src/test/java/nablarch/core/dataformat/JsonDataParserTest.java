@@ -1821,6 +1821,31 @@ public class JsonDataParserTest {
     }
 
     @Test
+    public void 任意オブジェクトが設定されていないJSONを読み込めること() throws Exception {
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"JSON\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 parent [0..1] OB",
+                "",
+                "[parent]",
+                "1 child [0..1] X"
+        );
+
+        // JSON
+        InputStream input = createInputStream(
+                "{}"
+        );
+
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+
+        // 検証
+        assertThat(result.size(), is(0));
+    }
+
+    @Test
     public void オブジェクトの必須項目にnullが設定されているためエラーとなること() throws Exception {
         exception.expect(InvalidDataFormatException.class);
         exception.expectMessage(CoreMatchers.containsString("BaseKey = parent,Field child is required"));
