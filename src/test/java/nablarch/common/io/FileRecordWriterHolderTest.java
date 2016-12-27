@@ -550,6 +550,7 @@ public class FileRecordWriterHolderTest {
      */
     @Test
     public void testMultiThread(@Mocked final FileRecordWriter writer) throws Exception {
+        FileRecordWriterHolder.init();
         FilePathSetting.getInstance()
                 .addBasePathSetting("output","file:./")
                 .addBasePathSetting("format", "file:./");

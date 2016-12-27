@@ -14,9 +14,13 @@ import nablarch.core.util.annotation.Published;
  * {@link FileRecordWriter}のインスタンスをスレッド毎に管理するクラス。
  * <p/>
  * スレッド毎に管理する{@link FileRecordWriter}インスタンスの生成及び取得、クローズ機能を持つ。
+ * <p/>
  * {@link FileRecordWriterDisposeHandler}をハンドラとして設定する場合、
  * 本クラスがスレッド上で管理するすべての{@link FileRecordWriter}が{@link FileRecordWriterDisposeHandler}により自動的にクローズされるので、
  * 業務アプリケーションで本クラスの{@link #close}メソッドを呼び出す必要はない。
+ * <p/>
+ * {@link #close(String, String)}及び{@link #close(String)}では、{@link ThreadLocal#remove()}の呼び出しを行わない。
+ * スレッド上の値を削除するためには、{@link #closeAll()}の呼び出しが必要となる。
  *
  * @see FileRecordWriter
  * @author Masato Inoue
@@ -128,6 +132,15 @@ public class FileRecordWriterHolder {
     public static void open(String dataFileBasePathName,
                             String dataFileName, String layoutFileName, int bufferSize) {
         open(dataFileBasePathName, dataFileName, "format", layoutFileName, bufferSize);
+    }
+
+    /**
+     * カレントスレッド上で開いたファイルを管理するための初期処理を行う。
+     * <p>
+     * 本処理を呼ばなかった場合、子スレッド側で開いたファイルは管理対象とならないため注意すること。
+     */
+    public static void init() {
+        WRITERS.get();
     }
 
     /**
@@ -361,7 +374,7 @@ public class FileRecordWriterHolder {
                     writer.close();
                 }
             } finally {
-                WRITERS.get().clear();
+                WRITERS.remove();
             }
         }
     }

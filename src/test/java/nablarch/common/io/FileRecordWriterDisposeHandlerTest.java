@@ -1,5 +1,7 @@
 package nablarch.common.io;
 
+import static org.junit.Assert.fail;
+
 import mockit.Delegate;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
@@ -7,6 +9,7 @@ import mockit.Verifications;
 import nablarch.fw.ExecutionContext;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.internal.runners.statements.Fail;
 import org.junit.rules.TemporaryFolder;
 
 /**
@@ -35,8 +38,10 @@ public class FileRecordWriterDisposeHandlerTest {
             result = new Delegate<Object>() {
                 public String delegate(Object obj) {
                     new Verifications() {{
-                        FileRecordWriterHolder.closeAll();
+                        FileRecordWriterHolder.init();
                         times = 1;
+                        FileRecordWriterHolder.closeAll();
+                        times = 0;
                     }};
                     return null;
                 }
@@ -49,7 +54,7 @@ public class FileRecordWriterDisposeHandlerTest {
         // ハンドラの復路で再度closeAllが実行されていること
         new Verifications() {{
             FileRecordWriterHolder.closeAll();
-            times = 2;
+            times = 1;
         }};
     }
 
@@ -69,10 +74,13 @@ public class FileRecordWriterDisposeHandlerTest {
         // 実行
         try {
             sut.handle(null, ctx);
+            fail();
         } catch (RuntimeException ignored) {
             new Verifications() {{
+                FileRecordWriterHolder.init();
+                times = 1;
                 FileRecordWriterHolder.closeAll();
-                times = 2;
+                times = 1;
             }};
         }
     }
