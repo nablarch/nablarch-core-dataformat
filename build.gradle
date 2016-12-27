@@ -1,5 +1,5 @@
 group = 'com.nablarch.framework'
-version = '1.0.3'
+version = '1.0.4'
 description = 'ファイルフォーマット定義などファイル操作に関する機能'
 
 buildscript {
