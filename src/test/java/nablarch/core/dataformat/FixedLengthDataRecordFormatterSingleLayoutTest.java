@@ -1503,10 +1503,10 @@ public class FixedLengthDataRecordFormatterSingleLayoutTest {
 
         final DataRecord record = new DataRecord();
         record.put("X9", "1.12");
-        record.put("SX9", "-12.4");
+        record.put("SX9", "-1.4");
         formatter.writeRecord(record);
 
-        assertThat(outputStream.toString("sjis"), is("01.12-12.40"));
+        assertThat(outputStream.toString("sjis"), is("01.12-1.40"));
     }
 
     @Test
@@ -1575,10 +1575,10 @@ public class FixedLengthDataRecordFormatterSingleLayoutTest {
 
         final DataRecord record = new DataRecord();
         record.put("X9", "1.12");
-        record.put("SX9", "-12.4");
+        record.put("SX9", "-1.4");
         formatter.writeRecord(record);
 
-        assertThat("符号は先頭につく", outputStream.toString("sjis"), is("01.12-12.40"));
+        assertThat("符号は先頭につく", outputStream.toString("sjis"), is("01.12-1.40"));
     }
 
     @Test
