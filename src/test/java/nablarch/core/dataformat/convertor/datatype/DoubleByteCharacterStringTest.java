@@ -1,15 +1,17 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import nablarch.core.dataformat.*;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
 
 import java.nio.charset.Charset;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import nablarch.core.dataformat.FieldDefinition;
+import nablarch.core.dataformat.InvalidDataFormatException;
+import nablarch.core.dataformat.SyntaxErrorException;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 
 /**
@@ -22,15 +24,15 @@ public class DoubleByteCharacterStringTest {
     private DoubleByteCharacterString sut = new DoubleByteCharacterString();
 
     @Rule
-    public ExpectedException exception = ExpectedException.none();
+    public ExpectedException expectedException = ExpectedException.none();
 
     /**
      * 初期化時にnullをわたすと例外がスローされること。
      */
     @Test
     public void testInitializeNull() {
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[DoubleByteCharacterString].");
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("initialize parameter was null. parameter must be specified. convertor=[DoubleByteCharacterString].");
 
         sut.initialize(null);
     }
@@ -40,8 +42,8 @@ public class DoubleByteCharacterStringTest {
      */
     @Test
     public void testInitialize1stParameterNull() {
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[DoubleByteCharacterString].");
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[DoubleByteCharacterString].");
 
         sut.initialize(null, "hoge");
     }
@@ -51,8 +53,8 @@ public class DoubleByteCharacterStringTest {
      */
     @Test
     public void testInitializeNotDoubleByteLength() {
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("invalid field size was specified. the length of DoubleByteCharacter data field must be a even number. " +
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("invalid field size was specified. the length of DoubleByteCharacter data field must be a even number. " +
                 "field size=[3]. convertor=[DoubleByteCharacterString].");
 
         sut.initialize(3, "hoge");
@@ -65,8 +67,8 @@ public class DoubleByteCharacterStringTest {
     public void testSingleBytePaddingString() {
         sut.init(new FieldDefinition().setEncoding(Charset.forName("utf8")).setPaddingValue("a"), 10);
 
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("invalid parameter was specified. the length of padding string must be 2. but specified one was 1 byte long.");
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("invalid parameter was specified. the length of padding string must be 2. but specified one was 1 byte long.");
 
         sut.convertOnWrite("");
     }
@@ -129,5 +131,17 @@ public class DoubleByteCharacterStringTest {
 
         assertThat(sut.removePadding(data), is(expected));
         assertThat(sut.removePadding(expected), is(expected));
+    }
+
+    /**
+     * 指定サイズより長い値を指定した場合例外が送出されること。
+     */
+    @Test
+    public void testWrite_LargerSize() throws Exception {
+        sut.init(new FieldDefinition().setEncoding(Charset.forName("windows-31j")), 4);
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid parameter was specified. too large data. field size = '4' data size = '6'. data: あいう");
+        sut.convertOnWrite("あいう");
     }
 }

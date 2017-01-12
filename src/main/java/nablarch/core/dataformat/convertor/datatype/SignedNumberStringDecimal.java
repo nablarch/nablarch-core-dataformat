@@ -418,12 +418,10 @@ public class SignedNumberStringDecimal extends NumberStringDecimal {
         boolean isNegative = isNegative(bigDecimal);
 
         String formattedData = formatWriteData(bigDecimal);
-
-        byte[] bytesData = convertToBytes(formattedData, isNegative);
-
-        checkBytesSize(bytesData);
         
-        return padding(bytesData, isNegative);
+        checkBytesSize(convertToBytes(formattedData));
+
+        return padding(convertToBytes(formattedData, isNegative), isNegative);
     }
 
     /**

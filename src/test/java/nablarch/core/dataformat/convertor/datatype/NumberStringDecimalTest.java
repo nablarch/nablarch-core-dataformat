@@ -27,7 +27,7 @@ public class NumberStringDecimalTest {
     private static final FieldDefinition field = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
 
     @Rule
-    public ExpectedException exception = ExpectedException.none();
+    public ExpectedException expectedException = ExpectedException.none();
 
     /** 文字列をバイトに変換する */
     private byte[] toBytes(String str) throws UnsupportedEncodingException {
@@ -39,8 +39,8 @@ public class NumberStringDecimalTest {
      */
     @Test
     public void testInitializeNull() {
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[NumberStringDecimal].");
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("initialize parameter was null. parameter must be specified. convertor=[NumberStringDecimal].");
 
         sut.initialize(null);
     }
@@ -50,8 +50,8 @@ public class NumberStringDecimalTest {
      */
     @Test
     public void testInitialize1stParameterNull() {
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
 
         sut.initialize(null, "hoge");
     }
@@ -62,8 +62,8 @@ public class NumberStringDecimalTest {
      */
     @Test
     public void testInitNull() {
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("1st parameter was null. parameter=[null, hoge]. convertor=[NumberStringDecimal].");
 
         sut.init(null, null, "hoge");
     }
@@ -73,8 +73,8 @@ public class NumberStringDecimalTest {
      */
     @Test
     public void testInitStringScale() {
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("invalid parameter type was specified. 2nd parameter type must be Integer. parameter=[10, abc]. convertor=[NumberStringDecimal].");
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("invalid parameter type was specified. 2nd parameter type must be Integer. parameter=[10, abc]. convertor=[NumberStringDecimal].");
 
         sut.init(field, 10, "abc");
     }
@@ -84,8 +84,8 @@ public class NumberStringDecimalTest {
      */
     @Test
     public void testInitNumberStringScale() {
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("invalid parameter type was specified. 2nd parameter type must be Integer. parameter=[10, 0]. convertor=[NumberStringDecimal].");
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("invalid parameter type was specified. 2nd parameter type must be Integer. parameter=[10, 0]. convertor=[NumberStringDecimal].");
 
         sut.init(field, 10, "0");
     }
@@ -121,8 +121,8 @@ public class NumberStringDecimalTest {
     public void testReadNonScaleInvalidNumber() throws Exception {
         sut.init(field, 10);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[1.23.].");
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[1.23.].");
 
         sut.convertOnRead(toBytes("1.23."));
     }
@@ -258,8 +258,8 @@ public class NumberStringDecimalTest {
     public void testReadString() throws Exception {
         sut.init(field, 10);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[000abc].");
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[000abc].");
 
         sut.convertOnRead(toBytes("000abc"));
     }
@@ -271,8 +271,8 @@ public class NumberStringDecimalTest {
     public void testReadPlusSign() throws Exception {
         sut.init(field, 10);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[000+123].");
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[000+123].");
 
         sut.convertOnRead(toBytes("000+123"));
     }
@@ -284,8 +284,8 @@ public class NumberStringDecimalTest {
     public void testReadMinusSign() throws Exception {
         sut.init(field, 10);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[000-321].");
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid parameter format was specified. parameter format must be [0*[0-9]+(\\.[0-9]*[0-9])?]. parameter=[000-321].");
 
         sut.convertOnRead(toBytes("000-321"));
     }
@@ -317,8 +317,8 @@ public class NumberStringDecimalTest {
     public void testWritePaddingMinusSign() throws Exception {
         sut.init(field, 10);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid parameter was specified. parameter must not be minus. parameter=[-12345].");
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid parameter was specified. parameter must not be minus. parameter=[-12345].");
 
         sut.convertOnWrite("-12345");
     }
@@ -330,10 +330,25 @@ public class NumberStringDecimalTest {
     public void testWritePaddingMinusValue() throws Exception {
         sut.init(field, 10);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid parameter was specified. parameter must not be minus. parameter=[-123.45].");
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid parameter was specified. parameter must not be minus. parameter=[-123.45].");
 
         sut.convertOnWrite(BigDecimal.valueOf((long)-12345, 2));
+    }
+
+    /**
+     * 指定サイズより大きい値を書き込もうとした場合例外が発生すること
+     * @throws Exception
+     */
+    @Test
+    public void testWriteLargerSize() throws Exception {
+        sut.init(field, 10);
+
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid parameter was specified. " 
+                + "too large data. field size = '10' data size = '11'. data: 12345543210");
+        
+        sut.convertOnWrite(new BigDecimal("12345543210"));
     }
 
     /**
@@ -368,8 +383,8 @@ public class NumberStringDecimalTest {
     public void testWriteString() throws Exception {
         sut.init(field, 10);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[abc].");
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[abc].");
 
         sut.convertOnWrite("abc");
     }
@@ -382,8 +397,8 @@ public class NumberStringDecimalTest {
     public void testWriteInvalidNumber() throws Exception {
         sut.init(field, 10);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[1.23.].");
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid parameter was specified. parameter must be able to convert to BigDecimal. parameter=[1.23.].");
 
         sut.convertOnWrite("1.23.");
     }
@@ -421,8 +436,8 @@ public class NumberStringDecimalTest {
     public void testWriteInvalidScaleNumber() throws Exception {
         sut.init(field, 10);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid scale was specified. specify scale must be greater than the parameter scale. specified scale=[0], parameter scale=[1], parameter=[1.2].");
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid scale was specified. specify scale must be greater than the parameter scale. specified scale=[0], parameter scale=[1], parameter=[1.2].");
 
         sut.convertOnWrite("1.2");
     }
@@ -477,8 +492,8 @@ public class NumberStringDecimalTest {
         sut.init(field, 10, -4);
         sut.setRequiredDecimalPoint(false);
 
-        exception.expect(InvalidDataFormatException.class);
-        exception.expectMessage("invalid scale was specified. scaled data should not have a decimal point. scale=[-4], scaled data=[12.3], write data=[123000].");
+        expectedException.expect(InvalidDataFormatException.class);
+        expectedException.expectMessage("invalid scale was specified. scaled data should not have a decimal point. scale=[-4], scaled data=[12.3], write data=[123000].");
         sut.convertOnWrite(BigDecimal.valueOf((long)123000, 0));
     }
 
@@ -490,8 +505,8 @@ public class NumberStringDecimalTest {
     public void testInvalidPaddingStringZenkaku() throws Exception {
         final FieldDefinition paddingField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test").setPaddingValue("０");
 
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("invalid parameter was specified. the length of padding bytes must be '1', but was '2'. padding string=[０].");
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("invalid parameter was specified. the length of padding bytes must be '1', but was '2'. padding string=[０].");
 
         sut.init(paddingField, 10);
     }
@@ -505,8 +520,8 @@ public class NumberStringDecimalTest {
         final FieldDefinition otherField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
         otherField.setPaddingValue("1");
 
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("invalid padding character was specified. padding character must not be [1-9] pattern."
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("invalid padding character was specified. padding character must not be [1-9] pattern."
                 + " padding character=[1], convertor=[NumberStringDecimal].");
 
         sut.init(otherField, 10);
@@ -521,8 +536,8 @@ public class NumberStringDecimalTest {
         final FieldDefinition otherField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
         otherField.setPaddingValue("9");
 
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("invalid padding character was specified. padding character must not be [1-9] pattern."
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("invalid padding character was specified. padding character must not be [1-9] pattern."
                 + " padding character=[9], convertor=[NumberStringDecimal].");
 
         sut.init(otherField, 10);
@@ -537,8 +552,8 @@ public class NumberStringDecimalTest {
         final FieldDefinition otherField = new FieldDefinition().setEncoding(Charset.forName("ms932")).setName("test");
         otherField.setPaddingValue("5");
 
-        exception.expect(SyntaxErrorException.class);
-        exception.expectMessage("invalid padding character was specified. padding character must not be [1-9] pattern."
+        expectedException.expect(SyntaxErrorException.class);
+        expectedException.expectMessage("invalid padding character was specified. padding character must not be [1-9] pattern."
                 + " padding character=[5], convertor=[NumberStringDecimal].");
 
         sut.init(otherField, 10);

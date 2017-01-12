@@ -1,19 +1,20 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import nablarch.core.dataformat.FieldDefinition;
-import nablarch.core.dataformat.InvalidDataFormatException;
-import nablarch.core.dataformat.SyntaxErrorException;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import nablarch.core.dataformat.FieldDefinition;
+import nablarch.core.dataformat.InvalidDataFormatException;
+import nablarch.core.dataformat.SyntaxErrorException;
+
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * {@link SignedNumberStringDecimal}の固定長テスト。
@@ -483,6 +484,19 @@ public class SignedNumberStringDecimalTest {
         exception.expectMessage("invalid parameter was specified. too large data. field size = '10' data size = '11'. data: 12345678901");
 
         sut.convertOnWrite("12345678901");
+    }
+
+    /**
+     * 負数で桁数を超過した場合に例外が送出されること。
+     */
+    @Test
+    public void testWriteNegativeLargeByteLength() throws Exception {
+        sut.init(field, 10);
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectMessage("invalid parameter was specified. too large data. field size = '10' data size = '11'. data: -1234512345");
+
+        sut.convertOnWrite("-1234512345");
     }
 
     /**
