@@ -74,13 +74,28 @@ public class SingleByteCharacterStringTest {
     }
 
     /**
-     * 入力時にパラメータが空文字の場合のテスト。
+     * 空文字列を読み込むテスト。
+     * 空文字列とトリム文字のみの場合。
+     */
+    @Test
+    public void testReadEmptyToNull() throws Exception {
+        sut.init(field, 10);
+
+        assertThat(sut.convertOnRead("".getBytes()), is(nullValue()));
+        assertThat(sut.convertOnRead("          ".getBytes()), is(nullValue()));
+    }
+
+    /**
+     * 空文字列を空文字列として読み込む設定があった場合の読み込みテスト。
      */
     @Test
     public void testReadEmpty() throws Exception {
         sut.init(field, 10);
+        sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead("".getBytes()), is(""));
+        assertThat(sut.convertOnRead("          ".getBytes()), is(""));
+        assertThat(sut.convertOnRead("01234abcde".getBytes()), is("01234abcde"));
     }
 
     /**

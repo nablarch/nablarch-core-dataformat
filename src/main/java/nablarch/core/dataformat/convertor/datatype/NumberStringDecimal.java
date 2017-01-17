@@ -391,8 +391,10 @@ public class NumberStringDecimal extends ByteStreamDataSupport<BigDecimal> {
     protected BigDecimal convertOnRead(String strData) {
         validateReadDataFormat(strData);
         String trimmedStr = trim(strData);
-        BigDecimal bigDecimal = toBigDecimal(trimmedStr);
-        return bigDecimal;
+        if (convertEmptyToNull && trimmedStr.isEmpty()) {
+            return null;
+        }
+        return toBigDecimal(trimmedStr);
     }
 
     /**

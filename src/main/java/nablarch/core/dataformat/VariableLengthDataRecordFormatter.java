@@ -15,6 +15,7 @@ import java.util.Map;
 
 import nablarch.core.dataformat.convertor.VariableLengthConvertorSetting;
 import nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString;
+import nablarch.core.dataformat.convertor.datatype.DataType;
 import nablarch.core.dataformat.convertor.value.ValueConvertor;
 import nablarch.core.log.Logger;
 import nablarch.core.log.LoggerManager;
@@ -1067,5 +1068,16 @@ public class VariableLengthDataRecordFormatter extends DataRecordFormatterSuppor
      */
     protected VariableLengthConvertorSetting getConvertorSetting() {
         return convertorSetting;
+    }
+
+    /**
+     * 空文字列を{@code null}に変換するかどうかを各データタイプに設定する。
+     * @param datatype 対象のデータタイプ
+     * @return このオブジェクト自体
+     */
+    @Override
+    protected DataRecordFormatterSupport setDataTypeProperty(DataType<?, ?> datatype) {
+        datatype.setConvertEmptyToNull(convertorSetting.isConvertEmptyToNull());
+        return this;
     }
 }

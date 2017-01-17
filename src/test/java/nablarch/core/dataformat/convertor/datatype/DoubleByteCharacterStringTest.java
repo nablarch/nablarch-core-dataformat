@@ -74,15 +74,38 @@ public class DoubleByteCharacterStringTest {
     }
 
     /**
+     * 空文字列の読込のテスト。
+     * 空文字列、トリム文字のみの場合は{@code null}として読み込む。
+     */
+    @Test
+    public void testReadEmptyToNull() throws Exception {
+        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf8")), 10);
+
+        assertThat(sut.convertOnRead("".getBytes()), is(nullValue()));
+        assertThat(sut.convertOnRead("　　　　　".getBytes()), is(nullValue()));
+    }
+
+    /**
+     * 空文字列を空文字列として読み込む設定があった場合のテスト。
+     */
+    @Test
+    public void testReadEmpty() throws Exception {
+        sut.init(new FieldDefinition().setEncoding(Charset.forName("utf8")), 10);
+        sut.setConvertEmptyToNull(false);
+
+        assertThat(sut.convertOnRead("".getBytes()), is(""));
+        assertThat(sut.convertOnRead("　　　　　".getBytes()), is(""));
+        assertThat(sut.convertOnRead("あいう　　".getBytes()), is("あいう"));
+    }
+
+    /**
      * 読込のテスト。
-     * 文字列, 空文字をテストする。
      */
     @Test
     public void testRead() {
         sut.init(new FieldDefinition().setEncoding(Charset.forName("utf8")), 10);
 
         assertThat(sut.convertOnRead("あいう".getBytes()), is("あいう"));
-        assertThat(sut.convertOnRead("".getBytes()), is(""));
     }
 
     /**

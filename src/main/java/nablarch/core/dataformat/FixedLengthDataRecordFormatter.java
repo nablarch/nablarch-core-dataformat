@@ -474,6 +474,7 @@ public class FixedLengthDataRecordFormatter extends DataRecordFormatterSupport {
     /**
      * ゾーン/パック数値の符号ビットの設定および、
      * 数値文字列の小数点の要否、符号位置の固定/非固定、正の符号の要否の設定を行う。
+     * また、各データタイプに空文字列を{@code null}に変換するかどうかの設定を行う。
      * 
      * @param dataType データタイプ
      * @return 自分自身
@@ -502,7 +503,9 @@ public class FixedLengthDataRecordFormatter extends DataRecordFormatterSupport {
             SignedNumberStringDecimal signedNumberType = (SignedNumberStringDecimal) dataType;
             signedNumberType.setFixedSignPosition(isFixedSignPosition);
             signedNumberType.setRequiredPlusSign(isRequiredPlusSign);
-         }
+        }
+
+        dataType.setConvertEmptyToNull(convertorSetting.isConvertEmptyToNull());
         return this;
     }
     

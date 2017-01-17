@@ -70,12 +70,16 @@ public class ZonedDecimalIntegrationTest {
         );
         createFormatter(formatFile);
 
-        byte[] bytes = new byte[20];
+        byte[] bytes = new byte[40];
         ByteBuffer buff = ByteBuffer.wrap(bytes);
         buff.put("123456789".getBytes("sjis"))
                 .put((byte) 0x70); // -1234567890
         buff.put("123456789".getBytes("sjis"))
                 .put((byte) 0x30); // 1234567890
+        buff.put("000000000".getBytes("sjis"))
+                .put((byte) 0x30); // 0000000000
+        buff.put("000000000".getBytes("sjis"))
+                .put((byte) 0x30); // 0000000000
         final InputStream inputStream = new ByteArrayInputStream(bytes);
 
         formatter.setInputStream(inputStream)
@@ -84,6 +88,9 @@ public class ZonedDecimalIntegrationTest {
         DataRecord record = formatter.readRecord();
         assertThat(record.getBigDecimal("signedZDigit"), is(new BigDecimal("-1234567890")));
         assertThat(record.getBigDecimal("unsignedZDigit"), is(new BigDecimal("1234567890")));
+        record = formatter.readRecord();
+        assertThat(record.getBigDecimal("signedZDigit"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("unsignedZDigit"), is(BigDecimal.ZERO));
     }
 
     /**

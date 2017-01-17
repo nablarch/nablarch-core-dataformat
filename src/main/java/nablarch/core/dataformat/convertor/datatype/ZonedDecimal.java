@@ -112,6 +112,10 @@ public class ZonedDecimal extends ByteStreamDataSupport<BigDecimal> {
     /** {@inheritDoc} */
     @Override
     public BigDecimal convertOnRead(byte[] buff) {
+        if (convertEmptyToNull && buff.length == 0) {
+            return null;
+        }
+
         long num = 0;
         long scale = 1;
         boolean negative = false;
