@@ -17,7 +17,10 @@ public class CharacterStreamDataString extends CharacterStreamDataSupport<String
     
     /** 出力時に、nullが渡された場合に変換する空文字 */
     private static final String EMPTY = "";
-    
+
+    /** 未入力を空文字列として取得するか */
+    private boolean notEnteredToEmpty = false;
+
     /** {@inheritDoc}
      * この実装では、初期化時には何も行わない。
      */
@@ -27,10 +30,14 @@ public class CharacterStreamDataString extends CharacterStreamDataSupport<String
     }
 
     /**　{@inheritDoc}
-     * この実装では、入力時に、引数の文字列に対して何もせずに返却する。
+     * この実装では、入力時に、引数の文字列が空の場合に{@code null}を返却し、
+     * それ以外は何もせずに返却する。
      */
     @Override
     public String convertOnRead(String data) {
+        if (StringUtil.isNullOrEmpty(data) && !notEnteredToEmpty) {
+            return null;
+        }
         return data;
     }
 
@@ -45,5 +52,13 @@ public class CharacterStreamDataString extends CharacterStreamDataSupport<String
             return EMPTY;
         }
         return StringUtil.toString(data);
+    }
+
+    /**
+     * 未入力を空文字列とするかを設定する。
+     * @param notEnteredToEmpty 未入力を空文字列とするならtrue
+     */
+    public void setNotEnteredToEmpty(boolean notEnteredToEmpty) {
+        this.notEnteredToEmpty = notEnteredToEmpty;
     }
 }

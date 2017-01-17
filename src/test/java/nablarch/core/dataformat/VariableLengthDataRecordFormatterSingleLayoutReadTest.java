@@ -497,21 +497,21 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
         assertEquals("TestDataRecord", record.getRecordType()); 
         assertEquals(14, record.size());
 
-        assertEquals("",             record.get("dataKbn"));      // 1. データ区分
-        assertEquals("",          record.get("FIcode"));       // 2. 振込先金融機関コード
-        assertEquals("",      record.get("FIname"));       // 3. 振込先金融機関名称
-        assertEquals("",           record.get("officeCode"));   // 4. 振込先営業所コード
-        assertEquals("", record.get("officeName"));   // 5. 振込先営業所名
+        assertEquals(null,             record.get("dataKbn"));      // 1. データ区分
+        assertEquals(null,          record.get("FIcode"));       // 2. 振込先金融機関コード
+        assertEquals(null,      record.get("FIname"));       // 3. 振込先金融機関名称
+        assertEquals(null,           record.get("officeCode"));   // 4. 振込先営業所コード
+        assertEquals(null, record.get("officeName"));   // 5. 振込先営業所名
         assertTrue  (!record.containsKey("tegataNum"));            // (手形交換所番号)
-        assertEquals("",            record.get("syumoku"));       // 6. 預金種目
-        assertEquals("",      record.get("accountNum"));    // 7. 口座番号
-        assertEquals("",     record.get("recipientName")); // 8. 受取人名
-        assertEquals("",         record.get("amount"));        // 9. 振込金額
-        assertEquals("",            record.get("isNew"));         // 10.新規コード
-        assertEquals("", record.get("ediInfo"));       // 11.EDI情報
-        assertEquals("",            record.get("transferType"));  // 12.振込区分
-        assertEquals("",            record.get("withEdi"));       // 13.EDI情報使用フラグ
-        assertEquals("",            record.get("used"));       // 14.used
+        assertEquals(null,            record.get("syumoku"));       // 6. 預金種目
+        assertEquals(null,      record.get("accountNum"));    // 7. 口座番号
+        assertEquals(null,     record.get("recipientName")); // 8. 受取人名
+        assertEquals(null,         record.get("amount"));        // 9. 振込金額
+        assertEquals(null,            record.get("isNew"));         // 10.新規コード
+        assertEquals(null, record.get("ediInfo"));       // 11.EDI情報
+        assertEquals(null,            record.get("transferType"));  // 12.振込区分
+        assertEquals(null,            record.get("withEdi"));       // 13.EDI情報使用フラグ
+        assertEquals(null,            record.get("used"));       // 14.used
         
         record = formatter.setInputStream(dataStream).readRecord();
         assertNull(record);
@@ -533,21 +533,21 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
         assertEquals("TestDataRecord", record.getRecordType()); 
         assertEquals(14, record.size());
 
-        assertEquals("",             record.get("dataKbn"));      // 1. データ区分
-        assertEquals("",          record.get("FIcode"));       // 2. 振込先金融機関コード
-        assertEquals("",      record.get("FIname"));       // 3. 振込先金融機関名称
-        assertEquals("",           record.get("officeCode"));   // 4. 振込先営業所コード
-        assertEquals("", record.get("officeName"));   // 5. 振込先営業所名
+        assertEquals(null,             record.get("dataKbn"));      // 1. データ区分
+        assertEquals(null,          record.get("FIcode"));       // 2. 振込先金融機関コード
+        assertEquals(null,      record.get("FIname"));       // 3. 振込先金融機関名称
+        assertEquals(null,           record.get("officeCode"));   // 4. 振込先営業所コード
+        assertEquals(null, record.get("officeName"));   // 5. 振込先営業所名
         assertTrue  (!record.containsKey("tegataNum"));            // (手形交換所番号)
-        assertEquals("",            record.get("syumoku"));       // 6. 預金種目
-        assertEquals("",      record.get("accountNum"));    // 7. 口座番号
-        assertEquals("",     record.get("recipientName")); // 8. 受取人名
-        assertEquals("",         record.get("amount"));        // 9. 振込金額
-        assertEquals("",            record.get("isNew"));         // 10.新規コード
-        assertEquals("", record.get("ediInfo"));       // 11.EDI情報
-        assertEquals("",            record.get("transferType"));  // 12.振込区分
-        assertEquals("",            record.get("withEdi"));       // 13.EDI情報使用フラグ
-        assertEquals("",            record.get("used"));       // 14.used
+        assertEquals(null,            record.get("syumoku"));       // 6. 預金種目
+        assertEquals(null,      record.get("accountNum"));    // 7. 口座番号
+        assertEquals(null,     record.get("recipientName")); // 8. 受取人名
+        assertEquals(null,         record.get("amount"));        // 9. 振込金額
+        assertEquals(null,            record.get("isNew"));         // 10.新規コード
+        assertEquals(null, record.get("ediInfo"));       // 11.EDI情報
+        assertEquals(null,            record.get("transferType"));  // 12.振込区分
+        assertEquals(null,            record.get("withEdi"));       // 13.EDI情報使用フラグ
+        assertEquals(null,            record.get("used"));       // 14.used
         
         record = formatter.setInputStream(dataStream).readRecord();
         assertNull(record);
@@ -1126,7 +1126,7 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
         assertEquals("ﾀｸｼｰﾀﾞｲｷﾝﾃﾞｽ", record.get("ediInfo"));       // 11.EDI情報
         assertEquals("4",            record.get("transferType"));  // 12.振込区分
         assertEquals("Y",            record.get("withEdi"));       // 13.EDI情報使用フラグ
-        assertEquals("",            record.get("used"));       // 14. 空文字列が正常に取得できることを確認!!!
+        assertEquals(null,            record.get("used"));       // 14. 空文字列が正常に取得できることを確認!!!
         
         record = formatter.setInputStream(dataStream).initialize().readRecord();
         assertNull(record);
@@ -1162,7 +1162,7 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
         assertEquals("ﾀｸｼｰﾀﾞｲｷﾝﾃﾞｽ", record.get("ediInfo"));       // 11.EDI情報
         assertEquals("4",            record.get("transferType"));  // 12.振込区分
         assertEquals("Y",            record.get("withEdi"));       // 13.EDI情報使用フラグ
-        assertEquals("",            record.get("used"));       // 14.空文字列が正常に取得できることを確認!!!
+        assertEquals(null,            record.get("used"));       // 14.空文字列が正常に取得できることを確認!!!
         
         record = formatter.setInputStream(dataStream).initialize().readRecord();
         assertNull(record);
@@ -2184,9 +2184,9 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
         
         assertTrue(formatter.hasNext());
 
-        // 1行目の空行をタイトルとして読める
+        // 1行目の空行をタイトルとして読める(ただし、空文字はnull)
         DataRecord readRecord = formatter.readRecord();
-        assertThat((String)readRecord.get("Title"), is(""));
+        assertThat((String)readRecord.get("Title"), is(nullValue()));
         
         formatter.close();
         formatFile.delete();
@@ -2451,7 +2451,7 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
     }
 
     /**
-     * 空の項目が設定されたファイルを読み込んだ場合に、空文字で読み込めること
+     * 空の項目が設定されたファイルを読み込んだ場合に、nullで読み込めること
      */
     @Test
     public void testBlankField() throws Exception {
@@ -2474,7 +2474,7 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
         formatter = createReadFormatter(formatFile, source);
 
         DataRecord record = formatter.readRecord();
-        assertThat(record.getString("Publisher"), is(""));
+        assertThat(record.getString("Publisher"), is(nullValue()));
     }
 
     /**

@@ -32,8 +32,21 @@ public class CharacterStreamDataStringTest {
      */
     @Test
     public void testRead() {
+        assertThat(sut.convertOnRead(""), is(nullValue()));
+        assertThat(sut.convertOnRead("abc"), is("abc"));
+    }
+
+    /**
+     * 空文字として読み込む設定をした場合の読み込みテスト。
+     */
+    @Test
+    public void testReadEmpty() {
+        sut.setNotEnteredToEmpty(true);
+
         assertThat(sut.convertOnRead(""), is(""));
         assertThat(sut.convertOnRead("abc"), is("abc"));
+
+        sut.setNotEnteredToEmpty(false);
     }
 
     /**
