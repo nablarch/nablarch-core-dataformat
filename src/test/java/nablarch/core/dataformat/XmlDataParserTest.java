@@ -2612,7 +2612,7 @@ public class XmlDataParserTest  {
     }
 
     @Test
-    public void 属性にフィールドタイプにOBを設定してXMLを読み込めること() throws Exception {
+    public void 属性のフィールドタイプにOBを設定してXMLを読み込むとエラーとなること() throws Exception {
         exception.expect(InvalidDataFormatException.class);
         exception.expectMessage(containsString("Field attr is Object but specified by Attribute"));
 
