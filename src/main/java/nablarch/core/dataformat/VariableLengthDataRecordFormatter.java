@@ -15,6 +15,7 @@ import java.util.Map;
 
 import nablarch.core.dataformat.convertor.VariableLengthConvertorSetting;
 import nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString;
+import nablarch.core.dataformat.convertor.datatype.DataType;
 import nablarch.core.dataformat.convertor.value.ValueConvertor;
 import nablarch.core.log.Logger;
 import nablarch.core.log.LoggerManager;
@@ -1067,5 +1068,14 @@ public class VariableLengthDataRecordFormatter extends DataRecordFormatterSuppor
      */
     protected VariableLengthConvertorSetting getConvertorSetting() {
         return convertorSetting;
+    }
+
+    @Override
+    protected DataRecordFormatterSupport setDataTypeProperty(DataType<?, ?> datatype) {
+        if (datatype instanceof CharacterStreamDataString) {
+            CharacterStreamDataString stringType = (CharacterStreamDataString)datatype;
+            stringType.setNotEnteredToEmpty(convertorSetting.getNotEnteredToEmpty());
+        }
+        return this;
     }
 }

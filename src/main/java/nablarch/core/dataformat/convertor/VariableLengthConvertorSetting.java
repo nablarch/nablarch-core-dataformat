@@ -14,6 +14,12 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
     /** コンバータのファクトリクラス */
     private VariableLengthConvertorFactory factory = new VariableLengthConvertorFactory();
 
+    /**
+     * 未入力値を空文字列に変換するフラグ。
+     * デフォルトでは{@code false}({@code null}に変換する)。
+     */
+    private boolean notEnteredToEmpty = false;
+
     /** システムリポジトリ上の登録名 */
     private static final String REPOSITORY_KEY =  "variableLengthConvertorSetting";
 
@@ -56,5 +62,20 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
         factory.setConvertorTable(table);
         return this;
     }
-    
+
+    /**
+     * 未入力値を空文字列に変換するかを設定する。
+     * @param notEnteredToEmpty 未入力値を空文字列に変換するならtrue
+     */
+    public void setNotEnteredToEmpty(boolean notEnteredToEmpty) {
+        this.notEnteredToEmpty = notEnteredToEmpty;
+    }
+
+    /**
+     * 未入力値を空文字列に変換するかを取得する。
+     * @return 未入力値を空文字列に変換するならtrue
+     */
+    public boolean getNotEnteredToEmpty() {
+        return notEnteredToEmpty;
+    }
 }

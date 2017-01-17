@@ -1,12 +1,17 @@
 package nablarch.core.dataformat;
 
 import nablarch.core.repository.SystemRepository;
+import nablarch.core.repository.di.ComponentDefinitionLoader;
+import nablarch.core.repository.di.DiContainer;
+import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
 import nablarch.core.util.Builder;
 import nablarch.core.util.FilePathSetting;
 import nablarch.core.util.FileUtil;
 import nablarch.test.support.tool.Hereis;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -16,6 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -2633,5 +2639,56 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
         } catch (InvalidDataFormatException e) {
             assertThat(e.getMessage(), containsString("invalid parameter format was specified."));
         }
+    }
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
+    /**
+     * フォーマットファイルを生成する。
+     * @param format フォーマットファイルの中身
+     * @return フォーマットファイル
+     * @throws Exception 発生する例外はすべて投げる
+     */
+    private File createFormatFile(String... format) throws Exception{
+        File formatFile = folder.newFile();
+        BufferedWriter writer = new BufferedWriter(new FileWriter(formatFile));
+        for (String line : format) {
+            writer.write(line);
+            writer.newLine();
+        }
+        writer.close();
+        return formatFile;
+    }
+
+    /**
+     * 後方互換の設定のテスト。
+     * notEnteredToEmpty をtrueに設定することで、未入力を空文字として取得できる。
+     */
+    @Test
+    public void testCompatible() throws Exception {
+        ComponentDefinitionLoader loader = new XmlComponentDefinitionLoader("nablarch/core/dataformat/convertor/ConvertorSettingCompatible.xml");
+        DiContainer container = new DiContainer(loader);
+        SystemRepository.load(container);
+
+        File formatFile = createFormatFile(
+                "file-type:    \"Variable\"",
+                "text-encoding:    \"ms932\"",
+                "record-separator: \"\\r\\n\" # CRLFで改行",
+                "field-separator:  \",\"    # カンマ区切り",
+                "",
+                "[Books]",
+                "1   Title      X          # タイトル",
+                "2   Publisher  X          # 出版社",
+                "3   Authors    X          # 著者",
+                "4   Price      X Number   # 価格"
+        );
+        source = new ByteArrayInputStream("タイトル,,著者,1000".getBytes("ms932"));
+
+        formatter = createReadFormatter(formatFile, source);
+        DataRecord actual = formatter.readRecord();
+        assertThat(actual.getString("Publisher"), is(""));
+
+        SystemRepository.clear();
     }
 }
