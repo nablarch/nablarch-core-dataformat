@@ -18,7 +18,7 @@ public abstract class DataType<F, T> {
     /** フィールド定義 */
     private FieldDefinition field;
 
-    /** 未入力を{@code null}に変換するフラグ */
+    /** 空文字列を{@code null}に変換するフラグ */
     protected boolean convertEmptyToNull = true;
 
     // ----------------------------------------------------- abstract methods
@@ -85,8 +85,8 @@ public abstract class DataType<F, T> {
     }
 
     /**
-     * 未入力値を{@code null}に変換するかを設定する。
-     * @param convertEmptyToNull 未入力値を{@code null}に変換するならtrue
+     * 空文字列を{@code null}に変換するかを設定する。
+     * @param convertEmptyToNull 空文字列を{@code null}に変換するならtrue
      */
     public void setConvertEmptyToNull(boolean convertEmptyToNull) {
         this.convertEmptyToNull = convertEmptyToNull;

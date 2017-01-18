@@ -2663,10 +2663,11 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
 
     /**
      * 後方互換の設定のテスト。
-     * notEnteredToEmpty をtrueに設定することで、未入力を空文字として取得できる。
+     * convertEmptyToNull プロパティを{@code false}に設定することで、未入力を空文字列として取得できる。
+     * ({@code null}に変換しない)
      */
     @Test
-    public void testCompatible() throws Exception {
+    public void testDoNotConvertEmptyToNull() throws Exception {
         ComponentDefinitionLoader loader = new XmlComponentDefinitionLoader("nablarch/core/dataformat/convertor/ConvertorSettingCompatible.xml");
         DiContainer container = new DiContainer(loader);
         SystemRepository.load(container);

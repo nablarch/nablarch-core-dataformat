@@ -28,12 +28,12 @@ public class CharacterStreamDataString extends CharacterStreamDataSupport<String
     }
 
     /**　{@inheritDoc}
-     * この実装では、入力時に、引数が空文字列かつ convertEmptyToNull プロパティが{@code true}の場合に{@code null}を返却し、
-     * それ以外は何もせずに返却する。
+     * この実装では、入力時に引数の文字列をそのまま返却する。
+     * ただし、空文字列を{@code null}に変換する設定がされ、かつ引数が空文字列の場合は{@code null}を返却する。
      */
     @Override
     public String convertOnRead(String data) {
-        if (convertEmptyToNull && EMPTY.equals(data)) {
+        if (data == null || convertEmptyToNull && data.isEmpty()) {
             return null;
         }
         return data;

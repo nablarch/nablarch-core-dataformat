@@ -91,7 +91,7 @@ public class VariableLengthConverterSettingTest {
      * デフォルトで{@code true}になってること。
      */
     @Test
-    public void testDefaultNotEnteredToEmpty() throws Exception {
+    public void testDefaultConvertEmptyToNull() throws Exception {
         VariableLengthConvertorSetting setting = new VariableLengthConvertorSetting();
         assertThat(setting.isConvertEmptyToNull(), is(true));
     }
@@ -101,7 +101,7 @@ public class VariableLengthConverterSettingTest {
      * 設定を記述することで{@code false}になること。
      */
     @Test
-    public void testSetterNotEnteredToEmpty() throws Exception {
+    public void testSetConvertEmptyToNull() throws Exception {
         XmlComponentDefinitionLoader loader = new XmlComponentDefinitionLoader("nablarch/core/dataformat/convertor/ConvertorSettingCompatible.xml");
         DiContainer container = new DiContainer(loader);
         SystemRepository.load(container);

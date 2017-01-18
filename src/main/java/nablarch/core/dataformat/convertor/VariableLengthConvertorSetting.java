@@ -16,7 +16,7 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
 
     /**
      * 未入力値を{@code null}に変換するフラグ。
-     * デフォルトでは{@code null}に変換する。
+     * デフォルトでは{@code null}に変換する({@code true})。
      */
     private boolean convertEmptyToNull = true;
 
@@ -65,6 +65,7 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
 
     /**
      * 未入力値を{@code null}に変換するかを設定する。
+     * デフォルトは{@code null}に変換する({@code true})。
      * @param convertEmptyToNull 未入力値を{@code null}に変換するならtrue
      */
     public void setConvertEmptyToNull(boolean convertEmptyToNull) {
