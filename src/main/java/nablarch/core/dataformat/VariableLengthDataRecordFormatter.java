@@ -1070,12 +1070,14 @@ public class VariableLengthDataRecordFormatter extends DataRecordFormatterSuppor
         return convertorSetting;
     }
 
+    /**
+     * 未入力を{@code null}に変換するかどうかを各データタイプに設定する。
+     * @param datatype 対象のデータタイプ
+     * @return このオブジェクト自体
+     */
     @Override
     protected DataRecordFormatterSupport setDataTypeProperty(DataType<?, ?> datatype) {
-        if (datatype instanceof CharacterStreamDataString) {
-            CharacterStreamDataString stringType = (CharacterStreamDataString)datatype;
-            stringType.setNotEnteredToEmpty(convertorSetting.getNotEnteredToEmpty());
-        }
+        datatype.setConvertEmptyToNull(convertorSetting.isConvertEmptyToNull());
         return this;
     }
 }

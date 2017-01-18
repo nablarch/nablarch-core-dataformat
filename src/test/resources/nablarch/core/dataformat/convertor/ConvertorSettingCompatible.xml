@@ -6,6 +6,6 @@
     
     <component name="variableLengthConvertorSetting"
                 class="nablarch.core.dataformat.convertor.VariableLengthConvertorSetting">
-        <property name="notEnteredToEmpty" value="true" />
+        <property name="convertEmptyToNull" value="false" />
     </component>
 </component-configuration>

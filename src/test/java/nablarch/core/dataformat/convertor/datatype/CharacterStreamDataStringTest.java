@@ -41,12 +41,12 @@ public class CharacterStreamDataStringTest {
      */
     @Test
     public void testReadEmpty() {
-        sut.setNotEnteredToEmpty(true);
+        sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead(""), is(""));
         assertThat(sut.convertOnRead("abc"), is("abc"));
 
-        sut.setNotEnteredToEmpty(false);
+        sut.setConvertEmptyToNull(true);
     }
 
     /**

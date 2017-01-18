@@ -7,7 +7,8 @@ import nablarch.core.util.annotation.Published;
 /**
  * 文字ストリームで入出力する文字列のデータタイプ。
  * <p>
- * 入力時には文字列に対して何もせずそのまま返却し、
+ * 入力時は入力が空文字列かつ convertEmptyToNull プロパティが{@code true}の場合に{@code null}を返却し、
+ * それ以外の場合は文字列をそのまま返却する。
  * 出力時にはオブジェクトを文字列に変換して返却する。
  * </p>
  * @author Masato Inoue
@@ -18,9 +19,6 @@ public class CharacterStreamDataString extends CharacterStreamDataSupport<String
     /** 出力時に、nullが渡された場合に変換する空文字 */
     private static final String EMPTY = "";
 
-    /** 未入力を空文字列として取得するか */
-    private boolean notEnteredToEmpty = false;
-
     /** {@inheritDoc}
      * この実装では、初期化時には何も行わない。
      */
@@ -30,12 +28,12 @@ public class CharacterStreamDataString extends CharacterStreamDataSupport<String
     }
 
     /**　{@inheritDoc}
-     * この実装では、入力時に、引数の文字列が空の場合に{@code null}を返却し、
+     * この実装では、入力時に、引数が空文字列かつ convertEmptyToNull プロパティが{@code true}の場合に{@code null}を返却し、
      * それ以外は何もせずに返却する。
      */
     @Override
     public String convertOnRead(String data) {
-        if (StringUtil.isNullOrEmpty(data) && !notEnteredToEmpty) {
+        if (convertEmptyToNull && EMPTY.equals(data)) {
             return null;
         }
         return data;
@@ -52,13 +50,5 @@ public class CharacterStreamDataString extends CharacterStreamDataSupport<String
             return EMPTY;
         }
         return StringUtil.toString(data);
-    }
-
-    /**
-     * 未入力を空文字列とするかを設定する。
-     * @param notEnteredToEmpty 未入力を空文字列とするならtrue
-     */
-    public void setNotEnteredToEmpty(boolean notEnteredToEmpty) {
-        this.notEnteredToEmpty = notEnteredToEmpty;
     }
 }

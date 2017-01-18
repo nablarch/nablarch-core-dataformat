@@ -87,18 +87,18 @@ public class VariableLengthConverterSettingTest {
     }
 
     /**
-     * 後方互換用の未入力を空文字にするフラグが
-     * デフォルトでfalseになってること。
+     * 後方互換用の未入力を{@code null}にするフラグが
+     * デフォルトで{@code true}になってること。
      */
     @Test
     public void testDefaultNotEnteredToEmpty() throws Exception {
         VariableLengthConvertorSetting setting = new VariableLengthConvertorSetting();
-        assertThat(setting.getNotEnteredToEmpty(), is(false));
+        assertThat(setting.isConvertEmptyToNull(), is(true));
     }
 
     /**
-     * 後方互換用の未入力を空文字にするフラグが
-     * 設定を記述することでtrueになること。
+     * 後方互換用の未入力を{@code null}にするフラグが
+     * 設定を記述することで{@code false}になること。
      */
     @Test
     public void testSetterNotEnteredToEmpty() throws Exception {
@@ -107,6 +107,6 @@ public class VariableLengthConverterSettingTest {
         SystemRepository.load(container);
 
         VariableLengthConvertorSetting setting = VariableLengthConvertorSetting.getInstance();
-        assertThat(setting.getNotEnteredToEmpty(), is(true));
+        assertThat(setting.isConvertEmptyToNull(), is(false));
     }
 }

@@ -15,10 +15,10 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
     private VariableLengthConvertorFactory factory = new VariableLengthConvertorFactory();
 
     /**
-     * 未入力値を空文字列に変換するフラグ。
-     * デフォルトでは{@code false}({@code null}に変換する)。
+     * 未入力値を{@code null}に変換するフラグ。
+     * デフォルトでは{@code null}に変換する。
      */
-    private boolean notEnteredToEmpty = false;
+    private boolean convertEmptyToNull = true;
 
     /** システムリポジトリ上の登録名 */
     private static final String REPOSITORY_KEY =  "variableLengthConvertorSetting";
@@ -64,18 +64,18 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
     }
 
     /**
-     * 未入力値を空文字列に変換するかを設定する。
-     * @param notEnteredToEmpty 未入力値を空文字列に変換するならtrue
+     * 未入力値を{@code null}に変換するかを設定する。
+     * @param convertEmptyToNull 未入力値を{@code null}に変換するならtrue
      */
-    public void setNotEnteredToEmpty(boolean notEnteredToEmpty) {
-        this.notEnteredToEmpty = notEnteredToEmpty;
+    public void setConvertEmptyToNull(boolean convertEmptyToNull) {
+        this.convertEmptyToNull = convertEmptyToNull;
     }
 
     /**
-     * 未入力値を空文字列に変換するかを取得する。
-     * @return 未入力値を空文字列に変換するならtrue
+     * 未入力値を{@code null}に変換するかを取得する。
+     * @return 未入力値を{@code null}に変換するならtrue
      */
-    public boolean getNotEnteredToEmpty() {
-        return notEnteredToEmpty;
+    public boolean isConvertEmptyToNull() {
+        return convertEmptyToNull;
     }
 }
