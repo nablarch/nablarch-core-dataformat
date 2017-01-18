@@ -328,6 +328,57 @@ public class FixedLengthDataRecordFormatterSingleLayoutTest {
     }
 
     @Test
+    public void バイナリ以外の項目で未入力を読み込む場合にnullまたは0として読み込まれること() throws Exception {
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile, "utf-8",
+                "file-type: \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 51",
+                "[Default]",
+                "1  byteString        X(2)",
+                "3  wordString        N(4)",
+                "7  zoneDigits        Z(5)",
+                "12 signedZDigits     SZ(5)",
+                "17 packedDigits      P(5)",
+                "22 signedPDigits     SP(5)",
+                "27 zDecimalPoint     Z(5, 3)",
+                "32 pDecimalPoint     P(5, 2)",
+                "37 numberString      X9(5)",
+                "42 signedNString     SX9(5)",
+                "47 string            XN(5)"
+        );
+
+        ByteBuffer buff = ByteBuffer.wrap(new byte[51]);
+        buff.put("  ".getBytes("sjis"));
+        buff.put("　　".getBytes("sjis"));
+        buff.put(new byte[]{0x30, 0x30, 0x30, 0x30, 0x30});
+        buff.put(new byte[]{0x30, 0x30, 0x30, 0x30, 0x30});
+        buff.put(new byte[]{0x00, 0x00, 0x00, 0x00, 0x03});
+        buff.put(new byte[]{0x00, 0x00, 0x00, 0x00, 0x03});
+        buff.put(new byte[]{0x30, 0x30, 0x30, 0x30, 0x30});
+        buff.put(new byte[]{0x00, 0x00, 0x00, 0x00, 0x03});
+        buff.put("00000".getBytes("sjis"));
+        buff.put("00000".getBytes("sjis"));
+        buff.put("     ".getBytes("sjis"));
+
+        formatter = createFormatter(formatFile);
+        formatter.setInputStream(new ByteArrayInputStream(buff.array()))
+                 .initialize();
+        DataRecord record = formatter.readRecord();
+        assertThat(record.getString("byteString"), is(nullValue()));
+        assertThat(record.getString("wordString"), is(nullValue()));
+        assertThat(record.getBigDecimal("zoneDigits"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("signedZDigits"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("packedDigits"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("signedPDigits"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("zDecimalPoint"), is(new BigDecimal("0.000")));
+        assertThat(record.getBigDecimal("pDecimalPoint"), is(new BigDecimal("00.00")));
+        assertThat(record.getBigDecimal("numberString"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("signedNString"), is(BigDecimal.ZERO));
+        assertThat(record.getString("string"), is(nullValue()));
+    }
+
+    @Test
     public void バイナリ以外の項目でnullを出力した場合データタイプのデフォルト値が出力されること() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");
 

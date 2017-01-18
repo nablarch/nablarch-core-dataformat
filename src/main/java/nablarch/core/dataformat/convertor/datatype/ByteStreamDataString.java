@@ -59,6 +59,7 @@ public class ByteStreamDataString extends ByteStreamDataSupport<String> {
     /** {@inheritDoc}
      * この実装では、入力時に、引数のバイト配列を1バイト文字に変換して返却する。
      * また、変換の際に指定された文字でトリムを行う。デフォルトのトリム文字として半角スペースを使用する。
+     * トリム後の文字列が空文字列かつ convertEmptyToNull プロパティが{@code true}の場合は{@code null}を返却する。
      */
     @Override
     public String convertOnRead(byte[] bytes) {
@@ -68,6 +69,19 @@ public class ByteStreamDataString extends ByteStreamDataSupport<String> {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e); // can not happen.
         }
+        String trimmedStr = trim(str);
+        if (convertEmptyToNull && "".equals(trimmedStr)) {
+            return null;
+        }
+        return trimmedStr;
+    }
+
+    /**
+     * 文字列をトリムする。
+     * @param str トリム対象文字列
+     * @return トリム後の文字列
+     */
+    private String trim(String str) {
         char padChar = getPaddingStr().charAt(0);
         int chopPos = str.length() - 1;
         while ((chopPos >= 0) && (str.charAt(chopPos) == padChar)) {

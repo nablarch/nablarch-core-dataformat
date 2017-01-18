@@ -77,7 +77,13 @@ public class PackedDecimalIntegrationTest {
                 0x08, 0x76, 0x54, 0x32, 0x14,
                 // 87654321
                 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x08, 0x76, 0x54, 0x32, 0x13
+                0x08, 0x76, 0x54, 0x32, 0x13,
+                // 0000000000
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x07,
+                // 0000000000
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x03
         };
         final InputStream inputStream = new ByteArrayInputStream(bytes);
         formatter.setInputStream(inputStream)
@@ -87,6 +93,9 @@ public class PackedDecimalIntegrationTest {
         assertThat(record.size(), is(2));
         assertThat(record.getBigDecimal("signedPDigit"), is(new BigDecimal("-87654321")));
         assertThat(record.getBigDecimal("unsignedPDigit"), is(new BigDecimal("87654321")));
+        record = formatter.readRecord();
+        assertThat(record.getBigDecimal("signedPDigit"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("unsignedPDigit"), is(BigDecimal.ZERO));
     }
 
     /**

@@ -100,6 +100,22 @@ public class SignedPackedDecimalTest {
     }
 
     /**
+     * 未入力（0）を読み込むテスト。
+     * トリム文字のみの場合のテスト。
+     */
+    @Test
+    public void testReadNotEnteredWithTrim() throws Exception {
+        sut.init(field, 10, 0);
+        setParameter(packNibble, 3, 7);
+
+        byte[] notEntered = new byte[] {
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x03
+        };
+        assertThat(sut.convertOnRead(notEntered), is(BigDecimal.ZERO));
+    }
+
+    /**
      * ASCII規格での符号ありパック10進の正常系読込テスト。
      * 正の数。
      */

@@ -56,13 +56,16 @@ public class ByteStreamDataStringTest {
 
     /**
      * 入力時にパラメータが空文字の場合のテスト。
-     * 読込時はバイト長のチェックをしないため、空文字は空文字として読み込む。
+     * 読込時はバイト長のチェックをせず、未入力値はnullとして読み込む。
+     * 1. 空文字はnullとして読み込む
+     * 2. トリム文字のみの場合はnullとして読み込む
      */
     @Test
-    public void testReadParameterEmpty() throws Exception {
+    public void testReadNotEntered() throws Exception {
         sut.init(field, 10);
 
-        assertThat(sut.convertOnRead("".getBytes()), is(""));
+        assertThat(sut.convertOnRead("".getBytes()), is(nullValue()));
+        assertThat(sut.convertOnRead("          ".getBytes()), is(nullValue()));
     }
 
     /**

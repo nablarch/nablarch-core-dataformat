@@ -203,6 +203,17 @@ public class NumberStringDecimalTest {
     }
 
     /**
+     * 未入力を読み込むテスト。
+     * トリム文字のみの場合。
+     */
+    @Test
+    public void testReadNotEnteredWithTrim() throws Exception {
+        sut.init(field, 10, 0);
+
+        assertThat(sut.convertOnRead(toBytes("0000000000")), is(BigDecimal.ZERO));
+    }
+
+    /**
      * 読込テスト。スケールあり（スケール:-3）。
      * 正常な数値のケース。
      */

@@ -13,6 +13,7 @@ import static nablarch.test.StringMatcher.endsWith;
 import static nablarch.test.StringMatcher.startsWith;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertThat;
@@ -78,7 +79,7 @@ public class ByteStreamDataStringIntegrationTest {
         );
         createFormatter(formatFile);
 
-        final InputStream inputStream = new ByteArrayInputStream("abc       01αあ名  ".getBytes("sjis"));
+        final InputStream inputStream = new ByteArrayInputStream("abc       01αあ名            ".getBytes("sjis"));
         formatter.setInputStream(inputStream)
                 .initialize();
 
@@ -86,6 +87,8 @@ public class ByteStreamDataStringIntegrationTest {
         assertThat(record.getString("byteStreamString"), is("abc"));
         record = formatter.readRecord();
         assertThat(record.getString("byteStreamString"), is("01αあ名"));
+        record = formatter.readRecord();
+        assertThat(record.getString("byteStreamString"), is(nullValue()));
     }
 
     /**

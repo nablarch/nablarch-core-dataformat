@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.*;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -72,12 +73,14 @@ public class DoubleByteCharacterStringIntegrationTest {
         createFormatter(formatFile);
 
 
-        final InputStream inputStream = new ByteArrayInputStream("あいうえおかきく　　".getBytes("sjis"));
+        final InputStream inputStream = new ByteArrayInputStream("あいうえお　　　　　かきく　　".getBytes("sjis"));
         formatter.setInputStream(inputStream)
                 .initialize();
 
         DataRecord record = formatter.readRecord();
         assertThat(record.getString("doubleByteString"), is("あいうえお"));
+        record = formatter.readRecord();
+        assertThat(record.getString("doubleByteString"), is(nullValue()));
         record = formatter.readRecord();
         assertThat(record.getString("doubleByteString"), is("かきく"));
     }

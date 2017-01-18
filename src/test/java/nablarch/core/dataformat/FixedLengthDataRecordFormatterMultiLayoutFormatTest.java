@@ -359,7 +359,7 @@ public class FixedLengthDataRecordFormatterMultiLayoutFormatTest {
 
         final DataRecord data3 = formatter.readRecord();
         assertThat(data3.getRecordType(), is("data1"));
-        assertThat(data3.getString("name"), isEmptyString());
+        assertThat(data3.getString("name"), is(nullValue()));
 
         final DataRecord data4 = formatter.readRecord();
         assertThat(data4.getRecordType(), is("data2"));

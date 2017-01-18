@@ -100,6 +100,22 @@ public class SignedZonedDecimalTest {
     }
 
     /**
+     * 未入力を読み込むテスト。
+     * トリム文字のみの入力の場合。
+     */
+    @Test
+    public void testReadNotEnteredWithTrim() throws Exception {
+        sut.init(field, 10, 0);
+        setParameter(zoneNibbleASCII, 3, 7);
+
+        byte[] notEntered = new byte[] {
+                0x30, 0x30, 0x30, 0x30, 0x30,
+                0x30, 0x30, 0x30, 0x30, 0x30
+        };
+        assertThat(sut.convertOnRead(notEntered), is(BigDecimal.ZERO));
+    }
+
+    /**
      * null と 空文字を出力するテスト。
      * デフォルト値(0)を出力する。
      */
