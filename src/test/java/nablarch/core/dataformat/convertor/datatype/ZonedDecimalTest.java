@@ -256,8 +256,7 @@ public class ZonedDecimalTest {
     }
 
     /**
-     * 未入力を読み込むテスト。
-     * トリム文字のみの入力の場合。
+     * トリム文字のみを読み込むテスト。
      */
     @Test
     public void testReadNotEnteredWithTrim() throws Exception {

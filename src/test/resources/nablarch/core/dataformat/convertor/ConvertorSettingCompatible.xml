@@ -8,4 +8,9 @@
                 class="nablarch.core.dataformat.convertor.VariableLengthConvertorSetting">
         <property name="convertEmptyToNull" value="false" />
     </component>
+
+    <component name="fixedLengthConvertorSetting"
+               class="nablarch.core.dataformat.convertor.FixedLengthConvertorSetting">
+        <property name="convertEmptyToNull" value="false" />
+    </component>
 </component-configuration>

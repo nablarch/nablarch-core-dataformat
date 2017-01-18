@@ -100,8 +100,7 @@ public class SignedPackedDecimalTest {
     }
 
     /**
-     * 未入力（0）を読み込むテスト。
-     * トリム文字のみの場合のテスト。
+     * トリム文字のみを読み込むテスト。
      */
     @Test
     public void testReadNotEnteredWithTrim() throws Exception {

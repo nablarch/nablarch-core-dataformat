@@ -203,8 +203,7 @@ public class NumberStringDecimalTest {
     }
 
     /**
-     * 未入力を読み込むテスト。
-     * トリム文字のみの場合。
+     * トリム文字のみを読み込むテスト。
      */
     @Test
     public void testReadNotEnteredWithTrim() throws Exception {

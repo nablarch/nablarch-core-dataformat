@@ -24,9 +24,10 @@ import nablarch.core.dataformat.convertor.FixedLengthConvertorSetting;
 import nablarch.core.repository.ObjectLoader;
 import nablarch.core.repository.SystemRepository;
 
+import nablarch.core.repository.di.DiContainer;
+import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -328,7 +329,7 @@ public class FixedLengthDataRecordFormatterSingleLayoutTest {
     }
 
     @Test
-    public void バイナリ以外の項目で未入力を読み込む場合にnullまたは0として読み込まれること() throws Exception {
+    public void バイナリ以外の項目で空文字列を読み込む場合にnullまたは0として読み込まれること() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");
         createFile(formatFile, "utf-8",
                 "file-type: \"Fixed\"",
@@ -1805,4 +1806,60 @@ public class FixedLengthDataRecordFormatterSingleLayoutTest {
         assertThat(closed.get(), is(true));
     }
 
+    @Test
+    public void 空文字列をnullに変換しない設定で各データタイプが空文字列もしくは０を返すこと() throws Exception {
+        XmlComponentDefinitionLoader loader = new XmlComponentDefinitionLoader("nablarch/core/dataformat/convertor/ConvertorSettingCompatible.xml");
+        DiContainer container = new DiContainer(loader);
+        SystemRepository.load(container);
+
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile, "utf-8",
+                "file-type: \"Fixed\"",
+                "text-encoding: \"sjis\"",
+                "record-length: 51",
+                "[Default]",
+                "1  byteString        X(2)",
+                "3  wordString        N(4)",
+                "7  zoneDigits        Z(5)",
+                "12 signedZDigits     SZ(5)",
+                "17 packedDigits      P(5)",
+                "22 signedPDigits     SP(5)",
+                "27 zDecimalPoint     Z(5, 3)",
+                "32 pDecimalPoint     P(5, 2)",
+                "37 numberString      X9(5)",
+                "42 signedNString     SX9(5)",
+                "47 string            XN(5)"
+        );
+
+        ByteBuffer buff = ByteBuffer.wrap(new byte[51]);
+        buff.put("  ".getBytes("sjis"));
+        buff.put("　　".getBytes("sjis"));
+        buff.put(new byte[]{0x30, 0x30, 0x30, 0x30, 0x30});
+        buff.put(new byte[]{0x30, 0x30, 0x30, 0x30, 0x30});
+        buff.put(new byte[]{0x00, 0x00, 0x00, 0x00, 0x03});
+        buff.put(new byte[]{0x00, 0x00, 0x00, 0x00, 0x03});
+        buff.put(new byte[]{0x30, 0x30, 0x30, 0x30, 0x30});
+        buff.put(new byte[]{0x00, 0x00, 0x00, 0x00, 0x03});
+        buff.put("00000".getBytes("sjis"));
+        buff.put("00000".getBytes("sjis"));
+        buff.put("     ".getBytes("sjis"));
+
+        formatter = createFormatter(formatFile);
+        formatter.setInputStream(new ByteArrayInputStream(buff.array()))
+                .initialize();
+        DataRecord record = formatter.readRecord();
+        assertThat(record.getString("byteString"), is(""));
+        assertThat(record.getString("wordString"), is(""));
+        assertThat(record.getBigDecimal("zoneDigits"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("signedZDigits"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("packedDigits"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("signedPDigits"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("zDecimalPoint"), is(new BigDecimal("0.000")));
+        assertThat(record.getBigDecimal("pDecimalPoint"), is(new BigDecimal("00.00")));
+        assertThat(record.getBigDecimal("numberString"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("signedNString"), is(BigDecimal.ZERO));
+        assertThat(record.getString("string"), is(""));
+
+        SystemRepository.clear();
+    }
 }
