@@ -33,7 +33,7 @@ public class CharacterStreamDataString extends CharacterStreamDataSupport<String
      */
     @Override
     public String convertOnRead(String data) {
-        if (data == null || convertEmptyToNull && data.isEmpty()) {
+        if (convertEmptyToNull && data.isEmpty()) {
             return null;
         }
         return data;

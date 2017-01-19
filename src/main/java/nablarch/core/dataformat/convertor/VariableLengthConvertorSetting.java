@@ -65,6 +65,7 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
 
     /**
      * 未入力値を{@code null}に変換するかを設定する。
+     * <p/>
      * デフォルトは{@code null}に変換する({@code true})。
      * @param convertEmptyToNull 未入力値を{@code null}に変換するならtrue
      */
