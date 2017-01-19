@@ -2663,7 +2663,7 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
 
     /**
      * 後方互換の設定のテスト。
-     * convertEmptyToNull プロパティを{@code false}に設定することで、未入力を空文字列として取得できる。
+     * convertEmptyToNull プロパティを{@code false}に設定することで、未入力（空文字列）を空文字列として取得できる。
      * ({@code null}に変換しない)
      */
     @Test

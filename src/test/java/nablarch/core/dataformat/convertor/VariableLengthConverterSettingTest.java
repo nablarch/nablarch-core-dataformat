@@ -87,7 +87,7 @@ public class VariableLengthConverterSettingTest {
     }
 
     /**
-     * 後方互換用の未入力を{@code null}にするフラグが
+     * 後方互換用の空文字列を{@code null}にするフラグが
      * デフォルトで{@code true}になってること。
      */
     @Test
@@ -97,7 +97,7 @@ public class VariableLengthConverterSettingTest {
     }
 
     /**
-     * 後方互換用の未入力を{@code null}にするフラグが
+     * 後方互換用の空文字列を{@code null}にするフラグが
      * 設定を記述することで{@code false}になること。
      */
     @Test

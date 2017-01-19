@@ -1071,7 +1071,7 @@ public class VariableLengthDataRecordFormatter extends DataRecordFormatterSuppor
     }
 
     /**
-     * 未入力を{@code null}に変換するかどうかを各データタイプに設定する。
+     * 空文字列を{@code null}に変換するかどうかを各データタイプに設定する。
      * @param datatype 対象のデータタイプ
      * @return このオブジェクト自体
      */
