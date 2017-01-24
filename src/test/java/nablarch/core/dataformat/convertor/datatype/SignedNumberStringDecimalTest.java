@@ -76,13 +76,24 @@ public class SignedNumberStringDecimalTest {
     }
 
     /**
-     * 空文字を読み込む場合のテスト。
+     * 空文字列を0として読み込む場合のテスト。
      */
     @Test
     public void testReadEmpty() {
         sut.init(field, 10, "");
+        sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead(""), is(BigDecimal.ZERO));
+    }
+
+    /**
+     * 空文字列を{@code null}として読み込む場合のテスト。
+     */
+    @Test
+    public void testReadEmptyToNull() {
+        sut.init(field, 10, "");
+
+        assertThat(sut.convertOnRead(""), is(nullValue()));
     }
 
     /**

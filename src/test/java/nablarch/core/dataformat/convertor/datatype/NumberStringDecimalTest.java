@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.nio.charset.Charset;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -104,13 +105,25 @@ public class NumberStringDecimalTest {
 
     /**
      * 読込テスト。スケールなし。
-     * 空文字のケース。
+     * 空文字列を0として受け取るケース。
      */
     @Test
     public void testReadNonScaleEmpty() throws Exception {
         sut.init(field, 10);
+        sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead(toBytes("")), is(new BigDecimal("0")));
+    }
+
+    /**
+     * 読込テスト。スケールなし。
+     * 空文字列を{@code null}として受け取るケース。
+     */
+    @Test
+    public void testReadNonScaleEmptyToNull() throws Exception {
+        sut.init(field, 10);
+
+        assertThat(sut.convertOnRead(toBytes("")), is(nullValue()));
     }
 
     /**
@@ -143,11 +156,12 @@ public class NumberStringDecimalTest {
 
     /**
      * 読込テスト。スケールあり（スケール:0）。
-     * 空文字のケース。
+     * 空文字列を0として受け取るケース。
      */
     @Test
     public void testReadScale0Empty() throws Exception {
         sut.init(field, 10, 0);
+        sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead(toBytes("")), is(new BigDecimal("0")));
     }
@@ -168,13 +182,25 @@ public class NumberStringDecimalTest {
 
     /**
      * 読込テスト。スケールあり（スケール:3）。
-     * 空文字のケース。
+     * 空文字列を0として受け取るケース。
      */
     @Test
     public void testReadScale3Empty() throws Exception {
         sut.init(field, 10, 3);
+        sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead(toBytes("")).toPlainString(), is("0.000"));
+    }
+
+    /**
+     * 読込テスト。スケールあり（スケール:3）。
+     * スケールが設定されていても空文字列を{@code null}として受け取るケース。
+     */
+    @Test
+    public void testReadWithScaleEmptyToNull() throws Exception {
+        sut.init(field, 10, 3);
+
+        assertThat(sut.convertOnRead(toBytes("")), is(nullValue()));
     }
 
     /**
@@ -198,6 +224,7 @@ public class NumberStringDecimalTest {
     @Test
     public void testReadScaleMinus3Empty() throws Exception {
         sut.init(field, 10, -3);
+        sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead(toBytes("")).toPlainString(), is("0"));
     }
@@ -206,7 +233,7 @@ public class NumberStringDecimalTest {
      * トリム文字のみを読み込むテスト。
      */
     @Test
-    public void testReadNotEnteredWithTrim() throws Exception {
+    public void testReadTrimString() throws Exception {
         sut.init(field, 10, 0);
 
         assertThat(sut.convertOnRead(toBytes("0000000000")), is(BigDecimal.ZERO));

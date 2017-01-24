@@ -45,8 +45,6 @@ public class CharacterStreamDataStringTest {
 
         assertThat(sut.convertOnRead(""), is(""));
         assertThat(sut.convertOnRead("abc"), is("abc"));
-
-        sut.setConvertEmptyToNull(true);
     }
 
     /**

@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.nio.charset.Charset;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -90,28 +91,39 @@ public class SignedPackedDecimalTest {
     }
 
     /**
-     * 空文字を読み込む場合のテスト。
+     * 空文字列を0として読み込むテスト。
      */
     @Test
     public void testReadEmpty() {
         sut.init(field, 0, 0);
+        sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead("".getBytes()), is(BigDecimal.ZERO));
+    }
+
+    /**
+     * 空文字列を{@code null}として読み込むテスト。
+     */
+    @Test
+    public void testReadEmptyToNull() {
+        sut.init(field, 0, 0);
+
+        assertThat(sut.convertOnRead("".getBytes()), is(nullValue()));
     }
 
     /**
      * トリム文字のみを読み込むテスト。
      */
     @Test
-    public void testReadNotEnteredWithTrim() throws Exception {
+    public void testReadTrimString() throws Exception {
         sut.init(field, 10, 0);
         setParameter(packNibble, 3, 7);
 
-        byte[] notEntered = new byte[] {
+        byte[] trimString = new byte[] {
                 0x00, 0x00, 0x00, 0x00, 0x00,
                 0x00, 0x00, 0x00, 0x00, 0x03
         };
-        assertThat(sut.convertOnRead(notEntered), is(BigDecimal.ZERO));
+        assertThat(sut.convertOnRead(trimString), is(BigDecimal.ZERO));
     }
 
     /**

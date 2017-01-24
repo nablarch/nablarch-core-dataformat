@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.nio.charset.Charset;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.*;
 
 /**
@@ -89,29 +90,41 @@ public class SignedZonedDecimalTest {
     }
 
     /**
-     * 空文字を入力するテスト。
+     * 空文字列を0として読み込むテスト。
      */
     @Test
     public void testReadEmpty() {
         sut.init(field, 0, 0);
         setParameter(zoneNibbleASCII, 3, 7);
+        sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead("".getBytes()), is(BigDecimal.ZERO));
+    }
+
+    /**
+     * 空文字列を{@code null}として読み込むテスト。
+     */
+    @Test
+    public void testReadEmptyToNull() {
+        sut.init(field, 0, 0);
+        setParameter(zoneNibbleASCII, 3, 7);
+
+        assertThat(sut.convertOnRead("".getBytes()), is(nullValue()));
     }
 
     /**
      * トリム文字のみを読み込むテスト。
      */
     @Test
-    public void testReadNotEnteredWithTrim() throws Exception {
+    public void testReadTrimString() throws Exception {
         sut.init(field, 10, 0);
         setParameter(zoneNibbleASCII, 3, 7);
 
-        byte[] notEntered = new byte[] {
+        byte[] trimString = new byte[] {
                 0x30, 0x30, 0x30, 0x30, 0x30,
                 0x30, 0x30, 0x30, 0x30, 0x30
         };
-        assertThat(sut.convertOnRead(notEntered), is(BigDecimal.ZERO));
+        assertThat(sut.convertOnRead(trimString), is(BigDecimal.ZERO));
     }
 
     /**

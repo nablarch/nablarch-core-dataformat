@@ -61,7 +61,7 @@ public class ByteStreamDataStringTest {
      * 2. トリム文字のみの場合はnullとして読み込む
      */
     @Test
-    public void testReadNotEntered() throws Exception {
+    public void testReadEmptyToNull() throws Exception {
         sut.init(field, 10);
 
         assertThat(sut.convertOnRead("".getBytes()), is(nullValue()));
@@ -72,15 +72,13 @@ public class ByteStreamDataStringTest {
      * 空文字列を空文字列として読み込む設定が入っている場合の読み込みテスト。
      */
     @Test
-    public void testReadNotEnteredEmpty() throws Exception {
+    public void testReadEmpty() throws Exception {
         sut.init(field, 10);
         sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead("".getBytes()), is(""));
         assertThat(sut.convertOnRead("          ".getBytes()), is(""));
         assertThat(sut.convertOnRead("01234abcde".getBytes()), is("01234abcde"));
-
-        sut.setConvertEmptyToNull(true);
     }
 
     /**
