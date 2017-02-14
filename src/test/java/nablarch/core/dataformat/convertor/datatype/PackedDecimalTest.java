@@ -12,6 +12,7 @@ import java.nio.charset.Charset;
 
 import static nablarch.test.StringMatcher.startsWith;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.instanceOf;
@@ -92,13 +93,39 @@ public class PackedDecimalTest {
     }
 
     /**
-     * 空文字を読み込む場合のテスト。
+     * 空文字列を0として読み込む場合のテスト。
      */
     @Test
     public void testReadEmpty() {
         sut.init(field, 0, 0);
+        sut.setConvertEmptyToNull(false);
 
         assertThat(sut.convertOnRead("".getBytes()), is(BigDecimal.ZERO));
+    }
+
+    /**
+     * 空文字列を{@code null}として読み込む場合のテスト。
+     */
+    @Test
+    public void testReadEmptyToNull() {
+        sut.init(field, 0, 0);
+
+        assertThat(sut.convertOnRead("".getBytes()), is(nullValue()));
+    }
+
+    /**
+     * トリム文字（0）のみを読み込むテスト。
+     */
+    @Test
+    public void testReadTrimString() throws Exception {
+        sut.init(field, 10, 0);
+        sut.setPackNibble(packNibble);
+
+        byte[] trimString = new byte[] {
+                0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x03
+        };
+        assertThat(sut.convertOnRead(trimString), is(BigDecimal.ZERO));
     }
 
     /**

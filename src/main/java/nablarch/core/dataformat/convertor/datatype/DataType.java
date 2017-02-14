@@ -17,7 +17,10 @@ public abstract class DataType<F, T> {
 
     /** フィールド定義 */
     private FieldDefinition field;
-    
+
+    /** 空文字列を{@code null}に変換するフラグ */
+    protected boolean convertEmptyToNull = true;
+
     // ----------------------------------------------------- abstract methods
     /**
      * 初期化処理を行う。
@@ -80,4 +83,13 @@ public abstract class DataType<F, T> {
         F f = convertOnRead(t);
         return f;
     }
+
+    /**
+     * 空文字列を{@code null}に変換するかを設定する。
+     * @param convertEmptyToNull 空文字列を{@code null}に変換するならtrue
+     */
+    public void setConvertEmptyToNull(boolean convertEmptyToNull) {
+        this.convertEmptyToNull = convertEmptyToNull;
+    }
+
 }

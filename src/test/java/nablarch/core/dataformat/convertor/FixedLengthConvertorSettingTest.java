@@ -11,6 +11,8 @@ import org.junit.Test;
 
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertSame;
 
 /**
@@ -44,5 +46,29 @@ public class FixedLengthConvertorSettingTest {
         assertSame(SingleByteCharacterString.class, resultTable.get("Test"));
         assertSame(Bytes.class, resultTable.get("Hoge"));
     }
-    
+
+    /**
+     * 後方互換用の空文字列を{@code null}にするフラグが
+     * デフォルトで{@code true}になってること。
+     */
+    @Test
+    public void testDefaultConvertEmptyToNull() throws Exception {
+        FixedLengthConvertorSetting setting = FixedLengthConvertorSetting.getInstance();
+
+        assertThat(setting.isConvertEmptyToNull(), is(true));
+    }
+
+    /**
+     * 後方互換用の空文字列を{@code null}にするフラグが
+     * 設定を記述することで{@code false}になること。
+     */
+    @Test
+    public void testSetConvertEmptyToNull() throws Exception {
+        XmlComponentDefinitionLoader loader = new XmlComponentDefinitionLoader("nablarch/core/dataformat/convertor/ConvertorSettingCompatible.xml");
+        DiContainer container = new DiContainer(loader);
+        SystemRepository.load(container);
+
+        FixedLengthConvertorSetting setting = FixedLengthConvertorSetting.getInstance();
+        assertThat(setting.isConvertEmptyToNull(), is(false));
+    }
 }

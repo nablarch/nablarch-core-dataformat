@@ -11,9 +11,11 @@ import org.junit.Test;
 
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThat;
 
 /**
  * VariableLengthConverterSettingのテスト。
@@ -83,5 +85,28 @@ public class VariableLengthConverterSettingTest {
         assertSame(SingleByteCharacterString.class, resultTable.get("Test"));
         assertSame(Bytes.class, resultTable.get("Hoge"));
     }
-    
+
+    /**
+     * 後方互換用の空文字列を{@code null}にするフラグが
+     * デフォルトで{@code true}になってること。
+     */
+    @Test
+    public void testDefaultConvertEmptyToNull() throws Exception {
+        VariableLengthConvertorSetting setting = new VariableLengthConvertorSetting();
+        assertThat(setting.isConvertEmptyToNull(), is(true));
+    }
+
+    /**
+     * 後方互換用の空文字列を{@code null}にするフラグが
+     * 設定を記述することで{@code false}になること。
+     */
+    @Test
+    public void testSetConvertEmptyToNull() throws Exception {
+        XmlComponentDefinitionLoader loader = new XmlComponentDefinitionLoader("nablarch/core/dataformat/convertor/ConvertorSettingCompatible.xml");
+        DiContainer container = new DiContainer(loader);
+        SystemRepository.load(container);
+
+        VariableLengthConvertorSetting setting = VariableLengthConvertorSetting.getInstance();
+        assertThat(setting.isConvertEmptyToNull(), is(false));
+    }
 }

@@ -11,6 +11,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.*;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -72,12 +73,14 @@ public class CharacterStreamDataStringIntegrationTest {
         );
         createFormatter(formatFile);
 
-        final InputStream inputStream = new ByteArrayInputStream("abc       \r\n01αあ名".getBytes("utf8"));
+        final InputStream inputStream = new ByteArrayInputStream("abc       \r\n\r\n01αあ名".getBytes("utf8"));
         formatter.setInputStream(inputStream)
                 .initialize();
 
         DataRecord record = formatter.readRecord();
         assertThat(record.getString("string"), is("abc       "));
+        record = formatter.readRecord();
+        assertThat(record.getString("string"), is(nullValue()));
         record = formatter.readRecord();
         assertThat(record.getString("string"), is("01αあ名"));
     }

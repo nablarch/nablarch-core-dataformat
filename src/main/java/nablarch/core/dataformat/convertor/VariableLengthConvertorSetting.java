@@ -14,6 +14,13 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
     /** コンバータのファクトリクラス */
     private VariableLengthConvertorFactory factory = new VariableLengthConvertorFactory();
 
+    /**
+     * 空文字列を{@code null}に変換するフラグ。
+     * <p/>
+     * デフォルトでは{@code null}に変換する({@code true})。
+     */
+    private boolean convertEmptyToNull = true;
+
     /** システムリポジトリ上の登録名 */
     private static final String REPOSITORY_KEY =  "variableLengthConvertorSetting";
 
@@ -56,5 +63,22 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
         factory.setConvertorTable(table);
         return this;
     }
-    
+
+    /**
+     * 空文字列を{@code null}に変換するかを設定する。
+     * <p/>
+     * デフォルトは{@code null}に変換する({@code true})。
+     * @param convertEmptyToNull 空文字列を{@code null}に変換するならtrue
+     */
+    public void setConvertEmptyToNull(boolean convertEmptyToNull) {
+        this.convertEmptyToNull = convertEmptyToNull;
+    }
+
+    /**
+     * 空文字列を{@code null}に変換するかを取得する。
+     * @return 空文字列を{@code null}に変換するならtrue
+     */
+    public boolean isConvertEmptyToNull() {
+        return convertEmptyToNull;
+    }
 }

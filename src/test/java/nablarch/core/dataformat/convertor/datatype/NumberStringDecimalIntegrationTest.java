@@ -72,7 +72,7 @@ public class NumberStringDecimalIntegrationTest {
         );
         createFormatter(formatFile);
 
-        final InputStream inputStream = new ByteArrayInputStream("0000123.450000012345".getBytes("ms932"));
+        final InputStream inputStream = new ByteArrayInputStream("0000123.45000001234500000000000000000000".getBytes("ms932"));
         formatter.setInputStream(inputStream)
                 .initialize();
 
@@ -80,6 +80,9 @@ public class NumberStringDecimalIntegrationTest {
         assertThat(record.size(), is(2));
         assertThat(record.getBigDecimal("number"), is(new BigDecimal("123.45")));
         assertThat(record.getBigDecimal("number2"), is(new BigDecimal("12.345")));
+        record = formatter.readRecord();
+        assertThat(record.getBigDecimal("number"), is(BigDecimal.ZERO));
+        assertThat(record.getBigDecimal("number2"), is(new BigDecimal("0.000")));
     }
 
 

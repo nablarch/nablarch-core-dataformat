@@ -9,6 +9,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.*;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -70,7 +71,7 @@ public class SingleByteCharacterStringIntegrationTest {
         createFormatter(formatFile);
 
 
-        final InputStream inputStream = new ByteArrayInputStream("abc       0123456789".getBytes("sjis"));
+        final InputStream inputStream = new ByteArrayInputStream("abc       0123456789          ".getBytes("sjis"));
         formatter.setInputStream(inputStream)
                 .initialize();
 
@@ -78,6 +79,8 @@ public class SingleByteCharacterStringIntegrationTest {
         assertThat(record.getString("singleByteString"), is("abc"));
         record = formatter.readRecord();
         assertThat(record.getString("singleByteString"), is("0123456789"));
+        record = formatter.readRecord();
+        assertThat(record.getString("singleByteString"), is(nullValue()));
     }
 
     /**
