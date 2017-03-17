@@ -1,0 +1,12 @@
+{
+  "key0": "\/",
+  "key1": "a\b a\f a\n a\r a\t",
+  "key2": "a\\b a\\f a\\n a\\r a\\t",
+  "key3": "a\\\b a\\\f a\\\n a\\\r a\\\t",
+  "key4": "a\\\\b a\\\\f a\\\\n a\\\\r a\\\\t",
+  "key5": "a\" a\\ a/",
+  "key6": "a\\\" a\\\\ a\\/",
+  "key7": "a\\\\\" a\\\\\\ a\\\\/",
+  "key8": "\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/",
+  "key9": "\"\\\b\f\n\r\t"
+}

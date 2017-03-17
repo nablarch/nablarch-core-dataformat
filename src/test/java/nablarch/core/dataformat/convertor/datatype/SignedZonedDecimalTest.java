@@ -1,18 +1,18 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import nablarch.core.dataformat.FieldDefinition;
-import nablarch.core.dataformat.InvalidDataFormatException;
-import nablarch.core.dataformat.SyntaxErrorException;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
 
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.*;
+import nablarch.core.dataformat.FieldDefinition;
+import nablarch.core.dataformat.InvalidDataFormatException;
+import nablarch.core.dataformat.SyntaxErrorException;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * {@link SignedZonedDecimal}のテスト。
@@ -53,7 +53,7 @@ public class SignedZonedDecimalTest {
         exception.expect(SyntaxErrorException.class);
         exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[SignedZonedDecimal].");
 
-        sut.init(null, null);
+        sut.init(null, (Object[]) null);
     }
 
     /**
@@ -64,7 +64,7 @@ public class SignedZonedDecimalTest {
         exception.expect(SyntaxErrorException.class);
         exception.expectMessage("parameter was not specified. parameter must be specified. convertor=[SignedZonedDecimal].");
 
-        sut.init(null, new Object[]{});
+        sut.init(null, new Object[0]);
     }
 
     /**

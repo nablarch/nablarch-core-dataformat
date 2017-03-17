@@ -55,7 +55,7 @@ public class UseEncodingTest {
     public void specifyNullToOptions_shouldThrowException() throws Exception {
         expectedException.expect(IllegalArgumentException.class);
         expectedException.expectMessage("args must not be null");
-        sut.initialize(new FieldDefinition(), null);
+        sut.initialize(new FieldDefinition(), (Object[]) null);
     }
 
     @Test

@@ -1,0 +1,24 @@
+# ファイルタイプ
+file-type: "Fixed"
+
+# 文字列型フィールドの文字エンコーディング
+text-encoding: "sjis"
+
+# 各レコードの長さ
+record-length: 15
+
+# レコードタイプ識別フィールド定義
+[Classifier] 
+1   layout  X(12)   # データレイアウト
+
+# データレコード定義
+[layoutA]
+layout = "0.0000000001"
+1    layout       X(12)
+13    data         X(3)
+
+[layoutB]
+layout = "0.0000000002"
+1    layout      X(12)  
+13    data1       X(1)
+14    data2       X(2)

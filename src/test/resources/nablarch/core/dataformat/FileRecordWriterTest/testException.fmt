@@ -1,0 +1,19 @@
+file-type:    "Fixed"
+# 文字列型フィールドの文字エンコーディング
+text-encoding: "sjis"
+
+# 各レコードの長さ
+record-length: 80
+
+# データレコード定義
+[Default]
+1    byteString     X(10)   # 1. シングルバイト文字列
+11   wordString     N(10)   # 2. ダブルバイト文字列
+21   zoneDigits     Z(10)   # 3. ゾーン10進
+31   signedZDigits  SZ(10)  # 4. 符号付ゾーン10進
+41   packedDigits   P(10)   # 5. パック10進
+51   signedPDigits  SP(10)  # 6. 符号付パック10進
+61   nativeBytes    B(10)   # 7. バイト列
+71   zDecimalPoint  Z(5, 3) # 8. 仮想小数点付きゾーン10進(5byte)
+76   pDecimalPoint  P(3, 2) # 9. 仮想小数点付きパック10進(3byte)
+79  ?endMark        X(2)   "00"    

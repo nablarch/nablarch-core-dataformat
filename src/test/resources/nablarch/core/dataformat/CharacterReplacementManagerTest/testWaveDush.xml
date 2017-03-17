@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component-configuration xmlns="http://tis.co.jp/nablarch/component-configuration">
+  <component name="characterReplacementManager"
+      class="nablarch.core.dataformat.CharacterReplacementManager">
+
+    <property name="configList">
+      <list>
+        <component class="nablarch.core.dataformat.CharacterReplacementConfig">
+          <property name="typeName" value="type_wave_dush"/>
+          <property name="filePath" value="classpath:nablarch/core/dataformat/type_wave_dush.properties"/>
+          <property name="encoding" value="sjis"/>
+          <property name="byteLengthCheck" value="false" />
+        </component>
+      </list>
+    </property>
+  </component>
+  <component name="initializer"
+      class="nablarch.core.repository.initialization.BasicApplicationInitializer">
+    <property name="initializeList">
+      <list>
+        <component-ref name="characterReplacementManager" />
+      </list>
+    </property>
+  </component>
+</component-configuration>

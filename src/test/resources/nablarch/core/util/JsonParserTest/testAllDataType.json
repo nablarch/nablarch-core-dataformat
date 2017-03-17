@@ -1,0 +1,40 @@
+{
+  "string_half":"value",
+  "string_wide":"バリュー",
+  "string_mix":"value バリュー",
+  "string_array":["array1", "array2", "array3"],
+  "integer1":123,
+  "integer2":-123,
+  "float1":123.456,
+  "float2":-123.456,
+  "int_exp1":123e10,
+  "int_exp2":123e+10,
+  "int_exp3":123e-10,
+  "int_exp4":-123e10,
+  "int_exp5":-123e+10,
+  "int_exp6":-123e-10,
+  "flo_exp1":123.456e10,
+  "flo_exp2":123.456e+10,
+  "flo_exp3":123.456e-10,
+  "flo_exp4":-123.456e10,
+  "flo_exp5":-123.456e+10,
+  "flo_exp6":-123.456e-10,
+  "numeric_array":[123, 456, 789],
+  "boolean_true":true,
+  "boolean_false":false,
+  "boolean_array":[true, false, true],
+  "null":null,
+  "object":{
+    "obj_string":"obj_value"
+  },
+  "object_array":[
+    {
+      "obj_arr_str1":"obj_arr_val11",
+      "obj_arr_str2":"obj_arr_val12"
+    },
+    {
+      "obj_arr_str1":"obj_arr_val21",
+      "obj_arr_str2":"obj_arr_val22"
+    }
+  ]
+}

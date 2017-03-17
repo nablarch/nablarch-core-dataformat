@@ -1,0 +1,14 @@
+# ファイルタイプ
+file-type: "Fixed"
+
+# 文字列型フィールドの文字エンコーディング
+text-encoding: "sjis"
+
+# 各レコードの長さ
+record-length: 30
+
+# データレコード定義
+[miniData]
+1    byteString   X(10)  # 1. シングルバイト文字列
+11   wordString   N(10)  # 2. ダブルバイト文字列
+21   zoneDigits   Z(10)  # 3. ゾーン10進

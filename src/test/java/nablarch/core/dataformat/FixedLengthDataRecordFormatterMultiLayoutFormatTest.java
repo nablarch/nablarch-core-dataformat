@@ -1,15 +1,7 @@
 package nablarch.core.dataformat;
 
-import nablarch.core.repository.SystemRepository;
-import nablarch.core.util.Builder;
-import nablarch.core.util.FilePathSetting;
-import nablarch.test.support.tool.Hereis;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -18,26 +10,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
-import static nablarch.core.dataformat.DataFormatTestUtils.createInputStreamFrom;
-import static nablarch.test.StringMatcher.endsWith;
-import static nablarch.test.StringMatcher.startsWith;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.text.IsEmptyString.isEmptyString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.matchers.JUnitMatchers.containsString;
+import nablarch.test.support.SystemRepositoryResource;
+
+import org.junit.After;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
 
 
 /**
@@ -55,6 +38,9 @@ public class FixedLengthDataRecordFormatterMultiLayoutFormatTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
+    
+    @Rule
+    public SystemRepositoryResource systemRepositoryResource = new SystemRepositoryResource(null);
 
     private DataRecordFormatter formatter;
 
@@ -81,19 +67,14 @@ public class FixedLengthDataRecordFormatterMultiLayoutFormatTest {
         }
     }
 
-    @Before
-    public void setUp() throws Exception {
-        SystemRepository.clear();
-    }
-
     @After
     public void tearDown() throws Exception {
         if (formatter != null) {
             formatter.close();
         }
-        SystemRepository.clear();
     }
     
+
     /**
      * マルチフォーマットレコード読み込みのテスト
      */
@@ -294,7 +275,7 @@ public class FixedLengthDataRecordFormatterMultiLayoutFormatTest {
                  .initialize();
 
     }
-    
+
     @Test
     public void 複数の識別項目を定義した場合でも書き込みが出来ること() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");
@@ -415,7 +396,7 @@ public class FixedLengthDataRecordFormatterMultiLayoutFormatTest {
         expectedException.expectMessage("an applicable layout definition was not found in the record. record=[{dataKbn=3, name=あ}]. ");
         formatter.writeRecord(data);
     }
-    
+
     @Test
     public void フォーマット定義にないレコード名称を指定した場合は書き込みに失敗すること() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.fmt");

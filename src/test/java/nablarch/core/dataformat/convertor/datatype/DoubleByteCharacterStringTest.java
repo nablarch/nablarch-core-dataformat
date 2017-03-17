@@ -34,7 +34,7 @@ public class DoubleByteCharacterStringTest {
         expectedException.expect(SyntaxErrorException.class);
         expectedException.expectMessage("initialize parameter was null. parameter must be specified. convertor=[DoubleByteCharacterString].");
 
-        sut.initialize(null);
+        sut.initialize((Object[]) null);
     }
 
     /**

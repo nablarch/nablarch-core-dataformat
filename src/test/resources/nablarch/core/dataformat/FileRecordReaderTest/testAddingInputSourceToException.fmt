@@ -1,0 +1,6 @@
+file-type:    "Fixed"
+text-encoding: "UTF-8"
+record-length: 10
+[Default]
+1    dataKbn       X(1)
+2    number        Z(9)

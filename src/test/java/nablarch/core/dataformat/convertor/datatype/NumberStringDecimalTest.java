@@ -1,19 +1,19 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import nablarch.core.dataformat.FieldDefinition;
-import nablarch.core.dataformat.InvalidDataFormatException;
-import nablarch.core.dataformat.SyntaxErrorException;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import nablarch.core.dataformat.FieldDefinition;
+import nablarch.core.dataformat.InvalidDataFormatException;
+import nablarch.core.dataformat.SyntaxErrorException;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * {@link NumberStringDecimal}の固定長テスト。
@@ -43,7 +43,7 @@ public class NumberStringDecimalTest {
         expectedException.expect(SyntaxErrorException.class);
         expectedException.expectMessage("initialize parameter was null. parameter must be specified. convertor=[NumberStringDecimal].");
 
-        sut.initialize(null);
+        sut.initialize((Object[]) null);
     }
 
     /**
