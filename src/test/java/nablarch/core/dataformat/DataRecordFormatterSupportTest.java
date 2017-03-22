@@ -1,9 +1,15 @@
 package nablarch.core.dataformat;
 
-import nablarch.core.dataformat.convertor.value.NumberString;
-import nablarch.test.support.tool.Hereis;
-import org.junit.After;
-import org.junit.Test;
+import static nablarch.core.dataformat.DataFormatTestUtils.createInputStreamFrom;
+import static nablarch.test.StringMatcher.startsWith;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -20,16 +26,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static nablarch.core.dataformat.DataFormatTestUtils.createInputStreamFrom;
-import static nablarch.test.StringMatcher.startsWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.matchers.JUnitMatchers.containsString;
+import nablarch.core.dataformat.convertor.value.NumberString;
+import nablarch.test.support.tool.Hereis;
+
+import org.junit.After;
+import org.junit.Test;
 
 /**
  * DataRecordFormatterの抽象基底クラスのテストケース。

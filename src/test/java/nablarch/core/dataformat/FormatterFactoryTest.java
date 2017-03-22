@@ -1,16 +1,10 @@
 package nablarch.core.dataformat;
 
-import nablarch.common.io.FileRecordWriterHolder;
-import nablarch.core.dataformat.FormatterFactoryStub02.DataRecordFormatterStub;
-import nablarch.core.repository.SystemRepository;
-import nablarch.core.repository.di.ComponentDefinitionLoader;
-import nablarch.core.repository.di.DiContainer;
-import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
-import nablarch.core.util.FilePathSetting;
-import nablarch.test.support.tool.Hereis;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,11 +13,18 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-import static org.junit.matchers.JUnitMatchers.containsString;
+import nablarch.common.io.FileRecordWriterHolder;
+import nablarch.core.dataformat.FormatterFactoryStub02.DataRecordFormatterStub;
+import nablarch.core.repository.SystemRepository;
+import nablarch.core.repository.di.ComponentDefinitionLoader;
+import nablarch.core.repository.di.DiContainer;
+import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
+import nablarch.core.util.FilePathSetting;
+import nablarch.test.support.tool.Hereis;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * FormatterFactoryのテスト。

@@ -1,17 +1,12 @@
 package nablarch.common.io;
 
-import mockit.Mocked;
-import mockit.Verifications;
-import nablarch.core.dataformat.DataRecord;
-import nablarch.core.dataformat.FileRecordWriter;
-import nablarch.core.repository.SystemRepository;
-import nablarch.core.repository.di.ComponentDefinitionLoader;
-import nablarch.core.repository.di.DiContainer;
-import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
-import nablarch.core.util.FilePathSetting;
-import nablarch.test.support.tool.Hereis;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,13 +18,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.matchers.JUnitMatchers.containsString;
+import nablarch.core.dataformat.DataRecord;
+import nablarch.core.dataformat.FileRecordWriter;
+import nablarch.core.repository.SystemRepository;
+import nablarch.core.repository.di.ComponentDefinitionLoader;
+import nablarch.core.repository.di.DiContainer;
+import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
+import nablarch.core.util.FilePathSetting;
+import nablarch.test.support.tool.Hereis;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import mockit.Mocked;
+import mockit.Verifications;
 
 /**
  * FileRecordWriterをスレッド上で保持するクラスのテスト。

@@ -1,12 +1,11 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
 
 import java.math.BigDecimal;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
 /**
  * {@link JsonNumber}のテスト
@@ -24,7 +23,7 @@ public class JsonNumberTest {
      */
     @Test
     public void testInitializeNull() {
-        sut.initialize(null);
+        sut.initialize((Object[]) null);
     }
 
     /**

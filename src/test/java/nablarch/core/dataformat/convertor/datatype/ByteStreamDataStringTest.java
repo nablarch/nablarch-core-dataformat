@@ -1,22 +1,22 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import nablarch.core.dataformat.FieldDefinition;
-import nablarch.core.dataformat.InvalidDataFormatException;
-import nablarch.core.dataformat.SyntaxErrorException;
-import org.hamcrest.Matchers;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.Assert.assertThat;
 
 import java.math.BigDecimal;
 import java.nio.charset.Charset;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertThat;
+import org.hamcrest.Matchers;
+
+import nablarch.core.dataformat.FieldDefinition;
+import nablarch.core.dataformat.InvalidDataFormatException;
+import nablarch.core.dataformat.SyntaxErrorException;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * バイト文字コンバータ{@link ByteStreamDataString}のテスト。
@@ -40,7 +40,7 @@ public class ByteStreamDataStringTest {
         exception.expect(SyntaxErrorException.class);
         exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[ByteStreamDataString].");
 
-        sut.initialize(null);
+        sut.initialize((Object[]) null);
     }
 
     /**

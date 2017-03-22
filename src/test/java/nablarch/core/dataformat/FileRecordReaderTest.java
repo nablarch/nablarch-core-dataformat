@@ -1,5 +1,24 @@
 package nablarch.core.dataformat;
 
+import static nablarch.test.StringMatcher.endsWith;
+import static nablarch.test.StringMatcher.startsWith;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.math.BigDecimal;
+import java.net.URL;
+import java.nio.ByteBuffer;
+
+import org.hamcrest.CoreMatchers;
+
 import nablarch.common.io.FileRecordWriterHolder;
 import nablarch.core.ThreadContext;
 import nablarch.core.dataformat.FormatterFactoryStub.DataRecordFormatterStub;
@@ -8,7 +27,9 @@ import nablarch.core.repository.di.ComponentDefinitionLoader;
 import nablarch.core.repository.di.DiContainer;
 import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
 import nablarch.core.util.FilePathSetting;
-import nablarch.test.support.tool.Hereis;
+import nablarch.core.util.FileUtil;
+import nablarch.test.support.SystemRepositoryResource;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -16,62 +37,58 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.math.BigDecimal;
-import java.nio.ByteBuffer;
-
-import static nablarch.test.StringMatcher.endsWith;
-import static nablarch.test.StringMatcher.startsWith;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 /**
  * ファイルレコードリーダのテスト
- * 
+ * <p>
  * 観点：
  * 正常系のテスト、readメソッド、hasNextメソッド、closeメソッドが正常に動作し、ファイルの読み込みができること、
  * また、異常系のテストを行う。
- *  
+ *
  * @author Masato Inoue
  */
 public class FileRecordReaderTest {
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
-    
-    private FileRecordReader reader = null;
+
+    @Rule
+    public SystemRepositoryResource systemRepositoryResource = new SystemRepositoryResource(null);
+
+    private FileRecordReader reader;
+
 
     @BeforeClass
     public static void setUpClass() {
         // 強制的にキャッシュをオフに。
         // これで、このクラスで使用したいフォーマット定義が必ず使用される。
-        FormatterFactory.getInstance().setCacheLayoutFileDefinition(false);
+        FormatterFactory.getInstance()
+                        .setCacheLayoutFileDefinition(false);
     }
 
     @Before
     public void setup() {
         FileRecordWriterHolder.closeAll();
-        SystemRepository.clear();
     }
     
+    @After
+    public void tearDown() throws Exception {
+        if (reader != null) {
+            reader.close();
+        }
+        SystemRepository.clear();
+    }
+
+
     /**
      * FileRecordReader実行時に、DataRecordFormatterのクローズメソッドが呼ばれることの確認。
      */
     @Test
-    public void testClose() throws Exception{
+    public void testClose() throws Exception {
 
         ThreadContext.setRequestId("test");
-        
+
         // Windows環境でない場合は終了する
-        if(!getOsName().contains("windows")){
+        if (!getOsName().contains("windows")) {
             return;
         }
         // テスト用のリポジトリ構築
@@ -79,37 +96,30 @@ public class FileRecordReaderTest {
                 "nablarch/core/dataformat/StubFormatterFactory.xml");
         DiContainer container = new DiContainer(loader);
         SystemRepository.load(container);
-        
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-        .addBasePathSetting("format", "file:./");
 
-        File dataFile = new File("./record10.dat");
+        FilePathSetting.getInstance()
+                       .addBasePathSetting("input", "file:" + folder.newFolder("input").getAbsolutePath())
+                       .addBasePathSetting("format", "file:" + folder.newFolder("output").getAbsolutePath());
+
+        File dataFile = new File(folder.getRoot(), "input/record10.dat");
         dataFile.createNewFile();
-        dataFile.deleteOnExit();
-        
-        reader = new FileRecordReader(
-                dataFile, (File) null);
+
+        reader = new FileRecordReader(dataFile, (File) null);
         reader.read();
-        
-        assertTrue(dataFile.exists()); 
+        assertThat(dataFile.exists(), is(true));
         dataFile.delete();
-        assertTrue(dataFile.exists()); // クローズされていないので削除できない
-        
-        assertFalse(DataRecordFormatterStub.isCallClose);
-        
+        assertThat(dataFile.exists(), is(true)); // クローズされていないので削除できない
+
+        assertThat(DataRecordFormatterStub.isCallClose, is(false));
+
         reader.close();
 
-        assertTrue(DataRecordFormatterStub.isCallClose); // フォーマッタのクローズメソッドが呼ばれたことの確認
+        assertThat(DataRecordFormatterStub.isCallClose, is(true)); // フォーマッタのクローズメソッドが呼ばれたことの確認
 
         dataFile.delete();
-        assertFalse(dataFile.exists()); // クローズされているので削除できることの確認
-        
-        SystemRepository.clear();
-        
-        new File("./record.dat").deleteOnExit();
+        assertThat(dataFile.exists(), is(false)); // クローズされているので削除できることの確認
     }
 
-    
     /**
      * hasNextメソッドおよびreadメソッドの動作テスト。
      */
@@ -117,40 +127,10 @@ public class FileRecordReaderTest {
     public void testReadHasNextMethodFirst() throws Exception{
 
         ThreadContext.setRequestId("test");
-        
-        SystemRepository.clear();
-        
-        // レイアウト定義ファイル
-        File formatFile = Hereis.file("./format10.fmt");
-        /**********************************************
-        file-type:    "Fixed"
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "sjis"
-        
-        # 各レコードの長さ
-        record-length: 80
 
-        # データレコード定義
-        [Default]
-        1    byteString     X(10)   # 1. シングルバイト文字列
-        11   wordString     N(10)   # 2. ダブルバイト文字列
-        21   zoneDigits     Z(10)   # 3. ゾーン10進
-        31   signedZDigits  SZ(10)  # 4. 符号付ゾーン10進
-        41   packedDigits   P(10)   # 5. パック10進
-        51   signedPDigits  SP(10)  # 6. 符号付パック10進
-        61   nativeBytes    B(10)   # 7. バイト列
-        71   zDecimalPoint  Z(5, 3) # 8. 仮想小数点付きゾーン10進(5byte)
-        76   pDecimalPoint  P(3, 2) # 9. 仮想小数点付きパック10進(3byte)
-        79  ?endMark        X(2)   "00"    
-        ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                                 .addBasePathSetting("format", "file:./");
-        
-        
         byte[] bytes = new byte[80];
         ByteBuffer buff = ByteBuffer.wrap(bytes);
-        
+
         buff.put("ｱｲｳｴｵｶｷｸｹｺ".getBytes("sjis")); //X(10)
         buff.put("あいうえお".getBytes("sjis"));  //N(10)
         buff.put("1234567890".getBytes("sjis")); //9(10)
@@ -174,42 +154,44 @@ public class FileRecordReaderTest {
             0x12, 0x34, 0x53
         }); // = 123.45
 
-        OutputStream dest = new FileOutputStream("./record.dat", false);
+        final File inputFile = new File(folder.getRoot(), "record.dat");
+        OutputStream dest = new FileOutputStream(inputFile, false);
         dest.write(bytes);
         dest.write(bytes);
         dest.write(bytes);
         dest.close();
-        
 
-        reader = new FileRecordReader(new File("./record.dat"), new File("./format10.fmt"));
-        
-        assertTrue(reader.hasNext());
+        final URL url = FileUtil.getResourceURL(
+                "classpath:nablarch/core/dataformat/FileRecordReaderTest/testReadHasNextMethodFirst.fmt");
+        reader = new FileRecordReader(inputFile, new File(url.toURI()));
+
+        assertThat(reader.hasNext(), is(true));
         DataRecord record = reader.read();
-        
-        assertEquals(9, record.size());
-        assertEquals("ｱｲｳｴｵｶｷｸｹｺ",                           record.get("byteString"));
-        assertEquals("あいうえお",                         record.get("wordString"));
-        assertEquals(new BigDecimal("1234567890"),           record.get("zoneDigits"));
-        assertEquals(new BigDecimal("-1234567890"),          record.get("signedZDigits"));
-        assertEquals(new BigDecimal("1234567890123456789"),  record.get("packedDigits"));
-        assertEquals(new BigDecimal("-1234567890123456789"), record.get("signedPDigits"));
-        assertEquals(new BigDecimal("-1234567890123456789"), record.get("signedPDigits"));
-        assertEquals(new BigDecimal("12.345"),               record.get("zDecimalPoint"));
-        assertEquals(new BigDecimal("123.45"),               record.get("pDecimalPoint"));
-        
-        assertTrue(record.containsKey("nativeBytes"));
-        
-        byte[] nativeBytes = record.getValue("nativeBytes");
-        assertEquals((byte)0xFF, nativeBytes[0]);
-        assertEquals((byte)0xEE, nativeBytes[1]);
-        assertEquals((byte)0x66, nativeBytes[9]);
 
-        assertTrue(reader.hasNext());
+        assertThat(record.size(), is(9));
+        assertThat(record.get("byteString"), CoreMatchers.<Object>is("ｱｲｳｴｵｶｷｸｹｺ"));
+        assertThat(record.get("wordString"), CoreMatchers.<Object>is("あいうえお"));
+        assertThat(record.get("zoneDigits"), CoreMatchers.<Object>is(new BigDecimal("1234567890")));
+        assertThat(record.get("signedZDigits"), CoreMatchers.<Object>is(new BigDecimal("-1234567890")));
+        assertThat(record.get("packedDigits"), CoreMatchers.<Object>is(new BigDecimal("1234567890123456789")));
+        assertThat(record.get("signedPDigits"), CoreMatchers.<Object>is(new BigDecimal("-1234567890123456789")));
+        assertThat(record.get("signedPDigits"), CoreMatchers.<Object>is(new BigDecimal("-1234567890123456789")));
+        assertThat(record.get("zDecimalPoint"), CoreMatchers.<Object>is(new BigDecimal("12.345")));
+        assertThat(record.get("pDecimalPoint"), CoreMatchers.<Object>is(new BigDecimal("123.45")));
+
+        assertThat(record.containsKey("nativeBytes"), is(true));
+
+        byte[] nativeBytes = record.getValue("nativeBytes");
+        assertThat(nativeBytes[0], is((byte) 0xFF));
+        assertThat(nativeBytes[1], is((byte) 0xEE));
+        assertThat(nativeBytes[9], is((byte) 0x66));
+
+        assertThat(reader.hasNext(), is(true));
         reader.read(); //2件め
-        assertTrue(reader.hasNext());
+        assertThat(reader.hasNext(), is(true));
         reader.read(); //3件め
-        assertFalse(reader.hasNext());
-        assertNull(reader.read());
+        assertThat(reader.hasNext(), is(false));
+        assertThat(reader.read(), nullValue());
     }
 
     /**
@@ -220,37 +202,9 @@ public class FileRecordReaderTest {
 
         ThreadContext.setRequestId("test");
         
-        // レイアウト定義ファイル
-        File formatFile = Hereis.file("./format11.fmt");
-        /**********************************************
-        file-type:    "Fixed"
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "sjis"
-        
-        # 各レコードの長さ
-        record-length: 80
-
-        # データレコード定義
-        [Default]
-        1    byteString     X(10)   # 1. シングルバイト文字列
-        11   wordString     N(10)   # 2. ダブルバイト文字列
-        21   zoneDigits     Z(10)   # 3. ゾーン10進
-        31   signedZDigits  SZ(10)  # 4. 符号付ゾーン10進
-        41   packedDigits   P(10)   # 5. パック10進
-        51   signedPDigits  SP(10)  # 6. 符号付パック10進
-        61   nativeBytes    B(10)   # 7. バイト列
-        71   zDecimalPoint  Z(5, 3) # 8. 仮想小数点付きゾーン10進(5byte)
-        76   pDecimalPoint  P(3, 2) # 9. 仮想小数点付きパック10進(3byte)
-        79  ?endMark        X(2)   "00"    
-        ***************************************************/
-        formatFile.deleteOnExit();
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                                 .addBasePathSetting("format", "file:./");
-        
-
         byte[] bytes = new byte[80];
         ByteBuffer buff = ByteBuffer.wrap(bytes);
-        
+
         buff.put("ｱｲｳｴｵｶｷｸｹｺ".getBytes("sjis")); //X(10)
         buff.put("あいうえお".getBytes("sjis"));  //N(10)
         buff.put("1234567890".getBytes("sjis")); //9(10)
@@ -274,45 +228,47 @@ public class FileRecordReaderTest {
             0x12, 0x34, 0x53
         }); // = 123.45
 
-        OutputStream dest = new FileOutputStream("./record.dat", false);
+        final File inputFile = new File(folder.newFolder("input"), "record.dat");
+        OutputStream dest = new FileOutputStream(inputFile, false);
         dest.write(bytes);
         dest.write(bytes);
         dest.write(bytes);
         dest.close();
 
-        
-        reader = new FileRecordReader(new File("./record.dat"), new File("./format11.fmt"));
-        
-        DataRecord record = reader.read();
-        assertTrue(reader.hasNext());
-        
-        assertEquals(9, record.size());
-        assertEquals("ｱｲｳｴｵｶｷｸｹｺ",                           record.get("byteString"));
-        assertEquals("あいうえお",                         record.get("wordString"));
-        assertEquals(new BigDecimal("1234567890"),           record.get("zoneDigits"));
-        assertEquals(new BigDecimal("-1234567890"),          record.get("signedZDigits"));
-        assertEquals(new BigDecimal("1234567890123456789"),  record.get("packedDigits"));
-        assertEquals(new BigDecimal("-1234567890123456789"), record.get("signedPDigits"));
-        assertEquals(new BigDecimal("-1234567890123456789"), record.get("signedPDigits"));
-        assertEquals(new BigDecimal("12.345"),               record.get("zDecimalPoint"));
-        assertEquals(new BigDecimal("123.45"),               record.get("pDecimalPoint"));
-        
-        assertTrue(record.containsKey("nativeBytes"));
-        
-        byte[] nativeBytes = record.getValue("nativeBytes");
-        assertEquals((byte)0xFF, nativeBytes[0]);
-        assertEquals((byte)0xEE, nativeBytes[1]);
-        assertEquals((byte)0x66, nativeBytes[9]);
+        final URL url = FileUtil.getResourceURL(
+                "classpath:nablarch/core/dataformat/FileRecordReaderTest/testReadReadMethodFirst.fmt");
 
-        assertTrue(reader.hasNext());
+        reader = new FileRecordReader(inputFile, new File(url.toURI()));
+
+        DataRecord record = reader.read();
+        assertThat(reader.hasNext(), is(true));
+
+        assertThat(record.size(), is(9));
+        assertThat(record.get("byteString"), CoreMatchers.<Object>is("ｱｲｳｴｵｶｷｸｹｺ"));
+        assertThat(record.get("wordString"), CoreMatchers.<Object>is("あいうえお"));
+        assertThat(record.get("zoneDigits"), CoreMatchers.<Object>is(new BigDecimal("1234567890")));
+        assertThat(record.get("signedZDigits"), CoreMatchers.<Object>is(new BigDecimal("-1234567890")));
+        assertThat(record.get("packedDigits"), CoreMatchers.<Object>is(new BigDecimal("1234567890123456789")));
+        assertThat(record.get("signedPDigits"), CoreMatchers.<Object>is(new BigDecimal("-1234567890123456789")));
+        assertThat(record.get("signedPDigits"), CoreMatchers.<Object>is(new BigDecimal("-1234567890123456789")));
+        assertThat(record.get("zDecimalPoint"), CoreMatchers.<Object>is(new BigDecimal("12.345")));
+        assertThat(record.get("pDecimalPoint"), CoreMatchers.<Object>is(new BigDecimal("123.45")));
+
+        assertThat(record.containsKey("nativeBytes"), is(true));
+
+        byte[] nativeBytes = record.getValue("nativeBytes");
+        assertThat(nativeBytes[0], is((byte) 0xFF));
+        assertThat(nativeBytes[1], is((byte) 0xEE));
+        assertThat(nativeBytes[9], is((byte) 0x66));
+
+        assertThat(reader.hasNext(), is(true));
         reader.read(); //2件め
-        assertTrue(reader.hasNext());
+        assertThat(reader.hasNext(), is(true));
         reader.read(); //3件め
-        assertFalse(reader.hasNext());
-        assertNull(reader.read());
+        assertThat(reader.hasNext(), is(false));
+        assertThat(reader.read(), nullValue());
     }
-    
-    
+
     /**
      * IOExceptionがスローされるパターン。
      */
@@ -320,44 +276,16 @@ public class FileRecordReaderTest {
     public void testException() throws Exception {
 
         ThreadContext.setRequestId("test");
-        
-        // データフォーマット定義ファイル
-        File formatFile = Hereis.file("./format.fmt");
-        /**********************************************
-        file-type:    "Fixed"
-        # 文字列型フィールドの文字エンコーディング
-        text-encoding: "sjis"
-        
-        # 各レコードの長さ
-        record-length: 80
 
-        # データレコード定義
-        [Default]
-        1    byteString     X(10)   # 1. シングルバイト文字列
-        11   wordString     N(10)   # 2. ダブルバイト文字列
-        21   zoneDigits     Z(10)   # 3. ゾーン10進
-        31   signedZDigits  SZ(10)  # 4. 符号付ゾーン10進
-        41   packedDigits   P(10)   # 5. パック10進
-        51   signedPDigits  SP(10)  # 6. 符号付パック10進
-        61   nativeBytes    B(10)   # 7. バイト列
-        71   zDecimalPoint  Z(5, 3) # 8. 仮想小数点付きゾーン10進(5byte)
-        76   pDecimalPoint  P(3, 2) # 9. 仮想小数点付きパック10進(3byte)
-        79  ?endMark        X(2)   "00"    
-        ***************************************************/
-        formatFile.deleteOnExit();
-        
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./")
-                                 .addBasePathSetting("format", "file:./")
-                                 .addFileExtensions("format", "fmt");
-        
         // テスト用のリポジトリ構築
         ComponentDefinitionLoader loader = new XmlComponentDefinitionLoader(
                 "nablarch/core/dataformat/StubFormatterFactory02.xml");
         DiContainer container = new DiContainer(loader);
         SystemRepository.load(container);
         
+        final URL url = FileUtil.getResourceURL("classpath:nablarch/core/dataformat/FileRecordReaderTest/testException.fmt");
         // readメソッドでIOExceptionがスローされる場合のテスト
-        FileRecordReader reader = new FileRecordReader(new File("record.dat"), formatFile);
+        FileRecordReader reader = new FileRecordReader(folder.newFile(), new File(url.toURI()));
         try{
             reader.read();
             fail();
@@ -372,7 +300,7 @@ public class FileRecordReaderTest {
         } catch (RuntimeException e) {
             assertEquals(IOException.class, e.getCause().getClass());
         }
-        
+
     }
 
     /**
@@ -380,30 +308,22 @@ public class FileRecordReaderTest {
      * 入力ファイルのパス情報が付与されること。
      */
     @Test
-    public void testAddingInputSourceToException() {
+    public void testAddingInputSourceToException() throws Exception {
         ThreadContext.setRequestId("test");
-        FilePathSetting.getInstance().addBasePathSetting("input",  "file:./temp")
-                                 .addBasePathSetting("format", "file:./temp");
-        // データフォーマット定義ファイル
-        File formatFile = Hereis.file("./temp/format11.fmt");
-        /*
-        file-type:    "Fixed"
-        text-encoding: "UTF-8"
-        record-length: 10
-        [Default]
-        1    dataKbn       X(1)
-        2    number        Z(9)
-        */
 
-        File dataFile = Hereis.file("./temp/record11.dat");
-        //         1         2         3         4         5
-        //12345678901234567890123456789012345678901234567890
-          /*************************************************
-          112345678902NOTNUMBER*/
-        //12345678901234567890123456789012345678901234567890
-        //
+        final File file = folder.newFile();
+        final BufferedWriter stream = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(file), "utf-8"));
+        try {
+            stream.write("112345678902NOTNUMBER");
+        } finally {
+            stream.close();
+        }
 
-        reader = new FileRecordReader(dataFile, formatFile);
+        final URL url = FileUtil.getResourceURL(
+                "classpath:nablarch/core/dataformat/FileRecordReaderTest/testAddingInputSourceToException.fmt");
+        reader = new FileRecordReader(file, new File(url.toURI()));
+        
         try {
             while(reader.hasNext()) {
                 reader.read();
@@ -414,8 +334,8 @@ public class FileRecordReaderTest {
                     "invalid zone bits was specified."));
             assertThat(e.getFieldName(), is("number"));
             assertThat(e.getRecordNumber(), is(2));
-            assertThat(e.getFormatFilePath(), endsWith("format11.fmt"));
-            assertThat(e.getInputSourcePath(), endsWith("record11.dat"));
+            assertThat(e.getFormatFilePath(), endsWith("testAddingInputSourceToException.fmt"));
+            assertThat(e.getInputSourcePath(), endsWith(file.getName()));
         }
     }
 
@@ -458,22 +378,6 @@ public class FileRecordReaderTest {
     }
 
     /**
-     * OS名を取得する。
-     * @return OS名
-     */
-    private String getOsName() {
-        return System.getProperty("os.name").toLowerCase();
-    }
-    
-    @After
-    public void tearDown() throws Exception {
-        if (reader != null) {
-            reader.close();
-        }
-        SystemRepository.clear();
-    }
-
-    /**
      * ファイルに書き込む
      * @param file ファイル
      * @param value 書き込む文字列
@@ -483,5 +387,15 @@ public class FileRecordReaderTest {
         FileOutputStream dest = new FileOutputStream(file);
         dest.write(value.getBytes("sjis"));
         dest.close();
+    }
+
+    /**
+     * OS名を取得する。
+     *
+     * @return OS名
+     */
+    private String getOsName() {
+        return System.getProperty("os.name")
+                     .toLowerCase();
     }
 }

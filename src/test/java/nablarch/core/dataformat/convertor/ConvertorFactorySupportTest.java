@@ -1,19 +1,20 @@
 package nablarch.core.dataformat.convertor;
 
-import nablarch.core.dataformat.FieldDefinition;
-import nablarch.core.dataformat.SyntaxErrorException;
-import nablarch.core.dataformat.convertor.datatype.DataType;
-import nablarch.core.dataformat.convertor.value.ValueConvertor;
-import org.junit.Test;
-
-import java.util.HashMap;
-
 import static nablarch.test.StringMatcher.startsWith;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.junit.matchers.JUnitMatchers.containsString;
+
+import java.util.HashMap;
+
+import nablarch.core.dataformat.FieldDefinition;
+import nablarch.core.dataformat.SyntaxErrorException;
+import nablarch.core.dataformat.convertor.datatype.DataType;
+import nablarch.core.dataformat.convertor.value.ValueConvertor;
+
+import org.junit.Test;
 
 
 /**

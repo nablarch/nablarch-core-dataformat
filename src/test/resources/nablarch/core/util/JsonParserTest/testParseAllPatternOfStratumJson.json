@@ -1,0 +1,50 @@
+{
+  "key1": "value1",
+  "key2": "value2",
+  "key3": [
+    "value3-1",
+    "value3-2"
+  ],
+  "Class1": {
+    "ClassKey1": "Class1Value1",
+    "ClassKey2": "Class1Value2",
+    "ClassKey3": "3"
+  },
+  "Class2": {
+    "Class2Key1": "Class2Value1",
+    "Class2Key2": "Class2Value2"
+  },
+  "Class3": {
+    "Class3Key1": "Class3Value1",
+    "Class3Key2": "Class3Value2",
+    "Class3Key3": [
+      "Class3Value3-1",
+      "Class3Value3-2",
+      "Class3Value3-3",
+      "Class3Value3-4"
+    ]
+  },
+  "Class4": {
+    "Class4Key1": "Class4Value1",
+    "Class41": {
+      "Class41Key1": "Class4-1Value1",
+      "Class41Key2": "Class4-1Value2",
+      "Class41Key3": "Class4-1Value3"
+    },
+    "Class42": {
+      "Class42Key1": "Class4-2Value1",
+      "Class42Key2": "Class4-2Value2",
+      "Class42Key3": "Class4-2Value3",
+      "Class421": [
+        {
+          "Class421Key1": "Class4-2-1[0]Value1",
+          "Class421Key2": "Class4-2-1[0]Value2"
+        },
+        {
+          "Class421Key1": "Class4-2-1[1]Value1",
+          "Class421Key2": "Class4-2-1[1]Value2"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,9 @@
+text-encoding:    abc    # 不正な形式!!
+record-separator: "\r\n" # CRLFで改行
+field-separator:  ","    # カンマ区切り
+
+[Books]
+1   Title      X          # タイトル
+2   Publisher  X          # 出版社
+3   Authors    X          # 著者
+4   Price      X Number   # 価格

@@ -1,0 +1,26 @@
+# ファイルタイプ
+file-type: "Fixed"
+
+# 文字列型フィールドの文字エンコーディング
+text-encoding: "sjis"
+
+# 各レコードの長さ
+record-length: 31
+
+# レコードタイプ識別フィールド定義
+[Classifier] 
+1   layout  X(1)   # データレイアウト(A or B)
+
+# データレコード定義
+[layoutA]
+layout = "A"
+1    layout       X(1)   "A"
+2    byteString   X(10)  # 1. シングルバイト文字列
+12   wordString   N(10)  # 2. ダブルバイト文字列
+22   zoneDigits   Z(10)  # 3. ゾーン10進
+
+[layoutB]
+layout = "B"
+1    layout      X(1)   "B"
+2    longString  X(20)  # 1. シングルバイト文字列
+22   zoneDigits  Z(10)  # 3. ゾーン10進

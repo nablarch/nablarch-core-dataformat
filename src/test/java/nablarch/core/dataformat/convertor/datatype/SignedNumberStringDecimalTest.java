@@ -37,7 +37,7 @@ public class SignedNumberStringDecimalTest {
         exception.expect(SyntaxErrorException.class);
         exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[SignedNumberStringDecimal].");
 
-        sut.initialize(null);
+        sut.initialize((Object[]) null);
     }
 
     /**

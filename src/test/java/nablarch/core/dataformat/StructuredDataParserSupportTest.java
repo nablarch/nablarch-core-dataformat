@@ -1,15 +1,10 @@
 package nablarch.core.dataformat;
 
-import nablarch.core.dataformat.convertor.ConvertorFactorySupport;
-import nablarch.core.dataformat.convertor.ConvertorSetting;
-import nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString;
-import nablarch.core.dataformat.convertor.value.ValueConvertor;
-import nablarch.core.util.Builder;
-import nablarch.core.util.FilePathSetting;
-import nablarch.test.support.tool.Hereis;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestName;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -22,11 +17,17 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import nablarch.core.dataformat.convertor.ConvertorFactorySupport;
+import nablarch.core.dataformat.convertor.ConvertorSetting;
+import nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString;
+import nablarch.core.dataformat.convertor.value.ValueConvertor;
+import nablarch.core.util.Builder;
+import nablarch.core.util.FilePathSetting;
+import nablarch.test.support.tool.Hereis;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestName;
 
 /**
  * {@link StructuredDataEditorSupport}のテストを行います。<br>

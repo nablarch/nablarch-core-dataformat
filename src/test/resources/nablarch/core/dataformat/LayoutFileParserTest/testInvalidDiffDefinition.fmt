@@ -1,0 +1,39 @@
+#
+# 共通定義部分 
+#
+file-type:    "Fixed"
+text-encoding:    "ms932" # 文字列型フィールドの文字エンコーディング
+record-length:     120    # 各レコードの長さ
+
+[Classifier] # レコードタイプ識別フィールド定義
+1   dataKbn   X(1)   # データ区分              
+113 withEdi   X(1)   # EDI情報使用フラグ
+                     #    Y: EDIあり、N: なし
+
+
+[DataWithEDI] # データレコード (EDI情報あり)
+  dataKbn  = "2"
+  withEdi  = "Y"
+1    dataKbn       X(1)  "2"     # データ区分
+2    FIcode        X(4)          # 振込先金融機関コード
+6    FIname        X(15)         # 振込先金融機関名称
+21   officeCode    X(3)          # 振込先営業所コード
+24   officeName    X(15)         # 振込先営業所名
+39  ?tegataNum     X(4)  "9999"  # (手形交換所番号:未使用)
+43   syumoku       X(1)          # 預金種目
+44   accountNum    X(7)          # 口座番号
+51   recipientName X(30)         # 受取人名
+81   amount        X(10)         # 振込金額
+91   isNew         X(1)          # 新規コード
+92   ediInfo       X(20)         # EDI情報
+112  transferType  X(1)          # 振込区分
+113  withEdi       X(1)  "Y"     # EDI情報使用フラグ
+114 ?unused        X(7)  pad("0")# (未使用領域)            
+
+
+[DataWithoutEDI] < [error]  # データレコード (EDI情報なし)
+  dataKbn = "2"                   #   EDI情報なしの場合、振込人情報を
+  withEdi = "N"                   #   EDI情報の代わりに付記する。
+92   userCode1     X(10)      # ユーザコード1
+102  userCode2     X(10)      # ユーザコード2
+113  withEdi       X(1)  "N"  # EDI情報使用フラグ

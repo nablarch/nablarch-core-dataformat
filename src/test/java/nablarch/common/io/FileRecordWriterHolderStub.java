@@ -1,8 +1,8 @@
 package nablarch.common.io;
 
-import nablarch.core.dataformat.FileRecordWriter;
-
 import java.io.File;
+
+import nablarch.core.dataformat.FileRecordWriter;
 
 /**
  * FileRecordWriterHolderクラスのテストで使用されるスタブ。
@@ -22,6 +22,15 @@ public class FileRecordWriterHolderStub extends FileRecordWriterHolder{
             super(dataFile, layoutFile);
         }
 
+        @Override
+        protected void initialize() {
+            // nop
+        }
+
+        @Override
+        public void close() {
+            //nop
+        }
     }
 
 }

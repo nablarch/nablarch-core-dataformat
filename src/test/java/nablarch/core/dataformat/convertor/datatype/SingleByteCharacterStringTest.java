@@ -1,17 +1,17 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import nablarch.core.dataformat.FieldDefinition;
-import nablarch.core.dataformat.InvalidDataFormatException;
-import nablarch.core.dataformat.SyntaxErrorException;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertThat;
 
 import java.nio.charset.Charset;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import nablarch.core.dataformat.FieldDefinition;
+import nablarch.core.dataformat.InvalidDataFormatException;
+import nablarch.core.dataformat.SyntaxErrorException;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * シングルバイト文字コンバータ{@link SingleByteCharacterString}のテスト。
@@ -34,7 +34,7 @@ public class SingleByteCharacterStringTest {
         exception.expect(SyntaxErrorException.class);
         exception.expectMessage("initialize parameter was null. parameter must be specified. convertor=[SingleByteCharacterString].");
 
-        sut.initialize(null);
+        sut.initialize((Object[]) null);
     }
 
     /**
