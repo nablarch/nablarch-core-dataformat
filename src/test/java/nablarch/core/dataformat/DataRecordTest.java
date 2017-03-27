@@ -1,16 +1,18 @@
 package nablarch.core.dataformat;
 
-import org.hamcrest.CoreMatchers;
-import org.junit.Test;
-
-import java.math.BigDecimal;
-
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.math.BigDecimal;
+
+import org.hamcrest.CoreMatchers;
+
+import org.junit.Test;
 
 /**
  * データレコードのテスト
@@ -121,5 +123,18 @@ public class DataRecordTest {
         assertThat(record.getString("decimal"), CoreMatchers.is("0.0000000001"));
         assertThat(record.get("decimal"), CoreMatchers.<Object>is(input));
         assertThat(record.getBigDecimal("decimal"), CoreMatchers.is(input));
+    }
+
+    @Test
+    public void testBigDecimalData_notAllowScale() throws Exception {
+        final DataRecord record = new DataRecord();
+        record.put("key", "1e10000");
+
+        try {
+            record.getBigDecimal("key");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), is("Illegal scale(-10000): needs to be between(-9999, 9999)"));
+        }
     }
 }
