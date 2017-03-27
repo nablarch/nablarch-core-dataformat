@@ -2,6 +2,7 @@ package nablarch.core.dataformat;
 
 import java.math.BigDecimal;
 
+import nablarch.core.util.NumberUtil;
 import nablarch.core.util.StringUtil;
 import nablarch.core.util.annotation.Published;
 import nablarch.core.util.map.MultipleKeyCaseMap;
@@ -116,9 +117,14 @@ public class DataRecord extends MultipleKeyCaseMap<Object> {
     public BigDecimal getBigDecimal(String fieldName)
     throws NumberFormatException {
         Object value = get(fieldName);
-        return (value == null)               ? null
-             : (value instanceof BigDecimal) ? (BigDecimal) value
-             : new BigDecimal(value.toString());
+        if (value == null) {
+            return null;
+        } else {
+            final BigDecimal result = value instanceof BigDecimal ? BigDecimal.class.cast(value) : new BigDecimal(
+                    value.toString());
+            NumberUtil.verifyBigDecimalScale(result);
+            return result;
+        }
     }
     
     /**
