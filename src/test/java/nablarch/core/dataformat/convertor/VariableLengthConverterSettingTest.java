@@ -1,21 +1,25 @@
 package nablarch.core.dataformat.convertor;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
+import java.util.Map;
+
 import nablarch.core.dataformat.convertor.datatype.Bytes;
 import nablarch.core.dataformat.convertor.datatype.SingleByteCharacterString;
+import nablarch.core.dataformat.convertor.logicbased.CustomType;
 import nablarch.core.repository.SystemRepository;
 import nablarch.core.repository.di.ComponentDefinitionLoader;
 import nablarch.core.repository.di.DiContainer;
 import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
+
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertThat;
 
 /**
  * VariableLengthConverterSettingのテスト。
@@ -26,7 +30,12 @@ import static org.junit.Assert.assertThat;
  * @author Masato Inoue
  */
 public class VariableLengthConverterSettingTest {
-    
+
+    @Before
+    public void setUp() throws Exception {
+        SystemRepository.clear();
+    }
+
     @After
     public void tearDown() throws Exception {
         SystemRepository.clear();
@@ -84,6 +93,32 @@ public class VariableLengthConverterSettingTest {
         Map<String, Class<?>> resultTable = setting.getConvertorFactory().getConvertorTable();
         assertSame(SingleByteCharacterString.class, resultTable.get("Test"));
         assertSame(Bytes.class, resultTable.get("Hoge"));
+    }
+
+    @Test
+    public void testLogicBasedConverterTable() throws Exception {
+        final XmlComponentDefinitionLoader loader = new XmlComponentDefinitionLoader(
+                "nablarch/core/dataformat/convertor/LogicBasedSetting.xml");
+        SystemRepository.load(new DiContainer(loader));
+
+        final VariableLengthConvertorSetting setting = VariableLengthConvertorSetting.getInstance();
+        final Map<String, Class<?>> actual = setting.getConvertorFactory()
+                                                   .getConvertorTable();
+
+        assertSame("ロジックで追加したデータタイプが取得できる", CustomType.class, actual.get("custom"));
+        
+        final Map<String, Class<?>> defaultConverterTable = new VariableLengthConvertorFactory().getDefaultConvertorTable();
+
+        System.out.println("actual.size() = " + actual.size());
+        System.out.println("actual.keySet().size() = " + actual.keySet()
+                                                               .size());
+        System.out.println("defaultConverterTable = " + defaultConverterTable.size());
+        assertThat("デフォルトから1つ追加されていること", actual.keySet(), hasSize(defaultConverterTable.size() + 1));
+        
+        for (final Map.Entry<String, Class<?>> entry : defaultConverterTable
+                                                                                           .entrySet()) {
+            assertSame("デフォルトの設定値が引き継がれていること", entry.getValue(), actual.get(entry.getKey()));
+        }
     }
 
     /**

@@ -8,6 +8,7 @@ import nablarch.core.dataformat.convertor.value.DefaultValue;
 import nablarch.core.dataformat.convertor.value.NumberString;
 import nablarch.core.dataformat.convertor.value.SignedNumberString;
 import nablarch.core.dataformat.convertor.value.UseEncoding;
+import nablarch.core.util.annotation.Published;
 import nablarch.core.util.map.CaseInsensitiveMap;
 
 /**
@@ -21,6 +22,7 @@ public class VariableLengthConvertorFactory extends ConvertorFactorySupport {
      * @return 固定長ファイルのデフォルトのコンバータ名とコンバータ実装クラスの対応表
      */
     @Override
+    @Published(tag = "architect")
     protected Map<String, Class<?>> getDefaultConvertorTable() {
         return DEFAULT_CONVERTOR_TABLE;
     }
