@@ -11,4 +11,11 @@
       <component class="nablarch.core.dataformat.convertor.logicbased.LogicBasedVariableLengthConvertorFactory" />
     </property>
   </component>
+
+  <component name="fixedLengthConvertorSetting"
+      class="nablarch.core.dataformat.convertor.FixedLengthConvertorSetting">
+    <property name="fixedLengthConvertorFactory">
+      <component class="nablarch.core.dataformat.convertor.logicbased.LogicBasedFixedLengthConvertorFactory" />
+    </property>
+  </component>
 </component-configuration>
