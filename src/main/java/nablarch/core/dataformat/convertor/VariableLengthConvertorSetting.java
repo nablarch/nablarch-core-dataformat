@@ -86,7 +86,7 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
      * {@link VariableLengthConvertorFactory}を設定する。
      * @param factory VariableLengthConvertorFactory
      */
-    public void setVariableLengthConverterFactory(VariableLengthConvertorFactory factory) {
+    public void setVariableLengthConvertorFactory(VariableLengthConvertorFactory factory) {
         this.factory = factory;
     }
 }

@@ -7,7 +7,7 @@
 
   <component name="variableLengthConvertorSetting"
       class="nablarch.core.dataformat.convertor.VariableLengthConvertorSetting">
-    <property name="variableLengthConverterFactory">
+    <property name="variableLengthConvertorFactory">
       <component class="nablarch.core.dataformat.convertor.logicbased.LogicBasedVariableLengthConvertorFactory" />
     </property>
   </component>
