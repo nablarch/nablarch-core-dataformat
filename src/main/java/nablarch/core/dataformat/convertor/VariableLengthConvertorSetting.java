@@ -81,4 +81,12 @@ public class VariableLengthConvertorSetting implements ConvertorSetting {
     public boolean isConvertEmptyToNull() {
         return convertEmptyToNull;
     }
+
+    /**
+     * {@link VariableLengthConvertorFactory}を設定する。
+     * @param factory VariableLengthConvertorFactory
+     */
+    public void setVariableLengthConverterFactory(VariableLengthConvertorFactory factory) {
+        this.factory = factory;
+    }
 }
