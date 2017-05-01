@@ -182,6 +182,14 @@ public class FixedLengthConvertorSetting implements ConvertorSetting {
     }
 
     /**
+     * {@link FixedLengthConvertorFactory}を設定する。
+     * @param factory {@link FixedLengthConvertorFactory}
+     */
+    public void setFixedLengthConvertorFactory(final FixedLengthConvertorFactory factory) {
+        this.factory = factory;
+    }
+
+    /**
      * 空文字列を{@code null}に変換するかを設定する。
      * <p/>
      * デフォルトは{@code null}に変換する({@code true})。
