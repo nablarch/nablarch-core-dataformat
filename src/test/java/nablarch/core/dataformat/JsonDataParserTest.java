@@ -1,5 +1,6 @@
 package nablarch.core.dataformat;
 
+import nablarch.core.dataformat.convertor.JsonDataConvertorFactory;
 import nablarch.core.dataformat.convertor.JsonDataConvertorSetting;
 import nablarch.core.dataformat.convertor.datatype.DataType;
 import nablarch.core.dataformat.convertor.datatype.JsonString;
@@ -7,6 +8,7 @@ import nablarch.core.dataformat.convertor.value.ValueConvertor;
 import nablarch.core.dataformat.convertor.value.ValueConvertorSupport;
 import nablarch.core.repository.ObjectLoader;
 import nablarch.core.repository.SystemRepository;
+import nablarch.core.util.map.CaseInsensitiveMap;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Rule;
@@ -21,8 +23,10 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -1525,7 +1529,14 @@ public class JsonDataParserTest {
             public Map<String, Object> load() {
                 return new HashMap<String, Object>() {{
                     JsonDataConvertorSetting setting = new JsonDataConvertorSetting();
-                    setting.getConvertorFactory().getConvertorTable().put("custom", CustomValueConvertor.class);
+                    setting.setJsonDataConvertorFactory(new JsonDataConvertorFactory() {
+                        protected Map<String, Class<?>> getDefaultConvertorTable() {
+                            final Map<String, Class<?>> defaultConvertorTable = new CaseInsensitiveMap<Class<?>>(
+                                    new ConcurrentHashMap<String, Class<?>>(super.getDefaultConvertorTable()));
+                            defaultConvertorTable.put("custom", CustomValueConvertor.class);
+                            return Collections.unmodifiableMap(defaultConvertorTable);
+                        }
+                    });
                     put("jsonDataConvertorSetting", setting);
                 }};
             }
@@ -1561,7 +1572,14 @@ public class JsonDataParserTest {
             public Map<String, Object> load() {
                 return new HashMap<String, Object>() {{
                     JsonDataConvertorSetting setting = new JsonDataConvertorSetting();
-                    setting.getConvertorFactory().getConvertorTable().put("CM", CustomDataType.class);
+                    setting.setJsonDataConvertorFactory(new JsonDataConvertorFactory() {
+                        protected Map<String, Class<?>> getDefaultConvertorTable() {
+                            final Map<String, Class<?>> defaultConvertorTable = new CaseInsensitiveMap<Class<?>>(
+                                    new ConcurrentHashMap<String, Class<?>>(super.getDefaultConvertorTable()));
+                            defaultConvertorTable.put("CM", CustomDataType.class);
+                            return Collections.unmodifiableMap(defaultConvertorTable);
+                        }
+                    });
                     put("jsonDataConvertorSetting", setting);
                 }};
             }

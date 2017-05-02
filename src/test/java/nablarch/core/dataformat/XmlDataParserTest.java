@@ -1,5 +1,6 @@
 package nablarch.core.dataformat;
 
+import nablarch.core.dataformat.convertor.XmlDataConvertorFactory;
 import nablarch.core.dataformat.convertor.XmlDataConvertorSetting;
 import nablarch.core.dataformat.convertor.datatype.CharacterStreamDataString;
 import nablarch.core.dataformat.convertor.datatype.DataType;
@@ -7,6 +8,7 @@ import nablarch.core.dataformat.convertor.value.ValueConvertor;
 import nablarch.core.dataformat.convertor.value.ValueConvertorSupport;
 import nablarch.core.repository.ObjectLoader;
 import nablarch.core.repository.SystemRepository;
+import nablarch.core.util.map.CaseInsensitiveMap;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,8 +23,10 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -2867,7 +2871,14 @@ public class XmlDataParserTest  {
             public Map<String, Object> load() {
                 return new HashMap<String, Object>() {{
                     XmlDataConvertorSetting setting = new XmlDataConvertorSetting();
-                    setting.getConvertorFactory().getConvertorTable().put("custom", CustomValueConvertor.class);
+                    setting.setXmlDataConvertorFactory(new XmlDataConvertorFactory() {
+                        protected Map<String, Class<?>> getDefaultConvertorTable() {
+                            final Map<String, Class<?>> defaultConvertorTable = new CaseInsensitiveMap<Class<?>>(
+                                    new ConcurrentHashMap<String, Class<?>>(super.getDefaultConvertorTable()));
+                            defaultConvertorTable.put("custom", CustomValueConvertor.class);
+                            return Collections.unmodifiableMap(defaultConvertorTable);
+                        }
+                    });
                     put("xmlDataConvertorSetting", setting);
                 }};
             }
@@ -2905,7 +2916,14 @@ public class XmlDataParserTest  {
             public Map<String, Object> load() {
                 return new HashMap<String, Object>() {{
                     XmlDataConvertorSetting setting = new XmlDataConvertorSetting();
-                    setting.getConvertorFactory().getConvertorTable().put("CM", CustomDataType.class);
+                    setting.setXmlDataConvertorFactory(new XmlDataConvertorFactory() {
+                        protected Map<String, Class<?>> getDefaultConvertorTable() {
+                            final Map<String, Class<?>> defaultConvertorTable = new CaseInsensitiveMap<Class<?>>(
+                                    new ConcurrentHashMap<String, Class<?>>(super.getDefaultConvertorTable()));
+                            defaultConvertorTable.put("CM", CustomDataType.class);
+                            return Collections.unmodifiableMap(defaultConvertorTable);
+                        }
+                    });
                     put("xmlDataConvertorSetting", setting);
                 }};
             }

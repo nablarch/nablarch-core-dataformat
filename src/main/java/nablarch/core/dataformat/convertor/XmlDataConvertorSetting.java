@@ -56,5 +56,13 @@ public class XmlDataConvertorSetting implements ConvertorSetting {
         factory.setConvertorTable(table);
         return this;
     }
+
+    /**
+     * {@link XmlDataConvertorFactory}を設定する
+     * @param factory {@link XmlDataConvertorFactory}
+     */
+    public void setXmlDataConvertorFactory(final XmlDataConvertorFactory factory) {
+        this.factory = factory;
+    }
     
 }

@@ -18,4 +18,18 @@
       <component class="nablarch.core.dataformat.convertor.logicbased.LogicBasedFixedLengthConvertorFactory" />
     </property>
   </component>
+
+  <component name="jsonDataConvertorSetting"
+             class="nablarch.core.dataformat.convertor.JsonDataConvertorSetting">
+    <property name="jsonDataConvertorFactory">
+      <component class="nablarch.core.dataformat.convertor.logicbased.LogicBasedJsonDataConvertorFactory" />
+    </property>
+  </component>
+
+  <component name="xmlDataConvertorSetting"
+             class="nablarch.core.dataformat.convertor.XmlDataConvertorSetting">
+    <property name="xmlDataConvertorFactory">
+      <component class="nablarch.core.dataformat.convertor.logicbased.LogicBasedXmlDataConvertorFactory" />
+    </property>
+  </component>
 </component-configuration>
