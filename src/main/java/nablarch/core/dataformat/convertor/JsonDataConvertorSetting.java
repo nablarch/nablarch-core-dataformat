@@ -56,4 +56,12 @@ public class JsonDataConvertorSetting implements ConvertorSetting {
         factory.setConvertorTable(table);
         return this;
     }
+
+    /**
+     * {@link JsonDataConvertorFactory}を設定する。
+     * @param factory {@link JsonDataConvertorFactory}
+     */
+    public void setJsonDataConvertorFactory(final JsonDataConvertorFactory factory) {
+        this.factory = factory;
+    }
 }

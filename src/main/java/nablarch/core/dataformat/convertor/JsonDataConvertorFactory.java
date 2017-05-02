@@ -10,6 +10,7 @@ import nablarch.core.dataformat.convertor.value.CharacterReplacer;
 import nablarch.core.dataformat.convertor.value.DefaultValue;
 import nablarch.core.dataformat.convertor.value.ExponentialNumberString;
 import nablarch.core.dataformat.convertor.value.ExponentialSignedNumberString;
+import nablarch.core.util.annotation.Published;
 import nablarch.core.util.map.CaseInsensitiveMap;
 
 /**
@@ -23,6 +24,7 @@ public class JsonDataConvertorFactory extends ConvertorFactorySupport {
      * @return JSONデータのデフォルトのコンバータ名とコンバータ実装クラスの対応表
      */
     @Override
+    @Published(tag = "architect")
     protected Map<String, Class<?>> getDefaultConvertorTable() {
         return DEFAULT_CONVERTOR_TABLE;
     }
