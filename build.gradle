@@ -39,7 +39,12 @@ dependencies {
   testCompile 'org.hamcrest:hamcrest-all:1.3'
   testCompile(group: 'com.nablarch.framework', name: 'nablarch-testing', version: "${nablarchTestingVersion}") {
     exclude group: 'junit', module: 'junit'
+    exclude group: 'com.nablarch.framework', module: 'nablarch-common-dao'
+    exclude group: 'com.nablarch.framework', module: 'nablarch-fw-web-extension'
   }
+  testCompile 'com.nablarch.dev:nablarch-test-support:0.0.8'
+  testCompile (group: 'com.nablarch.framework', name: 'nablarch-core-repository', version: "${nablarchCoreRepositoryVersion}");
+  testCompile (group: 'com.nablarch.framework', name: 'nablarch-core-applog', version: "${nablarchCoreApplogVersion}")
   testRuntime files('src/test/java/')
 
 
