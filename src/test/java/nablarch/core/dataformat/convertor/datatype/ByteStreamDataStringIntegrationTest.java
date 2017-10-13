@@ -9,11 +9,11 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.*;
 
-import static nablarch.test.StringMatcher.endsWith;
-import static nablarch.test.StringMatcher.startsWith;
+import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.Assert.assertThat;

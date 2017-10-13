@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -12,8 +13,6 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
-
-import org.apache.activemq.util.ByteArrayInputStream;
 
 import nablarch.core.dataformat.StructuredDataRecordFormatterSupport.StructuredDataDirective;
 import nablarch.core.util.FileUtil;

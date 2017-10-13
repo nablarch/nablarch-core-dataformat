@@ -31,11 +31,11 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.Map;
 
-import static nablarch.test.StringMatcher.endsWith;
-import static nablarch.test.StringMatcher.startsWith;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
