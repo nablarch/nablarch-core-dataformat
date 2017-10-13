@@ -39,25 +39,6 @@
       <scope>test</scope>
     </dependency>
 
-    <!--<dependency>-->
-      <!--<groupId>com.nablarch.framework</groupId>-->
-      <!--<artifactId>nablarch-testing</artifactId>-->
-      <!--<scope>test</scope>-->
-      <!--<exclusions>-->
-        <!--<exclusion>-->
-          <!--<groupId>com.nablarch.framework</groupId>-->
-          <!--<artifactId>nablarch-fw-web-extension</artifactId>-->
-        <!--</exclusion>-->
-        <!--<exclusion>-->
-          <!--<groupId>com.nablarch.framework</groupId>-->
-          <!--<artifactId>nablarch-common-dao</artifactId>-->
-        <!--</exclusion>-->
-        <!--<exclusion>-->
-          <!--<artifactId>junit</artifactId>-->
-          <!--<groupId>junit</groupId>-->
-        <!--</exclusion>-->
-      <!--</exclusions>-->
-    <!--</dependency>-->
     <dependency>
       <groupId>com.nablarch.framework</groupId>
       <artifactId>nablarch-core-repository</artifactId>
