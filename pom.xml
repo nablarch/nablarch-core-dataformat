@@ -100,6 +100,7 @@
               <directory>${project.basedir}</directory>
               <includes>
                 <include>*.dat</include>
+                <include>temp</include>
               </includes>
             </fileset>
           </filesets>
