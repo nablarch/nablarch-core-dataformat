@@ -3,13 +3,12 @@ package nablarch.common.io;
 import static org.junit.Assert.fail;
 
 import mockit.Delegate;
+import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
 import mockit.Verifications;
 import nablarch.fw.ExecutionContext;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.internal.runners.statements.Fail;
 import org.junit.rules.TemporaryFolder;
 
 /**
@@ -33,7 +32,7 @@ public class FileRecordWriterDisposeHandlerTest {
     public void 往路と復路でそれぞれclose処理が実行されていること() throws Exception {
 
         // 後続のハンドラが実行される前にcloseAllが実行されていること
-        new NonStrictExpectations() {{
+        new Expectations() {{
             ctx.handleNext(null);
             result = new Delegate<Object>() {
                 public String delegate(Object obj) {
@@ -62,7 +61,7 @@ public class FileRecordWriterDisposeHandlerTest {
     public void 後続のハンドラ内で例外が発生しても復路でclose処理が実行されること() throws Exception {
 
         // 後続のハンドラ内で例外を投げる
-        new NonStrictExpectations() {{
+        new Expectations() {{
             ctx.handleNext(null);
             result = new Delegate<Object>() {
                 public String delegate(Object obj) {

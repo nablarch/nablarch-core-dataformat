@@ -1,6 +1,5 @@
 package nablarch.core.dataformat.convertor;
 
-import static nablarch.test.StringMatcher.startsWith;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;

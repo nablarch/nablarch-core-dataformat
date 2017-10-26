@@ -1,6 +1,5 @@
 package nablarch.core.dataformat.convertor.datatype;
 
-import static nablarch.test.StringMatcher.startsWith;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasProperty;
