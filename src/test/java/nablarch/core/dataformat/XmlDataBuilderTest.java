@@ -1,6 +1,8 @@
 package nablarch.core.dataformat;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.xmlunit.matchers.CompareMatcher.isIdenticalTo;
 
 import java.io.BufferedWriter;
@@ -8,8 +10,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
+import nablarch.core.dataformat.XmlDataBuilder.NestedKeys;
 import nablarch.core.repository.SystemRepository;
 import nablarch.core.repository.di.DiContainer;
 import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
@@ -2889,5 +2896,39 @@ public class XmlDataBuilderTest {
         expectedException.expect(SyntaxErrorException.class);
         expectedException.expectMessage("invalid encoding was specified by 'text-encoding' directive.");
         sut.buildData(input, getLayoutDefinition(), actual);
+    }
+
+    @Test
+    public void 元のMapのキーから部分キーが作られcontainsの判定ができる() {
+        HashMap<String, Object> input = new HashMap<String, Object>();
+        input.put("aaa[0].bbb[0].ccc", "value");
+        NestedKeys sut = new NestedKeys(input);
+        assertTrue(sut.contains("aaa[0]"));
+        assertTrue(sut.contains("aaa[0].bbb"));
+        assertTrue(sut.contains("aaa[0].bbb[0]"));
+        assertTrue(sut.contains("aaa[0].bbb[0].ccc"));
+    }
+
+    @Test
+    public void キーにドットが含まれない場合元のキーのcontainsが真となる() {
+        NestedKeys sut = new NestedKeys(createSet("aaa"));
+        assertTrue(sut.contains("aaa"));
+    }
+
+    @Test
+    public void 引数Mapがnullの場合containsは常に偽となる() {
+        NestedKeys sut = new NestedKeys((Map<String, ?>) null);
+        assertFalse(sut.contains("aaa"));
+        assertFalse(sut.contains(""));
+        assertFalse(sut.contains(null));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void 不正な形式のキーが含まれる場合_例外が発生する() {
+        new NestedKeys(createSet("a].bb"));
+    }
+
+    private Set<String> createSet(String... strings) {
+        return new HashSet<String>(Arrays.asList(strings));
     }
 }
