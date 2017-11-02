@@ -366,9 +366,9 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
          * @return 部分キー
          */
         private Set<String> createPartialKeys(String originalKey) {
-            Set<String> partialKeys = new HashSet<String>();
+            Set<String> keys = new HashSet<String>();
             // ドット区切りで要素に分割する
-            // "aaa[0].bbb[0].ccc" -> { "aaa[0]", "bbb[0]", "ccc" }
+            // 例："aaa[0].bbb[0].ccc" は { "aaa[0]", "bbb[0]", "ccc" } となる
             String[] split = originalKey.split("\\.");
             StringBuilder sb = new StringBuilder(originalKey.length());
             boolean first = true;
@@ -381,14 +381,14 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
                 first = false;
                 sb.append(split[i]);
                 String partialKey = sb.toString();
-                partialKeys.add(partialKey);
+                keys.add(partialKey);
                 // 最後から2番めの要素に添字がある場合、添字を取り除いたものも部分キーとする
                 if (i == last2 && partialKey.endsWith("]")) {
                     String keyWithoutIndex = partialKey.substring(0, partialKey.length() - 3);
-                    partialKeys.add(keyWithoutIndex);
+                    keys.add(keyWithoutIndex);
                 }
             }
-            return partialKeys;
+            return keys;
         }
     }
 }
