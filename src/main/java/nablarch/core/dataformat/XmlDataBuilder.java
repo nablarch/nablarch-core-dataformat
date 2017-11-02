@@ -157,7 +157,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
      * @param currentKeyBase キー名ベース
      * @param mapKey マップキー
      * @param map 出力対象マップ
-     * @param nestedKeys
+     * @param nestedKeys ネストしたキーの集合
      * @throws XMLStreamException XML出力に失敗した場合
      */
     private void writeObjectArray(XMLStreamWriter writer, LayoutDefinition ld, RecordDefinition nrd, FieldDefinition fd,
@@ -228,7 +228,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
      * @param mapKey マップキー
      * @param map 出力対象マップ
      * @param currentKeyBase キー名ベース
-     * @param nestedKeys 部分キーの集合
+     * @param nestedKeys ネストしたキーの集合
      * @throws XMLStreamException XML出力に失敗した場合
      */
     private void writeObject(XMLStreamWriter writer, LayoutDefinition ld, RecordDefinition nrd, FieldDefinition fd,
@@ -305,7 +305,11 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
      * - aaa[0].bbb[0]
      * の３つが部分キーとなる。
      *
-     * この状態で、contains("aaa[0].bbb")と呼び出すと真が返却される。
+     * この状態で、以下の{@link #contains(String)}呼び出しは真を返却する。
+     * - contains("aaa[0]")
+     * - contains("aaa[0].bbb")
+     * - contains("aaa[0].bbb[0]")
+     * - contains("aaa[0].bbb[0].ccc")
      */
     static class NestedKeys {
         /** 元のMapのキーの集合 */
