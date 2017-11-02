@@ -91,7 +91,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
      * @param ld フォーマット定義
      * @param rd レコードタイプ定義
      * @param writer XMLライタ
-     * @param nestedKeys 部分キーの集合
+     * @param nestedKeys ネストしたキーの集合
      * @throws XMLStreamException XML出力に失敗した場合
      * @throws InvalidDataFormatException 読み込んだデータがフォーマット定義に違反している場合
      */
@@ -295,20 +295,25 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
      * 元のキー文字列とその部分からなる部分キーを持ち、
      * 与えられたキー文字列が、元のキーか部分キーのいずれかに合致するか判定する。
      *
+     * 本クラスは、XML書き出し要否の判定高速化のために導入された。
+     * MapのkeySetをループで回して {@link String#startsWith(String)}で判定すると、非常に処理が遅くなるため、
+     * 件数の増加に対して計算量が一定となるように考慮している。
+     *
      * 元のキー文字列が以下のようになっているとする。
-     * - aaa[0].bbb[0].ccc
+     * (ルート要素は"aaa"とする）
+     * - bbb[0].ccc[0].ddd
      *
      * この場合、
-     * - aaa[0]
-     * - aaa[0].bbb
-     * - aaa[0].bbb[0]
+     * - bbb[0]
+     * - bbb[0].ccc
+     * - bbb[0].ccc[0]
      * の３つが部分キーとなる。
      *
      * この状態で、以下の{@link #contains(String)}呼び出しは真を返却する。
-     * - contains("aaa[0]")
-     * - contains("aaa[0].bbb")
-     * - contains("aaa[0].bbb[0]")
-     * - contains("aaa[0].bbb[0].ccc")
+     * - contains("bbb[0]")
+     * - contains("bbb[0].ccc")
+     * - contains("bbb[0].ccc[0]")
+     * - contains("bbb[0].ccc[0].ddd")
      */
     static class NestedKeys {
         /** 元のMapのキーの集合 */
@@ -345,7 +350,11 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
             return partialKeys.contains(key) || originalKeys.contains(key);
         }
 
-
+        /**
+         * 全ての部分キーを生成する。
+         * @param originalKeys 元のキーの集合
+         * @return 全ての部分キーの集合
+         */
         private Set<String> createAllPartialKeys(Set<String> originalKeys) {
             Set<String> all = new HashSet<String>();
             for (String orig : originalKeys) {
@@ -360,7 +369,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
         }
 
         /**
-         * 与えられたキーから、その部分キーを生成する。
+         * 与えられた単一のキーから、その部分キーを生成する。
          *
          * @param originalKey 元のキー
          * @return 部分キー
