@@ -240,8 +240,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
                     currentKeyBase, fd.getName()));
         }
 
-        boolean containsKey = (map != null && nestedKeys.contains(mapKey));
-        if (containsKey) {
+        if (nestedKeys.contains(mapKey)) {
             // 子オブジェクトを出力
             writer.writeStartElement(fd.getName());
             buildXml(mapKey, map, ld, nrd, writer, nestedKeys);
