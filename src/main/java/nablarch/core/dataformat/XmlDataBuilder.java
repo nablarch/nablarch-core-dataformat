@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -18,7 +21,7 @@ import nablarch.core.util.StringUtil;
 /**
  * XMLパーサー。<br>
  * この実装ではStAXを使用してXMLデータの構築を行います。
- * 
+ *
  * @author TIS
  */
 public class XmlDataBuilder extends StructuredDataEditorSupport implements StructuredDataBuilder {
@@ -28,7 +31,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
 
     /** 属性あり要素のコンテンツ名(デフォルトはbody) */
     private String contentName = "body";
-    
+
     /**
      * コンストラクタ
      */
@@ -47,7 +50,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
 
     /**
      * XML文字列を作成します。
-     * 
+     *
      * @param map フラットマップ
      * @param layoutDef フォーマット定義
      * @param out XML文字列出力先ストリーム
@@ -61,14 +64,15 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
         XMLOutputFactory factory = XMLOutputFactory.newInstance();
 
         try {
-            String textEncoding = 
+            String textEncoding =
                     StructuredDataDirective.getTextEncoding(layoutDef.getDirective());
             XMLStreamWriter writer = factory
                     .createXMLStreamWriter(new OutputStreamWriter(out, textEncoding));
 
             writer.writeStartDocument(textEncoding, TARGET_XML_VERSION);
             writer.writeStartElement(rd.getTypeName());
-            buildXml("", map, layoutDef, rd, writer);
+            NestedKeys nestedKeys = new NestedKeys(map);
+            buildXml("", map, layoutDef, rd, writer, nestedKeys);
             writer.writeEndElement();
             writer.writeEndDocument();
             writer.close();
@@ -81,17 +85,18 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
 
     /**
      * XMLを構築します。
-     * 
+     *
      * @param currentKeyBase キー名ベース
      * @param map 出力対象マップ
      * @param ld フォーマット定義
      * @param rd レコードタイプ定義
      * @param writer XMLライタ
+     * @param nestedKeys ネストしたキーの集合
      * @throws XMLStreamException XML出力に失敗した場合
      * @throws InvalidDataFormatException 読み込んだデータがフォーマット定義に違反している場合
      */
     private void buildXml(String currentKeyBase, Map<String, ?> map,
-            LayoutDefinition ld, RecordDefinition rd, XMLStreamWriter writer) 
+            LayoutDefinition ld, RecordDefinition rd, XMLStreamWriter writer, NestedKeys nestedKeys)
             throws XMLStreamException, InvalidDataFormatException {
 
         // 属性が先頭になるように組み替え
@@ -119,13 +124,13 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
                 // レコード定義を取得
                 if (fd.getName().equals(contentName)) {
                     // コンテンツを表す項目の場合は配列を許容しない
-                    throw new InvalidDataFormatException("Array type can not be specified in the content." 
+                    throw new InvalidDataFormatException("Array type can not be specified in the content."
                             + " parent name: " + currentKeyBase + ",field name: " + fd.getName());
                 }
                 if (nrd != null) {
                     // ObjectArray
-                    writeObjectArray(writer, ld, nrd, fd, currentKeyBase, mapKey, map);
-                    
+                    writeObjectArray(writer, ld, nrd, fd, currentKeyBase, mapKey, map, nestedKeys);
+
                 } else {
                     // StringArray
                     writeStringArray(writer, fd, currentKeyBase, mapKey, map);
@@ -133,8 +138,8 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
             } else {
                 if (nrd != null) {
                     // Object
-                    writeObject(writer, ld, nrd, fd, mapKey, map, currentKeyBase);
-                    
+                    writeObject(writer, ld, nrd, fd, mapKey, map, currentKeyBase, nestedKeys);
+
                 } else {
                     // Value
                     writeValue(writer, fd, mapKey, map, currentKeyBase);
@@ -142,7 +147,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
             }
         }
     }
-    
+
     /**
      * オブジェクト配列の出力処理です
      * @param writer XMLライタ
@@ -152,10 +157,11 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
      * @param currentKeyBase キー名ベース
      * @param mapKey マップキー
      * @param map 出力対象マップ
+     * @param nestedKeys ネストしたキーの集合
      * @throws XMLStreamException XML出力に失敗した場合
      */
-    private void writeObjectArray(XMLStreamWriter writer, LayoutDefinition ld, RecordDefinition nrd, FieldDefinition fd, 
-            String currentKeyBase, String mapKey, Map<String, ?> map) throws XMLStreamException {
+    private void writeObjectArray(XMLStreamWriter writer, LayoutDefinition ld, RecordDefinition nrd, FieldDefinition fd,
+                                  String currentKeyBase, String mapKey, Map<String, ?> map, NestedKeys nestedKeys) throws XMLStreamException {
         int objectCount = 0;
         for (int i = 0;; i++) {
             // 対象キーがひとつでも含まれていれば出力対象とする
@@ -163,7 +169,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
             for (FieldDefinition nfd : nrd.getFields()) {
                 String tmpSubKey = FieldDefinitionUtil.normalizeWithNonWordChar(nfd.getName().replaceAll("@|\\[.*\\]", ""));
                 String tmpkey = String.format("%s[%s].%s", mapKey, i, tmpSubKey);
-                if (startsWithKey(map, tmpkey)) {
+                if (nestedKeys.contains(tmpkey)) {
                     isOut = true;
                     break;
                 }
@@ -171,7 +177,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
 
             if (isOut) {
                 writer.writeStartElement(fd.getName());
-                buildXml(String.format("%s[%s]", mapKey, i), map, ld, nrd, writer);
+                buildXml(String.format("%s[%s]", mapKey, i), map, ld, nrd, writer, nestedKeys);
                 writer.writeEndElement();
                 objectCount++;
             } else {
@@ -180,27 +186,6 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
         }
         // 配列の長さチェック実施
         checkArrayLength(fd, objectCount, currentKeyBase);
-    }
-
-    /**
-     * Map内に指定のキーから始まっている要素があるかどうか
-     * @param map Map
-     * @param prefix キー
-     * @return 存在している場合はtrue
-     */
-    private boolean startsWithKey(final Map<String, ?> map, final String prefix) {
-        if (map == null) {
-            return false;
-        }
-
-        final String withSeparator = prefix + '.';
-        final String withArray = prefix + '[';
-        for (final String key : map.keySet()) {
-            if (key.equals(prefix) || key.startsWith(withSeparator) || key.startsWith(withArray)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -233,7 +218,7 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
             checkIndispensable(currentKeyBase, fd, null);
         }
     }
-    
+
     /**
      * オブジェクトの出力処理です
      * @param writer XMLライタ
@@ -243,39 +228,29 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
      * @param mapKey マップキー
      * @param map 出力対象マップ
      * @param currentKeyBase キー名ベース
+     * @param nestedKeys ネストしたキーの集合
      * @throws XMLStreamException XML出力に失敗した場合
      */
-    private void writeObject(XMLStreamWriter writer, LayoutDefinition ld, RecordDefinition nrd, FieldDefinition fd, 
-            String mapKey, Map<String, ?> map, String currentKeyBase) throws XMLStreamException {
+    private void writeObject(XMLStreamWriter writer, LayoutDefinition ld, RecordDefinition nrd, FieldDefinition fd,
+            String mapKey, Map<String, ?> map, String currentKeyBase, NestedKeys nestedKeys) throws XMLStreamException {
         // 属性チェック実施
         if (fd.isAttribute()) {
             throw new InvalidDataFormatException(String.format(
                     "BaseKey = %s,Field %s is Object but specified by Attribute",
                     currentKeyBase, fd.getName()));
         }
-        
-        // 必須チェック実施
-        boolean containsKey = false;
-        if (map != null) {
-            for (String key : map.keySet()) {
-                if (key.startsWith(mapKey)) {
-                    containsKey = true;
-                    break;
-                }
-            }
-        }
-        if (!containsKey) {
-            checkIndispensable(currentKeyBase, fd, null);
-        }
 
-        if (containsKey) {
+        if (nestedKeys.contains(mapKey)) {
             // 子オブジェクトを出力
             writer.writeStartElement(fd.getName());
-            buildXml(mapKey, map, ld, nrd, writer);
+            buildXml(mapKey, map, ld, nrd, writer, nestedKeys);
             writer.writeEndElement();
+        } else {
+            // 必須チェック実施
+            checkIndispensable(currentKeyBase, fd, null);
         }
     }
-    
+
     /**
      * 値の出力処理です
      * @param writer XMLライタ
@@ -312,6 +287,117 @@ public class XmlDataBuilder extends StructuredDataEditorSupport implements Struc
                 writer.writeCharacters(writeStringVal);
                 writer.writeEndElement();
             }
+        }
+    }
+
+    /**
+     * ネストしたキーの集合を表すクラス。
+     * 元のキー文字列とその部分からなる部分キーを持ち、
+     * 与えられたキー文字列が、元のキーか部分キーのいずれかに合致するか判定する。
+     *
+     * 本クラスは、XML書き出し要否の判定高速化のために導入された。
+     * MapのkeySetをループで回して {@link String#startsWith(String)}で判定すると、非常に処理が遅くなるため、
+     * 件数の増加に対して計算量が一定となるように考慮している。
+     *
+     * 元のキー文字列が以下のようになっているとする。
+     * (ルート要素は"aaa"とする）
+     * - bbb[0].ccc[0].ddd
+     *
+     * この場合、
+     * - bbb[0]
+     * - bbb[0].ccc
+     * - bbb[0].ccc[0]
+     * の３つが部分キーとなる。
+     *
+     * この状態で、以下の{@link #contains(String)}呼び出しは真を返却する。
+     * - contains("bbb[0]")
+     * - contains("bbb[0].ccc")
+     * - contains("bbb[0].ccc[0]")
+     * - contains("bbb[0].ccc[0].ddd")
+     */
+    static class NestedKeys {
+        /** 元のMapのキーの集合 */
+        private final Set<String> originalKeys;
+        /** 生成された部分キーの集合 */
+        private final Set<String> partialKeys;
+
+        /**
+         * Mapからインスタンスを生成する。
+         * 与えられたMapがnullの場合、{@link #contains(String)}は常に偽となる。
+         *
+         * @param originalMap 元のMap
+         */
+        NestedKeys(Map<String, ?> originalMap) {
+            this(originalMap != null ? originalMap.keySet() : Collections.<String>emptySet());
+        }
+
+        /**
+         * 元のキーの集合からインスタンスを生成する。
+         * @param originalKeys 元のキーの集合
+         */
+        NestedKeys(Set<String> originalKeys) {
+            this.originalKeys = originalKeys;
+            this.partialKeys = createAllPartialKeys(originalKeys);
+        }
+
+        /**
+         * 指定されたキーが、部分キーのいずれがに一致する場合、または元のキーと一致するか判定する。
+         *
+         * @param key 判定対象のキー
+         * @return 一致する場合、真
+         */
+        boolean contains(String key) {
+            return partialKeys.contains(key) || originalKeys.contains(key);
+        }
+
+        /**
+         * 全ての部分キーを生成する。
+         * @param originalKeys 元のキーの集合
+         * @return 全ての部分キーの集合
+         */
+        private Set<String> createAllPartialKeys(Set<String> originalKeys) {
+            Set<String> all = new HashSet<String>();
+            for (String orig : originalKeys) {
+                try {
+                    all.addAll(createPartialKeys(orig));
+                } catch (RuntimeException e) {
+                    // キーの形式が不正である場合を想定(例:"a].bbb")
+                    throw new IllegalArgumentException("failed to process key \"" + orig + "\"", e);
+                }
+            }
+            return all;
+        }
+
+        /**
+         * 与えられた単一のキーから、その部分キーを生成する。
+         *
+         * @param originalKey 元のキー
+         * @return 部分キー
+         */
+        private Set<String> createPartialKeys(String originalKey) {
+            Set<String> keys = new HashSet<String>();
+            // ドット区切りで要素に分割する
+            // 例："aaa[0].bbb[0].ccc" は { "aaa[0]", "bbb[0]", "ccc" } となる
+            String[] split = originalKey.split("\\.");
+            StringBuilder sb = new StringBuilder(originalKey.length());
+            boolean first = true;
+            final int last = split.length - 1;   // 一番最後の要素
+            final int last2 = last - 1;          // 最後から2番目の要素
+            for (int i = 0; i < last; i++) {
+                if (!first) {
+                    sb.append(".");
+                }
+                first = false;
+                sb.append(split[i]);
+                String partialKey = sb.toString();
+                keys.add(partialKey);
+                // 最後から2番めの要素に添字がある場合、添字を取り除いたものも部分キーとする
+                if (i == last2 && partialKey.endsWith("]")) {
+                    String keyWithoutIndex = partialKey.substring(0, partialKey.length() - 3);
+                    keys.add(keyWithoutIndex);
+                }
+            }
+            return keys;
         }
     }
 }
