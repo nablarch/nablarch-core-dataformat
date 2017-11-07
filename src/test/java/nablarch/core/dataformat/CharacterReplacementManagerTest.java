@@ -9,6 +9,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
+import nablarch.core.ThreadContext;
 import nablarch.core.repository.SystemRepository;
 import nablarch.core.repository.di.ComponentDefinitionLoader;
 import nablarch.core.repository.di.DiContainer;
@@ -212,7 +213,7 @@ public class CharacterReplacementManagerTest {
     @Test
     public void testInvalidByteLength() throws Exception {
 
-        String filePath = "classpath:nablarch/core/dataformat/type_invalid_byte_length.properties";
+        String filePath = "classpath:nablarch/core/dataformat/type_invalid_byte_length2.properties";
         String typeName = "type_invalid";
         String encoding = "ms932";
 
@@ -232,7 +233,7 @@ public class CharacterReplacementManagerTest {
 
         expectedException.expect(IllegalStateException.class);
         expectedException.expectMessage("length of the byte string after the conversion is invalid. "
-                + "property file=[classpath:nablarch/core/dataformat/type_invalid_byte_length.properties], type name=[type_invalid], encoding=[ms932], "
+                + "property file=[classpath:nablarch/core/dataformat/type_invalid_byte_length2.properties], type name=[type_invalid], encoding=[ms932], "
                 + "from: {character=[~], bytes=[126], byte length=[1], unicode character=[~](\\u007e)}, "
                 + "to: {character=[■], bytes=[-127, -95], bytes length=[2]}, unicode character=[■](\\u25a0)}.");
         characterUtil.initialize();
