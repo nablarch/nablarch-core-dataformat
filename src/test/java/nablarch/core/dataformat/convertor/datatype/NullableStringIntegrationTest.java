@@ -71,12 +71,12 @@ public class NullableStringIntegrationTest {
         );
         createFormatter(formatFile);
 
-        final InputStream inputStream = new ByteArrayInputStream("<Default><string>ABC</string></Default>".getBytes("UTF-8"));
+        final InputStream inputStream = new ByteArrayInputStream("<Default><string>ABC\uD840\uDC0B</string></Default>".getBytes("UTF-8"));
         formatter.setInputStream(inputStream)
                 .initialize();
 
         DataRecord record = formatter.readRecord();
-        assertThat(record.getString("string"), is("ABC"));
+        assertThat(record.getString("string"), is("ABC\uD840\uDC0B"));
     }
 
     /**
@@ -101,10 +101,10 @@ public class NullableStringIntegrationTest {
                 .initialize();
 
         DataRecord record = new DataRecord();
-        record.put("string", "ABC");
+        record.put("string", "ABC\uD840\uDC0B");
         formatter.writeRecord(record);
 
-        assertThat(outputStream.toString("UTF-8"), is(containsString("<Default><string>ABC</string></Default>")));
+        assertThat(outputStream.toString("UTF-8"), is(containsString("<Default><string>ABC&#x2000b;</string></Default>")));
     }
 
     /**
@@ -149,7 +149,7 @@ public class NullableStringIntegrationTest {
                 "text-encoding: \"UTF-8\"",
                 "",
                 "[Default]",
-                "1    string     X  \"abc\" "
+                "1    string     X  \"abc\uD840\uDC0B\" "
         );
         createFormatter(formatFile);
 
@@ -161,6 +161,6 @@ public class NullableStringIntegrationTest {
         record.put("string", null);
         formatter.writeRecord(record);
 
-        assertThat(outputStream.toString("UTF-8"), is(containsString("<string>abc</string>")));
+        assertThat(outputStream.toString("UTF-8"), is(containsString("<string>abc&#x2000b;</string>")));
     }
 }

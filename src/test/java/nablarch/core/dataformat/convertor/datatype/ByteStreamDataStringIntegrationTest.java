@@ -92,6 +92,36 @@ public class ByteStreamDataStringIntegrationTest {
     }
 
     /**
+     * 正常系の読込テスト(utf8。サロゲートペア)。
+     */
+    @Test
+    public void testReadSurrogatePair() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"utf-8\"",
+                "record-length: 6",
+                "",
+                "[Default]",
+                "1    byteStreamString     XN(6)   "
+        );
+        createFormatter(formatFile);
+
+        final InputStream inputStream = new ByteArrayInputStream("\uD840\uDC0B  \uD840\uDC0A        ".getBytes("utf-8"));
+        formatter.setInputStream(inputStream)
+                .initialize();
+
+        DataRecord record = formatter.readRecord();
+        assertThat(record.getString("byteStreamString"), is("\uD840\uDC0B"));
+        record = formatter.readRecord();
+        assertThat(record.getString("byteStreamString"), is("\uD840\uDC0A"));
+        record = formatter.readRecord();
+        assertThat(record.getString("byteStreamString"), is(nullValue()));
+    }
+
+    /**
      * 正常系の書き込みテスト。
      */
     @Test
@@ -120,6 +150,38 @@ public class ByteStreamDataStringIntegrationTest {
         formatter.writeRecord(record);
 
         assertThat(outputStream.toString("sjis"), is("012345678901αあ名  "));
+    }
+
+
+    /**
+     * 正常系の書き込みテスト(utf8。サロゲートペア)。
+     */
+    @Test
+    public void testWriteSurrogatePair() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"utf-8\"",
+                "record-length: 6",
+                "",
+                "[Default]",
+                "1    byteStreamString     XN(6)   "
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord();
+        record.put("byteStreamString", "\uD840\uDC0B");
+        formatter.writeRecord(record);
+        record.put("byteStreamString", "\uD840\uDC0A");
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toString("utf-8"), is("\uD840\uDC0B  \uD840\uDC0A  "));
     }
 
     /**
@@ -154,7 +216,7 @@ public class ByteStreamDataStringIntegrationTest {
 
     /**
      * 出力対象がnullの場合に
-     * シングルバイト・ダブルバイト・３バイト文字が混在したデフォルト値を書き込めることのテスト。
+     * シングルバイト・ダブルバイト・３バイト文字、サロゲートペアが混在したデフォルト値を書き込めることのテスト。
      */
     @Test
     public void testWriteMultiByteWithDefaultValue() throws Exception {
@@ -164,10 +226,10 @@ public class ByteStreamDataStringIntegrationTest {
         createFile(formatFile,
                 "file-type:    \"Fixed\"",
                 "text-encoding: \"utf8\"",
-                "record-length: 10",
+                "record-length: 14",
                 "",
                 "[Default]",
-                "1    byteStreamString     XN(10)  \"123А名\" "
+                "1    byteStreamString     XN(14)  \"123А名\uD840\uDC0B\" "
         );
         createFormatter(formatFile);
 
@@ -179,7 +241,7 @@ public class ByteStreamDataStringIntegrationTest {
         record.put("byteStreamString", null);
         formatter.writeRecord(record);
 
-        assertThat(outputStream.toString("utf8"), is("123А名  "));
+        assertThat(outputStream.toString("utf8"), is("123А名\uD840\uDC0B  "));
     }
 
     /**

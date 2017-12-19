@@ -82,12 +82,12 @@ public class ByteStreamDataStringTest {
     }
 
     /**
-     * シングル・ダブル・マルチバイト混合文字が読み込めること。
+     * シングル・ダブル・マルチバイト、サロゲートペア混合文字が読み込めること。
      */
     @Test
     public void testReadCombinationByteString() throws Exception {
-        sut.init(field, 10);
-        assertThat(sut.convertOnRead("01α名武2β4羅5678".getBytes("utf-8")), is("01α名武2β4羅5678"));
+        sut.init(field, 27);
+        assertThat(sut.convertOnRead("01α名武2β4羅5678\uD840\uDC0B9".getBytes("utf-8")), is("01α名武2β4羅5678\uD840\uDC0B9"));
     }
 
     /**
@@ -96,7 +96,7 @@ public class ByteStreamDataStringTest {
     @Test
     public void testReadNoLeftTrim() throws Exception {
         sut.init(field, 10);
-        assertThat(sut.convertOnRead("    0α名".getBytes("utf-8")), is("    0α名"));
+        assertThat(sut.convertOnRead("    0α名\uD840\uDC0B".getBytes("utf-8")), is("    0α名\uD840\uDC0B"));
     }
 
     /**
@@ -105,7 +105,7 @@ public class ByteStreamDataStringTest {
     @Test
     public void testReadTrimDefault() throws Exception {
         sut.init(field, 10);
-        assertThat(sut.convertOnRead("0α名    ".getBytes("utf-8")), is("0α名"));
+        assertThat(sut.convertOnRead("0α名\uD840\uDC0B    ".getBytes("utf-8")), is("0α名\uD840\uDC0B"));
     }
 
     /**
@@ -114,7 +114,7 @@ public class ByteStreamDataStringTest {
     @Test
     public void testReadTrim() throws Exception {
         sut.init(new FieldDefinition().setEncoding(Charset.forName("utf-8")).setPaddingValue("0"), 10);
-        assertThat(sut.convertOnRead("1α名0000".getBytes("utf-8")), is("1α名"));
+        assertThat(sut.convertOnRead("1α名\uD840\uDC0B0000".getBytes("utf-8")), is("1α名\uD840\uDC0B"));
     }
 
     /**
@@ -155,12 +155,21 @@ public class ByteStreamDataStringTest {
     }
 
     /**
-     * シングル・ダブル・マルチバイト混合文字が書き込めること。
+     * ４バイト文字(サロゲートペア)が書き込めること。
+     */
+    @Test
+    public void testWriteSurrogatePairString() throws Exception {
+        sut.init(field, 8);
+        assertThat(sut.convertOnWrite("\uD840\uDC0B\uD840\uDC0A"), is("\uD840\uDC0B\uD840\uDC0A".getBytes("utf-8")));
+    }
+
+    /**
+     * シングル・ダブル・マルチバイト、サロゲートペア混合文字が書き込めること。
      */
     @Test
     public void testWriteCombinationByteString() throws Exception {
-        sut.init(field, 20);
-        assertThat(sut.convertOnWrite("01α名武2β4羅567"), is("01α名武2β4羅567".getBytes("utf-8")));
+        sut.init(field, 28);
+        assertThat(sut.convertOnWrite("01α名武2β4羅567\uD840\uDC0B\uD840\uDC0A"), is("01α名武2β4羅567\uD840\uDC0B\uD840\uDC0A".getBytes("utf-8")));
     }
 
     /**
@@ -186,8 +195,8 @@ public class ByteStreamDataStringTest {
      */
     @Test
     public void testWritePadding() throws Exception {
-        sut.init(field.setPaddingValue("0"), 10);
-        assertThat(sut.convertOnWrite("1α名"), is("1α名0000".getBytes("utf-8")));
+        sut.init(field.setPaddingValue("0"), 12);
+        assertThat(sut.convertOnWrite("1α名\uD840\uDC0B"), is("1α名\uD840\uDC0B00".getBytes("utf-8")));
     }
 
     /**
