@@ -104,8 +104,8 @@ public class CharacterReplacerIntegrationTest {
     /** フォーマッタを生成する。 */
     private void createFormatter(File file) {
         formatter = FormatterFactory.getInstance()
-                .setCacheLayoutFileDefinition(false)
-                .createFormatter(file);
+                                    .setCacheLayoutFileDefinition(false)
+                                    .createFormatter(file);
     }
 
     private void createFile(File formatFile, String encoding, String... lines) throws Exception {
@@ -126,9 +126,9 @@ public class CharacterReplacerIntegrationTest {
         final StringBuilder builder = new StringBuilder();
         for (final String string : strings) {
             builder.append('"')
-                    .append(string)
-                    .append('"')
-                    .append(',');
+                   .append(string)
+                   .append('"')
+                   .append(',');
         }
         return builder.substring(0, builder.length() - 1);
     }
@@ -166,7 +166,7 @@ public class CharacterReplacerIntegrationTest {
         assertThat(first.getString("str2"), is("DEF"));
         assertThat(first.getString("str3"), is("あ髙﨑"));
         assertThat(CharacterReplacementUtil.getResult("str2")
-                .isReplacement(), is(false));
+                                           .isReplacement(), is(false));
 
         final DataRecord second = formatter.readRecord();
         assertThat(second.getString("str1"), is("002"));
@@ -210,7 +210,7 @@ public class CharacterReplacerIntegrationTest {
         createFormatter(formatFile);
 
         formatter.setInputStream(new FileInputStream(inputFile))
-                .initialize();
+                 .initialize();
 
         final DataRecord record = formatter.readRecord();
         assertThat(record.getString("str1"), is("001"));
@@ -243,7 +243,7 @@ public class CharacterReplacerIntegrationTest {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         createFormatter(formatFile);
         formatter.setOutputStream(outputStream)
-                .initialize();
+                 .initialize();
 
         final DataRecord record1 = new DataRecord();
         record1.put("str1", "001");
@@ -283,7 +283,7 @@ public class CharacterReplacerIntegrationTest {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         createFormatter(formatFile);
         formatter.setOutputStream(outputStream)
-                .initialize();
+                 .initialize();
 
         final DataRecord record1 = new DataRecord();
         record1.put("str1", "001\\");
