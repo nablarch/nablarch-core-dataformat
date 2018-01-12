@@ -61,13 +61,6 @@ public class CharacterReplacerIntegrationTest {
         zenkaku.setEncoding("ms932");
         zenkaku.setByteLengthCheck(true);
 
-        final CharacterReplacementConfig zenkakuSurrogatePairUtf8 = new CharacterReplacementConfig();
-        zenkakuSurrogatePairUtf8.setTypeName("type_zenkaku_surrogate_pair_utf8");
-        zenkakuSurrogatePairUtf8.setFilePath("classpath:nablarch/core/dataformat/type_zenkaku_surrogate_pair_utf8.properties");
-        zenkakuSurrogatePairUtf8.setEncoding("utf-8");
-        zenkakuSurrogatePairUtf8.setByteLengthCheck(true);
-
-
         final CharacterReplacementConfig hankaku = new CharacterReplacementConfig();
         hankaku.setTypeName("type_hankaku");
         hankaku.setFilePath("classpath:nablarch/core/dataformat/type_hankaku.properties");
@@ -83,7 +76,6 @@ public class CharacterReplacerIntegrationTest {
         final CharacterReplacementManager characterReplacementManager = new CharacterReplacementManager();
         characterReplacementManager.setConfigList(new ArrayList<CharacterReplacementConfig>() {{
             add(zenkaku);
-            add(zenkakuSurrogatePairUtf8);
             add(hankaku);
             add(hankaku2);
         }});
@@ -112,8 +104,8 @@ public class CharacterReplacerIntegrationTest {
     /** フォーマッタを生成する。 */
     private void createFormatter(File file) {
         formatter = FormatterFactory.getInstance()
-                                    .setCacheLayoutFileDefinition(false)
-                                    .createFormatter(file);
+                .setCacheLayoutFileDefinition(false)
+                .createFormatter(file);
     }
 
     private void createFile(File formatFile, String encoding, String... lines) throws Exception {
@@ -134,9 +126,9 @@ public class CharacterReplacerIntegrationTest {
         final StringBuilder builder = new StringBuilder();
         for (final String string : strings) {
             builder.append('"')
-                   .append(string)
-                   .append('"')
-                   .append(',');
+                    .append(string)
+                    .append('"')
+                    .append(',');
         }
         return builder.substring(0, builder.length() - 1);
     }
@@ -174,7 +166,7 @@ public class CharacterReplacerIntegrationTest {
         assertThat(first.getString("str2"), is("DEF"));
         assertThat(first.getString("str3"), is("あ髙﨑"));
         assertThat(CharacterReplacementUtil.getResult("str2")
-                                           .isReplacement(), is(false));
+                .isReplacement(), is(false));
 
         final DataRecord second = formatter.readRecord();
         assertThat(second.getString("str1"), is("002"));
@@ -218,7 +210,7 @@ public class CharacterReplacerIntegrationTest {
         createFormatter(formatFile);
 
         formatter.setInputStream(new FileInputStream(inputFile))
-                 .initialize();
+                .initialize();
 
         final DataRecord record = formatter.readRecord();
         assertThat(record.getString("str1"), is("001"));
@@ -230,40 +222,6 @@ public class CharacterReplacerIntegrationTest {
         assertThat(str3.getInputString(), is("あ髙﨑"));
         assertThat(str3.getResultString(), is("あ高崎"));
     }
-
-    @Test
-    public void サロゲートペア文字の読み込み時寄せ字ができること() throws Exception {
-
-        final File formatFile = temporaryFolder.newFile("format.dat");
-        createFile(formatFile, "utf-8", "",
-                "file-type: \"Variable\"",
-                "text-encoding: \"utf-8\"",
-                "record-separator: \"\\n\"",
-                "field-separator: \",\"",
-                "quoting-delimiter: \"\\\"\"",
-                "",
-                "[TestDataRecord]",
-                "1  str1 N replacement(\"type_zenkaku_surrogate_pair_utf8\")"
-        );
-
-        final File inputFile = temporaryFolder.newFile();
-        createFile(inputFile, "utf-8",
-                "\uD840\uDC0B");
-
-        createFormatter(formatFile);
-
-        formatter.setInputStream(new FileInputStream(inputFile))
-                .initialize();
-
-        final DataRecord record = formatter.readRecord();
-        assertThat(record.getString("str1"), is("\uD844\uDE3D"));
-
-        final CharacterReplacementResult str1 = CharacterReplacementUtil.getResult("str1");
-        assertThat(str1.isReplacement(), is(true));
-        assertThat(str1.getInputString(), is("\uD840\uDC0B"));
-        assertThat(str1.getResultString(), is("\uD844\uDE3D"));
-    }
-
 
     @Test
     public void 書き込み時の寄せ字ができること() throws Exception {
@@ -285,7 +243,7 @@ public class CharacterReplacerIntegrationTest {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         createFormatter(formatFile);
         formatter.setOutputStream(outputStream)
-                 .initialize();
+                .initialize();
 
         final DataRecord record1 = new DataRecord();
         record1.put("str1", "001");
@@ -307,34 +265,6 @@ public class CharacterReplacerIntegrationTest {
     }
 
     @Test
-    public void サロゲートペアの書き込み時に寄せ字ができること() throws Exception {
-
-        final File formatFile = temporaryFolder.newFile("format.dat");
-        createFile(formatFile, "utf-8", "",
-                "file-type: \"Variable\"",
-                "text-encoding: \"utf-8\"",
-                "record-separator: \"\\n\"",
-                "field-separator: \",\"",
-                "quoting-delimiter: \"\\\"\"",
-                "",
-                "[TestDataRecord]",
-                "1  str1 N replacement(\"type_zenkaku_surrogate_pair_utf8\")"
-        );
-
-        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        createFormatter(formatFile);
-        formatter.setOutputStream(outputStream)
-                .initialize();
-
-        final DataRecord record1 = new DataRecord();
-        record1.put("str1", "\uD840\uDC0B");
-        formatter.writeRecord(record1);
-
-        final String actual = outputStream.toString("utf-8");
-        assertThat(actual, IsEqualIgnoringWhiteSpace.equalToIgnoringWhiteSpace("\uD844\uDE3D"));
-    }
-
-    @Test
     public void データタイプによるデフォルトの寄せ字変換が行えること() throws Exception {
         final File formatFile = temporaryFolder.newFile("format.dat");
         createFile(formatFile, "utf-8", "",
@@ -353,7 +283,7 @@ public class CharacterReplacerIntegrationTest {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         createFormatter(formatFile);
         formatter.setOutputStream(outputStream)
-                 .initialize();
+                .initialize();
 
         final DataRecord record1 = new DataRecord();
         record1.put("str1", "001\\");
