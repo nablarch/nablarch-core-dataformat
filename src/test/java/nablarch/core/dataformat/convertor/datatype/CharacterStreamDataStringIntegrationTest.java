@@ -73,7 +73,7 @@ public class CharacterStreamDataStringIntegrationTest {
         );
         createFormatter(formatFile);
 
-        final InputStream inputStream = new ByteArrayInputStream("abc       \r\n\r\n01αあ名\uD840\uDC0B".getBytes("utf8"));
+        final InputStream inputStream = new ByteArrayInputStream("abc       \r\n\r\n01αあ名".getBytes("utf8"));
         formatter.setInputStream(inputStream)
                 .initialize();
 
@@ -82,7 +82,7 @@ public class CharacterStreamDataStringIntegrationTest {
         record = formatter.readRecord();
         assertThat(record.getString("string"), is(nullValue()));
         record = formatter.readRecord();
-        assertThat(record.getString("string"), is("01αあ名\uD840\uDC0B"));
+        assertThat(record.getString("string"), is("01αあ名"));
     }
 
     /**
@@ -111,10 +111,10 @@ public class CharacterStreamDataStringIntegrationTest {
         DataRecord record = new DataRecord();
         record.put("string", "0123456789");
         formatter.writeRecord(record);
-        record.put("string", "01αあ名\uD840\uDC0B");
+        record.put("string", "01αあ名");
         formatter.writeRecord(record);
 
-        assertThat(outputStream.toString("utf8"), is("0123456789\r\n01αあ名\uD840\uDC0B\r\n"));
+        assertThat(outputStream.toString("utf8"), is("0123456789\r\n01αあ名\r\n"));
     }
 
     /**
@@ -163,7 +163,7 @@ public class CharacterStreamDataStringIntegrationTest {
                 "field-separator: \",\"",
                 "",
                 "[Default]",
-                "1    string     X   \"0123\uD840\uDC0B\""
+                "1    string     X   \"0123\""
         );
         createFormatter(formatFile);
 
@@ -175,6 +175,6 @@ public class CharacterStreamDataStringIntegrationTest {
         record.put("string", null);
         formatter.writeRecord(record);
 
-        assertThat(outputStream.toString("utf8"), is("0123\uD840\uDC0B\r\n"));
+        assertThat(outputStream.toString("utf8"), is("0123\r\n"));
     }
 }

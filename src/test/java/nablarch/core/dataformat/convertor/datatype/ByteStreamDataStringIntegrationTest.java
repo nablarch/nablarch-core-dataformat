@@ -153,6 +153,36 @@ public class ByteStreamDataStringIntegrationTest {
     }
 
     /**
+     * 出力対象がnullの場合に
+     * シングルバイト・ダブルバイト・３バイト文字が混在したデフォルト値を書き込めることのテスト。
+     */
+    @Test
+    public void testWriteMultiByteWithDefaultValue() throws Exception {
+
+        // レイアウト定義ファイル
+        final File formatFile = temporaryFolder.newFile("format.fmt");
+        createFile(formatFile,
+                "file-type:    \"Fixed\"",
+                "text-encoding: \"utf8\"",
+                "record-length: 10",
+                "",
+                "[Default]",
+                "1    byteStreamString     XN(10)  \"123А名\" "
+        );
+        createFormatter(formatFile);
+
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        formatter.setOutputStream(outputStream)
+                .initialize();
+
+        DataRecord record = new DataRecord();
+        record.put("byteStreamString", null);
+        formatter.writeRecord(record);
+
+        assertThat(outputStream.toString("utf8"), is("123А名  "));
+    }
+
+    /**
      * バイト長が数値型でない場合に、例外がスローされることの確認。
      */
     @Test
