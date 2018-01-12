@@ -145,6 +145,7 @@ public class LayoutFileParserTest {
     /**
      * レイアウト定義ファイルが存在しない場合のテスト。
      */
+    @Test
     public void testNotExistLayoutFile() {
 
         LayoutFileParser parser = new LayoutFileParser(

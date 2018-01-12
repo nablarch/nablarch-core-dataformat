@@ -3083,6 +3083,7 @@ public class XmlDataParserTest  {
         sut.parseData(input, definition);
     }
 
+    @Test
     public void フォーマット定義に無効なエンコーディング形式が指定された場合はエラーとなること() throws Exception {
         exception.expect(SyntaxErrorException.class);
         exception.expectMessage("invalid encoding was specified by 'text-encoding' directive.");
