@@ -103,6 +103,7 @@ public class CharacterReplacementManagerTest {
     /**
      *
      */
+    @Test
     public void testSjis() {
         // テスト用のリポジトリ構築
         final XmlComponentDefinitionLoader loader = new XmlComponentDefinitionLoader(
