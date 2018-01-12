@@ -302,6 +302,8 @@ public class FixedLengthDataRecordFormatter extends DataRecordFormatterSupport {
 
     /** {@inheritDoc} */
     public DataRecordFormatter setInputStream(InputStream stream) {
+        // InputStreamはバッファリングするものでラップせずに使うこと。
+        // バッファリングするもので読み込んだ場合、このクラスを使用している一部機能(MOM)が動作しなくなる…
         source = stream;
         return this;
     }
