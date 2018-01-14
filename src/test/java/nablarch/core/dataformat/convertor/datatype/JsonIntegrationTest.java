@@ -77,7 +77,7 @@ public class JsonIntegrationTest {
         );
         createFormatter(formatFile);
 
-        final InputStream inputStream = new ByteArrayInputStream("{\"object\":{\"bool\":false,\"number\":321,\"string\":\"ABC\"}}".getBytes("UTF-8"));
+        final InputStream inputStream = new ByteArrayInputStream("{\"object\":{\"bool\":false,\"number\":321,\"string\":\"ABC\uD840\uDC0B\"}}".getBytes("UTF-8"));
         formatter.setInputStream(inputStream)
                 .initialize();
 
@@ -85,7 +85,7 @@ public class JsonIntegrationTest {
 
         assertThat(record.getString("object.bool"), is("false"));
         assertThat(record.getBigDecimal("object.number"), is(new BigDecimal("321")));
-        assertThat(record.getString("object.string"), is("ABC"));
+        assertThat(record.getString("object.string"), is("ABC\uD840\uDC0B"));
     }
 
     /**
@@ -117,10 +117,10 @@ public class JsonIntegrationTest {
         DataRecord record = new DataRecord();
         record.put("object.bool", false);
         record.put("object.number", 321);
-        record.put("object.string", "ABC");
+        record.put("object.string", "ABC\uD840\uDC0B");
         formatter.writeRecord(record);
 
-        assertThat(outputStream.toString("UTF-8"), is("{\"object\":{\"bool\":false,\"number\":321,\"string\":\"ABC\"}}"));
+        assertThat(outputStream.toString("UTF-8"), is("{\"object\":{\"bool\":false,\"number\":321,\"string\":\"ABC\uD840\uDC0B\"}}"));
     }
 
     /**
@@ -171,7 +171,7 @@ public class JsonIntegrationTest {
                 "[Default]",
                 "1    bool     BL  \"true\" ",
                 "2  number     X9  \"123\" ",
-                "3  string     X   \"abc\" "
+                "3  string     X   \"abc\uD840\uDC0B\" "
         );
         createFormatter(formatFile);
 
@@ -185,6 +185,6 @@ public class JsonIntegrationTest {
         record.put("string", null);
         formatter.writeRecord(record);
 
-        assertThat(outputStream.toString("UTF-8"), is("{\"bool\":true,\"number\":123,\"string\":\"abc\"}"));
+        assertThat(outputStream.toString("UTF-8"), is("{\"bool\":true,\"number\":123,\"string\":\"abc\uD840\uDC0B\"}"));
     }
 }
