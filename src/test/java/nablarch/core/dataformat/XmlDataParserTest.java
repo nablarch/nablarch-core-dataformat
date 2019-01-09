@@ -14,6 +14,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.xml.sax.SAXParseException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -31,12 +32,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.isA;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItemInArray;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeFalse;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * {@link XmlDataParser}のテストを行います。
@@ -58,6 +62,7 @@ public class XmlDataParserTest  {
     public void tearDown() throws Exception {
         SystemRepository.clear();
     }
+
 
     @Test
     public void ルート要素の必須属性に値が設定されているXMLを読み込めること() throws Exception {
@@ -3132,6 +3137,120 @@ public class XmlDataParserTest  {
         // テスト実行
         sut.parseData(input, definition);
     }
+
+
+    @Test
+    public void DTDを使用している場合_デフォルトでは例外が発生すること() throws Exception {
+
+        assumeTrue(isDTDBugFixedVersion());
+
+        exception.expect(InvalidDataFormatException.class);
+        exception.expectCause(isA(SAXParseException.class));
+        // 期待するメッセージ[機能"http://apache.org/xml/features/disallow-doctype-decl"がtrueに設定されている場合、DOCTYPEは指定できません。]
+        // 環境によって文言が異なる可能性があるので、部分一致で確認
+        exception.expectMessage("http://apache.org/xml/features/disallow-doctype-decl");
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"XML\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 body [0..1] X"
+        );
+
+        // XML
+        InputStream input = createInputStream(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<!DOCTYPE name [",
+                "<!ENTITY test \"TEST\">",
+                "]>",
+                "<root>&test;</root>"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    @Test
+    public void DTDを使用している場合_古いJDKではNPEが発生する() throws Exception {
+
+        assumeFalse(isDTDBugFixedVersion());
+
+        exception.expect(NullPointerException.class);
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"XML\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 body [0..1] X"
+        );
+
+        // XML
+        InputStream input = createInputStream(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<!DOCTYPE name [",
+                "<!ENTITY test \"TEST\">",
+                "]>",
+                "<root>&test;</root>"
+        );
+
+        // テスト実行
+        sut.parseData(input, definition);
+    }
+
+    /**
+     * 実行中のJREが、JDK-7157610がFIXされたバージョンであるかどうかを判定する。
+     *
+     * バグFIXされているか否かで挙動が変わってしまうので、やむを得ず判定処理を行う。
+     * ※特にJava6はバグFIXバージョンが入手できないため(要サポート)。
+     *
+     * @see <a href="https://bugs.java.com/bugdatabase/view_bug.do?bug_id=7157610">JDK-7157610 : NullPointerException occurs when parsing XML doc</a>
+     * @return バグフィックスされたバージョンの場合、真
+     */
+
+    private boolean isDTDBugFixedVersion() {
+        String version = System.getProperty("java.version");
+        if (version.startsWith("1.6")) {
+            int i = Integer.parseInt(version.split("_")[1]);
+            return i >= 65;  // 6u65 以上
+        }
+        if (version.startsWith("1.7")) {
+            int i = Integer.parseInt(version.split("_")[1]);
+            return i >= 6;  // 7u6 以上
+        }
+        return true;
+    }
+
+
+    @Test
+    public void 明示的に許可をしている場合_DTDを使用できること() throws Exception {
+
+        // フォーマット定義
+        LayoutDefinition definition = createLayoutDefinition(
+                "file-type:        \"XML\"",
+                "text-encoding:    \"UTF-8\"",
+                "[root]",
+                "1 body [0..1] X"
+        );
+
+        // XML
+        InputStream input = createInputStream(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<!DOCTYPE name [",
+                "<!ENTITY test \"TEST\">",
+                "]>",
+                "<root>&test;</root>"
+        );
+
+        // DTDの使用を明示的に許可する
+        sut.setAllowDTD(true);
+        // テスト実行
+        Map<String, ?> result = sut.parseData(input, definition);
+        assertThat(result.get("body"), is((Object) "TEST"));
+
+    }
+
 
     private LayoutDefinition createLayoutDefinition(String... records) throws Exception {
         File file = folder.newFile();
