@@ -145,13 +145,15 @@ public class LayoutFileParserTest {
     /**
      * レイアウト定義ファイルが存在しない場合のテスト。
      */
+    @Test
     public void testNotExistLayoutFile() {
+
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectCause(CoreMatchers.<Throwable>instanceOf(FileNotFoundException.class));
 
         LayoutFileParser parser = new LayoutFileParser(
                 "notExistLayoutFile.fmt");
 
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectCause(CoreMatchers.<Throwable>instanceOf(FileNotFoundException.class));
         parser.parse();
 
     }

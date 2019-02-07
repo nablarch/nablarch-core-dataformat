@@ -19,12 +19,20 @@ import org.xml.sax.SAXException;
  * XMLパーサー。<br>
  * この実装ではDOMを使用してXMLデータの解析を行います。
  *
+ * 5u14より、DTDの使用を禁止するように修正を行った。これはXXE攻撃を防ぐためである。
+ * 後方互換性を維持するため、DTDの使用を許可するプロパティを設けている({@link #setAllowDTD(boolean)})。
+ * 読み込み対象となるXMLが信頼できるものであり、かつ、DTDを使用しなければならない場合のみ、
+ * 本プロパティを使用してDTDの使用を許可することができる。
+ *
  * @author TIS
  */
 public class XmlDataParser extends StructuredDataEditorSupport implements StructuredDataParser {
 
     /** 属性あり要素のコンテンツ名(デフォルトはbody) */
     private String contentName = "body";
+
+    /** DTDの使用を許可するか否か(デフォルトは「許可しない」({@code false}) */
+    private boolean allowDTD = false;
 
     /**
      * フラットマップを作成します。
@@ -40,11 +48,9 @@ public class XmlDataParser extends StructuredDataEditorSupport implements Struct
 
         Map<String, Object> record = new HashMap<String, Object>();
         try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setNamespaceAware(true);
+            DocumentBuilderFactory dbf = createDocumentBuilderFactory(layoutDef);
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(xml);
-
             RecordDefinition recordDef = layoutDef.getRecords().get(0);
             String typeName = recordDef.getTypeName();
             NodeList nodeList = doc.getElementsByTagName(recordDef.getTypeName());
@@ -61,6 +67,23 @@ public class XmlDataParser extends StructuredDataEditorSupport implements Struct
                     String.format("invalid data found. [%s]", e.getMessage()), e);
         }
         return record;
+    }
+
+    /**
+     * 本クラスで使用する{@link DocumentBuilderFactory}のインスタンスを生成する。
+     *
+     * @param layoutDef レイアウト定義 (本実装では使用しないがオーバーライド用に用意している。)
+     * @return {@link DocumentBuilderFactory}のインスタンス
+     * @throws ParserConfigurationException {@link DocumentBuilderFactory#setFeature(String, boolean)}に失敗した場合
+     */
+    protected DocumentBuilderFactory createDocumentBuilderFactory(LayoutDefinition layoutDef)
+            throws ParserConfigurationException {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        if (!allowDTD) {
+            dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        }
+        return dbf;
     }
 
     /**
@@ -230,5 +253,16 @@ public class XmlDataParser extends StructuredDataEditorSupport implements Struct
      */
     public void setContentName(String contentName) {
         this.contentName = contentName;
+    }
+
+
+    /**
+     * DTDの使用を許可する。
+     * デフォルトは「許可しない」({@code false})。
+     *
+     * @param allowDTD 許可する場合、真
+     */
+    public void setAllowDTD(boolean allowDTD) {
+        this.allowDTD = allowDTD;
     }
 }

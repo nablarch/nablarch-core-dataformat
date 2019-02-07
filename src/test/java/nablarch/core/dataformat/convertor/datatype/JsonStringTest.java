@@ -32,10 +32,10 @@ public class JsonStringTest {
     @Test
     public void testConvertOnRead() {
         // 入力値がそのまま返却される
-        assertThat(sut.convertOnRead("\"data\""), is("\"data\""));
-        assertThat(sut.convertOnRead("data"), is("data"));
-        assertThat(sut.convertOnRead("\"data"), is("\"data"));
-        assertThat(sut.convertOnRead("data\""), is("data\""));
+        assertThat(sut.convertOnRead("\"data\uD840\uDC0B\""), is("\"data\uD840\uDC0B\""));
+        assertThat(sut.convertOnRead("data\uD840\uDC0B"), is("data\uD840\uDC0B"));
+        assertThat(sut.convertOnRead("\"data\uD840\uDC0B"), is("\"data\uD840\uDC0B"));
+        assertThat(sut.convertOnRead("data\uD840\uDC0B\""), is("data\uD840\uDC0B\""));
         assertThat(sut.convertOnRead(""), is(""));
         assertThat(sut.convertOnRead(null), is(nullValue()));
     }
@@ -47,9 +47,9 @@ public class JsonStringTest {
     public void testConvertOnWrite() {
         // 入力値がそのまま返却される
         assertThat(sut.convertOnWrite("data"), is("data"));
-        assertThat(sut.convertOnWrite("\"data\""), is("\"data\""));
-        assertThat(sut.convertOnWrite("\"data"), is("\"data"));
-        assertThat(sut.convertOnWrite("data\""), is("data\""));
+        assertThat(sut.convertOnWrite("\"data\uD840\uDC0B\""), is("\"data\uD840\uDC0B\""));
+        assertThat(sut.convertOnWrite("\"data\uD840\uDC0B"), is("\"data\uD840\uDC0B"));
+        assertThat(sut.convertOnWrite("data\uD840\uDC0B\""), is("data\uD840\uDC0B\""));
         assertThat(sut.convertOnWrite(""), is(""));
         // nullはnull
         assertThat(sut.convertOnWrite(null), is(nullValue()));

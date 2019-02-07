@@ -33,6 +33,7 @@ public class CharacterStreamDataStringTest {
     public void testRead() {
         assertThat(sut.convertOnRead(""), is(nullValue()));
         assertThat(sut.convertOnRead("abc"), is("abc"));
+        assertThat(sut.convertOnRead("\uD840\uDC0B\uD844\uDE3D"), is("\uD840\uDC0B\uD844\uDE3D"));
     }
 
     /**
