@@ -718,7 +718,9 @@ public class FixedLengthDataRecordFormatter extends DataRecordFormatterSupport {
                     recordDef.getConditionsToApply(), ".");
         }
         writeRecord(record, recordDef);
-        dest.flush();
+        if (DataFormatConfigFinder.getDataFormatConfig().isFlushEachRecordInWriting()) {
+            dest.flush();
+        }
     }
 
     /**

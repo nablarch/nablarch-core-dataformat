@@ -193,8 +193,10 @@ public abstract class StructuredDataRecordFormatterSupport extends DataRecordFor
         incrementRecordNumber(); // レコード番号をインクリメントする
 
         getDataBuilder().buildData(record, getDefinition(), dest);
-        
-        dest.flush();
+
+        if (DataFormatConfigFinder.getDataFormatConfig().isFlushEachRecordInWriting()) {
+            dest.flush();
+        }
     }
 
     /**

@@ -126,8 +126,8 @@ public class FileRecordReader implements Closeable {
             );
         }
     }
-    
-    /** 
+
+    /**
      * 指定されたデータファイルから次のレコードを読み込んで返す。
      * @return データレコード
      */
