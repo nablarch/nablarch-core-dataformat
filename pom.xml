@@ -44,7 +44,6 @@
       <version>1.4.0</version>
       <scope>test</scope>
     </dependency>
-
     <dependency>
       <groupId>com.nablarch.framework</groupId>
       <artifactId>nablarch-core-repository</artifactId>
@@ -65,6 +64,12 @@
     <dependency>
       <groupId>com.nablarch.dev</groupId>
       <artifactId>nablarch-test-support</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.nablarch.configuration</groupId>
+      <artifactId>nablarch-main-default-configuration</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

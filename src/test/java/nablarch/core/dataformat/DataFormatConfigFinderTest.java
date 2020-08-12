@@ -15,14 +15,19 @@ public class DataFormatConfigFinderTest {
 
     @Before
     public void setUp() {
+        System.setProperty("nablarch.dataformat.flushEachRecordInWriting", Boolean.TRUE.toString());
         SystemRepository.clear();
     }
 
     @After
     public void tearDown() {
+        System.getProperties().remove("nablarch.dataformat.flushEachRecordInWriting");
         SystemRepository.clear();
     }
 
+    /**
+     * 設定変更のテスト。
+     */
     @Test
     public void testConfiguration() {
         String configPath = "nablarch/core/dataformat/data-format-config-finder-test.xml";
@@ -31,5 +36,18 @@ public class DataFormatConfigFinderTest {
         assertThat(
                 DataFormatConfigFinder.getDataFormatConfig().isFlushEachRecordInWriting(),
                 is(Boolean.FALSE));
+    }
+
+    /**
+     * デフォルトコンフィグレーションのテスト。
+     */
+    @Test
+    public void testDefaultConfiguration() {
+        String configPath = "nablarch/core/dataformat.xml";
+        DiContainer container = new DiContainer(new XmlComponentDefinitionLoader(configPath));
+        SystemRepository.load(container);
+        assertThat(
+                DataFormatConfigFinder.getDataFormatConfig().isFlushEachRecordInWriting(),
+                is(Boolean.TRUE));
     }
 }
