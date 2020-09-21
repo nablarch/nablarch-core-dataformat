@@ -1528,7 +1528,12 @@ public class VariableLengthDataRecordFormatterSingleLayoutReadTest {
          * ストリームが設定されているが、初期化が行われていない場合にfalseが返却される。
          */
         assertFalse(new VariableLengthDataRecordFormatter().setInputStream(new BufferedInputStream(new ByteArrayInputStream("".getBytes()))).hasNext());
-        
+
+        /**
+         * ストリームが設定されており、データが存在する場合はtrueが返却される。
+         */
+        assertTrue(new VariableLengthDataRecordFormatter().setInputStream(new BufferedInputStream(new ByteArrayInputStream(" ".getBytes()))).hasNext());
+
     }
 
 
