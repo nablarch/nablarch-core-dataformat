@@ -734,7 +734,9 @@ public class VariableLengthDataRecordFormatter extends DataRecordFormatterSuppor
             writeField(record, recordType.getFields().get(i));
         }
         writer.write(getRecordSeparator());
-        writer.flush();
+        if (DataFormatConfigFinder.getDataFormatConfig().isFlushEachRecordInWriting()) {
+            writer.flush();
+        }
     }
 
     /**

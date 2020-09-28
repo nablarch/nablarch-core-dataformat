@@ -346,21 +346,29 @@ public class FileRecordWriterTest {
 
         // バッファサイズを50にして正しく読めること。
         FileRecordWriter writer = new FileRecordWriter(dataFile, new File(url.toURI()), 50);
-        writer.write(new DataRecord() {{
+        DataRecord record1 = new DataRecord() {{
             put("byteString", "0123456789");
             put("wordString", "abcdefghij");
             put("zoneDigits", new BigDecimal("0123456781"));
-        }});
-        writer.write(new DataRecord() {{
+        }};
+        record1.setRecordType("Default");
+        writer.write(record1);
+
+        DataRecord record2 = new DataRecord() {{
             put("byteString", "0123456789");
             put("wordString", "abcdefghij");
             put("zoneDigits", new BigDecimal("0123456782"));
-        }});
-        writer.write(new DataRecord() {{
+        }};
+        record2.setRecordType("Default");
+        writer.write(record2);
+
+        DataRecord record3 = new DataRecord() {{
             put("byteString", "0123456789");
             put("wordString", "abcdefghij");
             put("zoneDigits", new BigDecimal("0123456783"));
-        }});
+        }};
+        record3.setRecordType("Default");
+        writer.write(record3);
         writer.close();
 
         InputStream in = new FileInputStream(dataFile);
