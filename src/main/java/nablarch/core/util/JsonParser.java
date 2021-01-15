@@ -361,10 +361,8 @@ public final class JsonParser {
     private void onItemSeparator() {
         if ("}".equals(lastToken)) {
             currentKey = null;
-
         } else if ("]".equals(lastToken)) {
-            currentList = pop(listStack);
-
+            // NOP
         } else if (lastTokenType == TokenType.SEPARATOR) {
             throw new IllegalArgumentException("value is requires");
 

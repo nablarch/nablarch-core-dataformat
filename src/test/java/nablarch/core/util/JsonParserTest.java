@@ -495,4 +495,14 @@ public class JsonParserTest {
             reader.close();
         }
     }
+
+    /**
+     * 入れ子の配列のテスト
+     */
+    @Test
+    public void testNestedArrayParse() throws Exception {
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testNestedArrayParse.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+    }
 }
