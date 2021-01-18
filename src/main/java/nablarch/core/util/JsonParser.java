@@ -36,7 +36,7 @@ public final class JsonParser {
     private String currentKey = null;
 
     /** 前回のトークン */
-    private Object lastToken = null;
+    private String lastToken = null;
     /** 前回のトークン種別 */
     private TokenType lastTokenType = null;
 
@@ -352,30 +352,29 @@ public final class JsonParser {
         if (lastTokenType != TokenType.STRING) {
             throw new IllegalArgumentException("key is not string");
         }
-        currentKey = lastToken.toString();
+        currentKey = lastToken;
     }
 
     /**
      * 項目セパレータ検出時の処理です。
      */
     private void onItemSeparator() {
-        if ("}".equals(lastToken)) {
-            currentKey = null;
-
-        } else if ("]".equals(lastToken)) {
-            currentList = pop(listStack);
-
-        } else if (lastTokenType == TokenType.SEPARATOR) {
+        if (lastToken != null
+                && ("]".equals(lastToken) || "}".equals(lastToken))) {
+            // オブジェクト、配列の終了処理内で必要な処理は完了しているので何もしない。
+            return;
+        }
+        if (lastToken != null
+                && ("[".equals(lastToken) || "{".equals(lastToken)
+                    || ",".equals(lastToken) || ":".equals(lastToken))) {
             throw new IllegalArgumentException("value is requires");
-
+        }
+        if (currentList != null && currentKey == null) {
+            // 配列の要素
+            currentList.add(lastToken);
         } else {
-            if (currentList != null && currentKey == null) {
-                currentList.add(lastToken);
-
-            } else {
-                currentMap.put(currentKey, lastToken);
-            }
-
+            // オブジェクトのプロパティ
+            currentMap.put(currentKey, lastToken);
             currentKey = null;
         }
     }

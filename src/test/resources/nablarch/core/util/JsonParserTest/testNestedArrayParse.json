@@ -1,0 +1,26 @@
+{
+  "NestedArray": [
+    {
+      "key1": "value1",
+      "NestedArray1": [
+        {
+          "NAKey11": "NAValue11"
+        },
+        {
+          "NAKey12": "NAValue12"
+        }
+      ],
+      "key2": "value2",
+      "NestedArray2": [
+        "NAValue2"
+      ],
+      "NestedArray3": [
+        {
+          "NestedArray4": [
+            "NAValue4"
+          ]
+        }
+      ]
+    }
+  ]
+}

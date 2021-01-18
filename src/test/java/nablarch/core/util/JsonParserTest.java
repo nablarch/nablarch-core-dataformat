@@ -1,10 +1,6 @@
 package nablarch.core.util;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -13,7 +9,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @SuppressWarnings("serial")
 public class JsonParserTest {
@@ -255,6 +256,12 @@ public class JsonParserTest {
 
     /**
      * 配列の開始位置が不正
+     * JSONの仕様では二重配列にした場合など、配列の前に":"がないパターンも許容されるが
+     * フォーマット定義ファイルの仕様上、項目には名前をつけるため、配列の前には必ず":"がくる必要がある。
+     * 以下のような構造はJSON上はOKだが、汎用データフォーマット機能上はNG
+     * {"object":[[1,2],[3,4]]}
+     * 以下のようにする必要がある。
+     * {"object":[{"array1":[1,2]},{"array2":[3,4]}]}
      */
     @Test
     public void testInvalidArrayStart() throws Exception {
@@ -475,6 +482,48 @@ public class JsonParserTest {
 
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testTabIndent.json");
+        Map<String, ?> result = new JsonParser().parse(readAll(resource));
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * 入れ子の配列のテスト
+     * 配列の中にオブジェクトの配列を持ち、その後ろに項目を持つパターンと
+     * 配列の中に配列が連続で並ぶパターン、3重配列のパターンをテスト。
+     */
+    @Test
+    public void testNestedArrayParse() throws Exception {
+
+        //期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("NestedArray", new ArrayList<Object>() {{
+                        add(new HashMap<String, Object>() {{
+                            put("key1", "value1");
+                            put("NestedArray1", new ArrayList<Object>() {{
+                                add(new HashMap<String, Object>() {{
+                                    put("NAKey11", "NAValue11");
+                                }});
+                                add(new HashMap<String, Object>() {{
+                                    put("NAKey12", "NAValue12");
+                                }});
+                            }});
+                            put("key2", "value2");
+                            put("NestedArray2", new ArrayList<String>() {{
+                                add("NAValue2");
+                            }});
+                            put("NestedArray3", new ArrayList<Object>() {{
+                                add(new HashMap<String, Object>() {{
+                                    put("NestedArray4", new ArrayList<String>() {{
+                                        add("NAValue4");
+                                    }});
+                                }});
+                            }});
+                        }});
+                    }});
+                }};
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testNestedArrayParse.json");
         Map<String, ?> result = new JsonParser().parse(readAll(resource));
         assertEquals(expectedMap, result);
     }
