@@ -359,21 +359,19 @@ public final class JsonParser {
      * 項目セパレータ検出時の処理です。
      */
     private void onItemSeparator() {
-        if ("}".equals(lastToken)) {
-            currentKey = null;
-        } else if ("]".equals(lastToken)) {
-            // NOP
-        } else if (lastTokenType == TokenType.SEPARATOR) {
+        if (lastToken != null && "]}".contains((String) lastToken)) {
+            // オブジェクト、配列の終了処理内で必要な処理は完了しているので何もしない。
+            return;
+        }
+        if (lastToken != null && "[{,:".contains((String) lastToken)) {
             throw new IllegalArgumentException("value is requires");
-
+        }
+        if (currentList != null && currentKey == null) {
+            // 配列の要素
+            currentList.add(lastToken);
         } else {
-            if (currentList != null && currentKey == null) {
-                currentList.add(lastToken);
-
-            } else {
-                currentMap.put(currentKey, lastToken);
-            }
-
+            // オブジェクトのプロパティ
+            currentMap.put(currentKey, lastToken);
             currentKey = null;
         }
     }
