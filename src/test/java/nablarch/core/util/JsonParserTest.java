@@ -528,6 +528,71 @@ public class JsonParserTest {
         assertEquals(expectedMap, result);
     }
 
+    /**
+     * 項目セパレータだけを値にもつ場合のテスト
+     * {"key":"{"}
+     */
+    @Test
+    public void testOnlyObjectStartValue() throws Exception {
+        HashMap<String, Object> expectedMap1 = new HashMap<String, Object>() {{
+            put("key", "{");
+        }};
+        Map<String, ?> result1 = new JsonParser().parse("{\"key\":\"{\"}");
+        assertEquals(expectedMap1, result1);
+    }
+
+    /**
+     * 項目セパレータだけを値にもつ場合のテスト
+     */
+    @Test
+    public void testOnlyObjectEndValue() throws Exception {
+        // {"key":"}"}
+        HashMap<String, Object> expectedMap2 = new HashMap<String, Object>() {{
+            put("key", "}");
+        }};
+        Map<String, ?> result2 = new JsonParser().parse("{\"key\":\"}\"}");
+        assertEquals(expectedMap2, result2);
+    }
+
+    /**
+     * 項目セパレータだけを値にもつ場合のテスト
+     */
+    @Test
+    public void testOnlyArrayStartValue() throws Exception {
+        // {"key":"["}
+        HashMap<String, Object> expectedMap3 = new HashMap<String, Object>() {{
+            put("key", "[");
+        }};
+        Map<String, ?> result3 = new JsonParser().parse("{\"key\":\"[\"}");
+        assertEquals(expectedMap3, result3);
+    }
+
+    /**
+     * 項目セパレータだけを値にもつ場合のテスト
+     */
+    @Test
+    public void testOnlyArrayEndValue() throws Exception {
+        // {"key":"]"}
+        HashMap<String, Object> expectedMap4 = new HashMap<String, Object>() {{
+            put("key", "]");
+        }};
+        Map<String, ?> result4 = new JsonParser().parse("{\"key\":\"]\"}");
+        assertEquals(expectedMap4, result4);
+    }
+
+    /**
+     * 項目セパレータだけを値にもつ場合のテスト
+     */
+    @Test
+    public void testOnlyColonValue() throws Exception {
+        // {"key":":"}
+        HashMap<String, Object> expectedMap5 = new HashMap<String, Object>() {{
+            put("key", ":");
+        }};
+        Map<String, ?> result5 = new JsonParser().parse("{\"key\":\":\"}");
+        assertEquals(expectedMap5, result5);
+    }
+
     private String readAll(InputStream stream) throws Exception {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "utf-8"));
         try {
