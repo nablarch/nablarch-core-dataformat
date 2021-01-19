@@ -530,141 +530,141 @@ public class JsonParserTest {
 
     /**
      * セパレータだけを値にもつ場合のテスト
-     * {"key":"{"}
+     * {"{":"{"}
      */
     @Test
     public void testOnlyObjectStartValue() {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
-            put("key", "{");
+            put("{", "{");
         }};
-        Map<String, ?> result = new JsonParser().parse("{\"key\":\"{\"}");
+        Map<String, ?> result = new JsonParser().parse("{\"{\":\"{\"}");
         assertEquals(expectedMap, result);
     }
 
     /**
      * セパレータだけを値にもつ場合のテスト
-     * {"key":"}"}
+     * {"}":"}"}
      */
     @Test
     public void testOnlyObjectEndValue() {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
-            put("key", "}");
+            put("}", "}");
         }};
-        Map<String, ?> result = new JsonParser().parse("{\"key\":\"}\"}");
+        Map<String, ?> result = new JsonParser().parse("{\"}\":\"}\"}");
         assertEquals(expectedMap, result);
     }
 
     /**
      * セパレータだけを値にもつ場合のテスト
-     * {"key":"["}
+     * {"[":"["}
      */
     @Test
     public void testOnlyArrayStartValue() {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
-            put("key", "[");
+            put("[", "[");
         }};
-        Map<String, ?> result = new JsonParser().parse("{\"key\":\"[\"}");
+        Map<String, ?> result = new JsonParser().parse("{\"[\":\"[\"}");
         assertEquals(expectedMap, result);
     }
 
     /**
      * セパレータだけを値にもつ場合のテスト
-     * {"key":"]"}
+     * {"]":"]"}
      */
     @Test
     public void testOnlyArrayEndValue() {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
-            put("key", "]");
+            put("]", "]");
         }};
-        Map<String, ?> result = new JsonParser().parse("{\"key\":\"]\"}");
+        Map<String, ?> result = new JsonParser().parse("{\"]\":\"]\"}");
         assertEquals(expectedMap, result);
     }
 
     /**
      * セパレータだけを値にもつ場合のテスト
-     * {"key":":"}
+     * {":":":"}
      */
     @Test
     public void testOnlyColonValue() {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
-            put("key", ":");
+            put(":", ":");
         }};
-        Map<String, ?> result = new JsonParser().parse("{\"key\":\":\"}");
+        Map<String, ?> result = new JsonParser().parse("{\":\":\":\"}");
         assertEquals(expectedMap, result);
     }
 
     /**
      * セパレータだけを値にもつ配列のテスト
-     * {"key":["{"]}
+     * {"{":["{"]}
      */
     @Test
     public void testOnlyObjectStartValueInArray() {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
-            put("key", new ArrayList<String>() {{
+            put("{", new ArrayList<String>() {{
                 add("{");
             }});
         }};
-        Map<String, ?> result = new JsonParser().parse("{\"key\":[\"{\"]}");
+        Map<String, ?> result = new JsonParser().parse("{\"{\":[\"{\"]}");
         assertEquals(expectedMap, result);
     }
 
     /**
      * セパレータだけを値にもつ配列のテスト
-     * {"key":["}"]}
+     * {"}":["}"]}
      */
     @Test
     public void testOnlyObjectEndValueInArray() {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
-            put("key", new ArrayList<String>() {{
+            put("}", new ArrayList<String>() {{
                 add("}");
             }});
         }};
-        Map<String, ?> result = new JsonParser().parse("{\"key\":[\"}\"]}");
+        Map<String, ?> result = new JsonParser().parse("{\"}\":[\"}\"]}");
         assertEquals(expectedMap, result);
     }
 
     /**
      * セパレータだけを値にもつ配列のテスト
-     * {"key":["["]}
+     * {"[":["["]}
      */
     @Test
     public void testOnlyArrayStartValueInArray() {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
-            put("key", new ArrayList<String>() {{
+            put("[", new ArrayList<String>() {{
                 add("[");
             }});
         }};
-        Map<String, ?> result = new JsonParser().parse("{\"key\":[\"[\"]}");
+        Map<String, ?> result = new JsonParser().parse("{\"[\":[\"[\"]}");
         assertEquals(expectedMap, result);
     }
 
     /**
      * セパレータだけを値にもつ配列のテスト
-     * {"key":["]"]}
+     * {"]":["]"]}
      */
     @Test
     public void testOnlyArrayEndValueInArray() {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
-            put("key", new ArrayList<String>() {{
+            put("]", new ArrayList<String>() {{
                 add("]");
             }});
         }};
-        Map<String, ?> result = new JsonParser().parse("{\"key\":[\"]\"]}");
+        Map<String, ?> result = new JsonParser().parse("{\"]\":[\"]\"]}");
         assertEquals(expectedMap, result);
     }
 
     /**
      * セパレータだけを値にもつ配列のテスト
-     * {"key":[":"]}
+     * {":":[":"]}
      */
     @Test
     public void testOnlyColonValueInArray() {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
-            put("key", new ArrayList<String>() {{
+            put(":", new ArrayList<String>() {{
                 add(":");
             }});
         }};
-        Map<String, ?> result = new JsonParser().parse("{\"key\":[\":\"]}");
+        Map<String, ?> result = new JsonParser().parse("{\":\":[\":\"]}");
         assertEquals(expectedMap, result);
     }
 
