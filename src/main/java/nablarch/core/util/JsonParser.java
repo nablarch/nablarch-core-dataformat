@@ -302,12 +302,14 @@ public final class JsonParser {
         if (currentMap == null) {
             throw new IllegalArgumentException("object ending but current object is null");
 
-        } else if (":".equals(lastToken)) {
+        } else if (lastTokenType == TokenType.SEPARATOR
+                && ":".equals(lastToken)) {
             throw new IllegalArgumentException("incorrect object ending position");
 
-        } else if (!("]".equals(lastToken))
-         && !("}".equals(lastToken))
-         && !"{".equals(lastToken)) {
+        } else if (lastTokenType != TokenType.SEPARATOR
+                || (!"]".equals(lastToken)
+                && !"}".equals(lastToken)
+                && !"{".equals(lastToken))) {
             currentMap.put(currentKey, lastToken);
         }
 
@@ -334,8 +336,9 @@ public final class JsonParser {
      * 配列終了時の処理です。
      */
     private void onEndArray() {
-        if (!"}".equals(lastToken)
-         && !"[".equals(lastToken)) {
+        if (lastTokenType != TokenType.SEPARATOR
+                || (!"}".equals(lastToken) && !"[".equals(lastToken))
+        ) {
             if (currentList == null) {
                 throw new IllegalArgumentException("array end detected, but not started");
             } else {
@@ -359,14 +362,12 @@ public final class JsonParser {
      * 項目セパレータ検出時の処理です。
      */
     private void onItemSeparator() {
-        if (lastToken != null
-                && ("]".equals(lastToken) || "}".equals(lastToken))) {
+        if ("]".equals(lastToken) || "}".equals(lastToken)) {
             // オブジェクト、配列の終了処理内で必要な処理は完了しているので何もしない。
             return;
         }
-        if (lastToken != null
-                && ("[".equals(lastToken) || "{".equals(lastToken)
-                    || ",".equals(lastToken) || ":".equals(lastToken))) {
+        if ("[".equals(lastToken) || "{".equals(lastToken)
+                || ",".equals(lastToken) || ":".equals(lastToken)) {
             throw new IllegalArgumentException("value is requires");
         }
         if (currentList != null && currentKey == null) {

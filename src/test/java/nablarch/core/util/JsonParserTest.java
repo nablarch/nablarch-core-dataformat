@@ -528,6 +528,221 @@ public class JsonParserTest {
         assertEquals(expectedMap, result);
     }
 
+    /**
+     * セパレータだけを値にもつ場合のテスト
+     * {"{":"{"}
+     */
+    @Test
+    public void testOnlyObjectStartValue() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("{", "{");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"{\":\"{\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ場合のテスト
+     * {"}":"}"}
+     */
+    @Test
+    public void testOnlyObjectEndValue() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("}", "}");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"}\":\"}\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ場合のテスト
+     * {"[":"["}
+     */
+    @Test
+    public void testOnlyArrayStartValue() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("[", "[");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"[\":\"[\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ場合のテスト
+     * {"]":"]"}
+     */
+    @Test
+    public void testOnlyArrayEndValue() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("]", "]");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"]\":\"]\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ場合のテスト
+     * {":":":"}
+     */
+    @Test
+    public void testOnlyColonValue() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put(":", ":");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\":\":\":\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ配列のテスト
+     * {"{":["{"]}
+     */
+    @Test
+    public void testOnlyObjectStartValueInArray() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("{", new ArrayList<String>() {{
+                add("{");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"{\":[\"{\"]}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ配列のテスト
+     * {"}":["}"]}
+     */
+    @Test
+    public void testOnlyObjectEndValueInArray() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("}", new ArrayList<String>() {{
+                add("}");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"}\":[\"}\"]}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ配列のテスト
+     * {"[":["["]}
+     */
+    @Test
+    public void testOnlyArrayStartValueInArray() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("[", new ArrayList<String>() {{
+                add("[");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"[\":[\"[\"]}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ配列のテスト
+     * {"]":["]"]}
+     */
+    @Test
+    public void testOnlyArrayEndValueInArray() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("]", new ArrayList<String>() {{
+                add("]");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"]\":[\"]\"]}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ配列のテスト
+     * {":":[":"]}
+     */
+    @Test
+    public void testOnlyColonValueInArray() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put(":", new ArrayList<String>() {{
+                add(":");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\":\":[\":\"]}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ子オブジェクトのテスト
+     * {"{":{"{":"{"}}
+     */
+    @Test
+    public void testOnlyObjectStartValueInNestedObject() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("{", new HashMap<String, Object>() {{
+                put("{", "{");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"{\":{\"{\":\"{\"}}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ子オブジェクトのテスト
+     * {"}":{"}":"}"}}
+     */
+    @Test
+    public void testOnlyObjectEndValueInNestedObject() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("}", new HashMap<String, Object>() {{
+                put("}", "}");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"}\":{\"}\":\"}\"}}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ子オブジェクトのテスト
+     * {"[":{"[":"["}}
+     */
+    @Test
+    public void testOnlyArrayStartValueInNestedObject() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("[", new HashMap<String, Object>() {{
+                put("[", "[");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"[\":{\"[\":\"[\"}}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ子オブジェクトのテスト
+     * {"]":{"]":"]"}}
+     */
+    @Test
+    public void testOnlyArrayEndValueInNestedObject() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("]", new HashMap<String, Object>() {{
+                put("]", "]");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"]\":{\"]\":\"]\"}}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ子オブジェクトのテスト
+     * {":":{":":":"}}
+     */
+    @Test
+    public void testOnlyColonValueInNestedArray() {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put(":", new HashMap<String, Object>() {{
+                put(":", ":");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\":\":{\":\":\":\"}}");
+        assertEquals(expectedMap, result);
+    }
+
     private String readAll(InputStream stream) throws Exception {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "utf-8"));
         try {
