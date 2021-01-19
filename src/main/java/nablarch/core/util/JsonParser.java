@@ -307,8 +307,8 @@ public final class JsonParser {
             throw new IllegalArgumentException("incorrect object ending position");
 
         } else if (lastTokenType != TokenType.SEPARATOR
-                || (!("]".equals(lastToken))
-                && !("}".equals(lastToken))
+                || (!"]".equals(lastToken)
+                && !"}".equals(lastToken)
                 && !"{".equals(lastToken))) {
             currentMap.put(currentKey, lastToken);
         }
@@ -362,12 +362,12 @@ public final class JsonParser {
      * 項目セパレータ検出時の処理です。
      */
     private void onItemSeparator() {
-        if (("]".equals(lastToken) || "}".equals(lastToken))) {
+        if ("]".equals(lastToken) || "}".equals(lastToken)) {
             // オブジェクト、配列の終了処理内で必要な処理は完了しているので何もしない。
             return;
         }
-        if (("[".equals(lastToken) || "{".equals(lastToken)
-                || ",".equals(lastToken) || ":".equals(lastToken))) {
+        if ("[".equals(lastToken) || "{".equals(lastToken)
+                || ",".equals(lastToken) || ":".equals(lastToken)) {
             throw new IllegalArgumentException("value is requires");
         }
         if (currentList != null && currentKey == null) {
