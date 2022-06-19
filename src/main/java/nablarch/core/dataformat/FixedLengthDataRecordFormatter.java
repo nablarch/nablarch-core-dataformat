@@ -68,7 +68,7 @@ import nablarch.core.util.annotation.Published;
 public class FixedLengthDataRecordFormatter extends DataRecordFormatterSupport {
 
     /** ロガー * */
-    private static final Logger LOGGER = LoggerManager.get(FileRecordWriter.class);
+    private static final Logger LOGGER = LoggerManager.get(FixedLengthDataRecordFormatter.class);
 
     /** 符号ビットのパターン */
     private static final Pattern SIGN_BIT_FORMAT = Pattern.compile("[a-fA-F0-9]");
