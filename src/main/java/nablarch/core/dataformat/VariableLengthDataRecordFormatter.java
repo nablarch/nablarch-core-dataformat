@@ -105,7 +105,7 @@ import nablarch.core.util.annotation.Published;
 public class VariableLengthDataRecordFormatter extends DataRecordFormatterSupport {
 
     /** ロガー **/
-    private static final Logger LOGGER = LoggerManager.get(FileRecordWriter.class);
+    private static final Logger LOGGER = LoggerManager.get(VariableLengthDataRecordFormatter.class);
     
     /** コンバータの設定情報保持クラス */
     private VariableLengthConvertorSetting convertorSetting;
