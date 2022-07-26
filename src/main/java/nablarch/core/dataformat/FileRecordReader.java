@@ -31,7 +31,7 @@ import nablarch.core.util.annotation.Published;
 public class FileRecordReader implements Closeable {
     
     /** ロガー **/
-    private static final Logger LOGGER = LoggerManager.get(FileRecordWriter.class);
+    private static final Logger LOGGER = LoggerManager.get(FileRecordReader.class);
     
     /** フォーマット定義ファイル */
     private File layoutFile = null;
