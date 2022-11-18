@@ -1,7 +1,6 @@
 package nablarch.core.dataformat;
 
 import nablarch.core.repository.SystemRepository;
-import nablarch.core.repository.di.ComponentDefinitionLoader;
 import nablarch.core.repository.di.DiContainer;
 import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
 import org.junit.After;
