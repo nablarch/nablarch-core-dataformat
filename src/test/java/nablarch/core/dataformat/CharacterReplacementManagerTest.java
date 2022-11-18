@@ -9,7 +9,6 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
-import nablarch.core.ThreadContext;
 import nablarch.core.repository.SystemRepository;
 import nablarch.core.repository.di.ComponentDefinitionLoader;
 import nablarch.core.repository.di.DiContainer;
