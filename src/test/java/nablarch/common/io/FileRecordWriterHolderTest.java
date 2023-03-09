@@ -28,6 +28,7 @@ import nablarch.core.util.FilePathSetting;
 import nablarch.test.support.tool.Hereis;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import mockit.Mocked;
@@ -551,6 +552,7 @@ public class FileRecordWriterHolderTest {
      * 子スレッドで開いたファイルを親スレッドで閉じることができること
      */
     @Test
+    @Ignore("jacoco と jmockit が競合してエラーになるため")
     public void testMultiThread(@Mocked final FileRecordWriter writer) throws Exception {
         FileRecordWriterHolder.init();
         FilePathSetting.getInstance()
