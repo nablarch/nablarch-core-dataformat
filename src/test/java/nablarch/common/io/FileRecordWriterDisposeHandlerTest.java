@@ -1,88 +1,62 @@
 package nablarch.common.io;
 
-import static org.junit.Assert.fail;
-
-import mockit.Delegate;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import nablarch.fw.ExecutionContext;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.MockedStatic;
+
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.when;
 
 /**
  * {@link FileRecordWriterDisposeHandler}のテストクラス
  */
-@Ignore("jacoco と jmockit が競合してエラーになるため")
 public class FileRecordWriterDisposeHandlerTest {
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    @Mocked
-    public ExecutionContext ctx;
-
-    @Mocked
-    public FileRecordWriterHolder holder;
+    public final ExecutionContext ctx = mock(ExecutionContext.class);
 
     /** テスト対象 */
     public FileRecordWriterDisposeHandler sut = new FileRecordWriterDisposeHandler();
 
     @Test
     public void 往路と復路でそれぞれclose処理が実行されていること() throws Exception {
+        try (final MockedStatic<FileRecordWriterHolder> mocked = mockStatic(FileRecordWriterHolder.class)) {
+            // 後続のハンドラが実行される前にcloseAllが実行されていること
+            when(ctx.handleNext(null)).thenAnswer(invocation -> {
+                mocked.verify(FileRecordWriterHolder::init);
+                mocked.verify(FileRecordWriterHolder::closeAll, never());
+                return null;
+            });
+            
+            // 実行
+            sut.handle(null, ctx);
 
-        // 後続のハンドラが実行される前にcloseAllが実行されていること
-        new Expectations() {{
-            ctx.handleNext(null);
-            result = new Delegate<Object>() {
-                public String delegate(Object obj) {
-                    new Verifications() {{
-                        FileRecordWriterHolder.init();
-                        times = 1;
-                        FileRecordWriterHolder.closeAll();
-                        times = 0;
-                    }};
-                    return null;
-                }
-            };
-        }};
-
-        // 実行
-        sut.handle(null, ctx);
-
-        // ハンドラの復路で再度closeAllが実行されていること
-        new Verifications() {{
-            FileRecordWriterHolder.closeAll();
-            times = 1;
-        }};
+            // ハンドラの復路で再度closeAllが実行されていること
+            mocked.verify(FileRecordWriterHolder::closeAll);
+        }
     }
 
     @Test
     public void 後続のハンドラ内で例外が発生しても復路でclose処理が実行されること() throws Exception {
+        try (final MockedStatic<FileRecordWriterHolder> mocked = mockStatic(FileRecordWriterHolder.class)) {
+            // 後続のハンドラ内で例外を投げる
+            when(ctx.handleNext(null)).thenThrow(new RuntimeException());
 
-        // 後続のハンドラ内で例外を投げる
-        new Expectations() {{
-            ctx.handleNext(null);
-            result = new Delegate<Object>() {
-                public String delegate(Object obj) {
-                    throw new RuntimeException();
-                }
-            };
-        }};
-
-        // 実行
-        try {
-            sut.handle(null, ctx);
-            fail();
-        } catch (RuntimeException ignored) {
-            new Verifications() {{
-                FileRecordWriterHolder.init();
-                times = 1;
-                FileRecordWriterHolder.closeAll();
-                times = 1;
-            }};
+            // 実行
+            try {
+                sut.handle(null, ctx);
+                fail();
+            } catch (RuntimeException ignored) {
+                mocked.verify(FileRecordWriterHolder::init);
+                mocked.verify(FileRecordWriterHolder::closeAll);
+            }
         }
     }
 }
