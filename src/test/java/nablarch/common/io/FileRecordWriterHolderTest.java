@@ -1,12 +1,16 @@
 package nablarch.common.io;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import nablarch.core.dataformat.DataRecord;
+import nablarch.core.dataformat.FileRecordWriter;
+import nablarch.core.repository.SystemRepository;
+import nablarch.core.repository.di.ComponentDefinitionLoader;
+import nablarch.core.repository.di.DiContainer;
+import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
+import nablarch.core.util.FilePathSetting;
+import nablarch.test.support.tool.Hereis;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.MockedConstruction;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,20 +22,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import nablarch.core.dataformat.DataRecord;
-import nablarch.core.dataformat.FileRecordWriter;
-import nablarch.core.repository.SystemRepository;
-import nablarch.core.repository.di.ComponentDefinitionLoader;
-import nablarch.core.repository.di.DiContainer;
-import nablarch.core.repository.di.config.xml.XmlComponentDefinitionLoader;
-import nablarch.core.util.FilePathSetting;
-import nablarch.test.support.tool.Hereis;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import mockit.Mocked;
-import mockit.Verifications;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
 
 /**
  * FileRecordWriterをスレッド上で保持するクラスのテスト。
@@ -551,41 +550,44 @@ public class FileRecordWriterHolderTest {
      * 子スレッドで開いたファイルを親スレッドで閉じることができること
      */
     @Test
-    public void testMultiThread(@Mocked final FileRecordWriter writer) throws Exception {
+    public void testMultiThread() throws Exception {
         FileRecordWriterHolder.init();
         FilePathSetting.getInstance()
                 .addBasePathSetting("output","file:./")
                 .addBasePathSetting("format", "file:./");
 
         // 子スレッド内でファイルを開く
+        // mockConstruction でモック化できるのはそのスレッド内で生成されたオブジェクトなので、
+        // 各スレッド内で mockConstruction を呼び出している
         ExecutorService service = Executors.newFixedThreadPool(2);
-        Future future1 = service.submit(new Runnable() {
-            @Override
-            public void run() {
-                FileRecordWriterHolder.open("test1.dat", "test");
-            }
+        Future<MockedConstruction<FileRecordWriter>> future1 = service.submit(() -> {
+            final MockedConstruction<FileRecordWriter> mocked = mockConstruction(FileRecordWriter.class);
+            FileRecordWriterHolder.open("test1.dat", "test");
+            return mocked;
         });
-        Future future2 = service.submit(new Runnable() {
-            @Override
-            public void run() {
-                FileRecordWriterHolder.open("test2.dat", "test");
-            }
+        Future<MockedConstruction<FileRecordWriter>> future2 = service.submit(() -> {
+            final MockedConstruction<FileRecordWriter> mocked = mockConstruction(FileRecordWriter.class);
+            FileRecordWriterHolder.open("test2.dat", "test");
+            return mocked;
         });
 
         // 子スレッドの処理が完了するまで待機
-        future1.get();
-        future2.get();
+        try (
+            MockedConstruction<FileRecordWriter> mocked1 = future1.get();
+            MockedConstruction<FileRecordWriter> mocked2 = future2.get();
+        ) {
+            FileRecordWriterHolder.close("test1.dat");
+            FileRecordWriterHolder.close("test2.dat");
 
-        FileRecordWriterHolder.close("test1.dat");
-        FileRecordWriterHolder.close("test2.dat");
+            // Writerのクローズ処理が2回呼ばれていること
+            final FileRecordWriter writer1 = mocked1.constructed().get(0);
+            verify(writer1).close();
 
-        // Writerのクローズ処理が2回呼ばれていること
-        new Verifications() {{
-            writer.close();
-            times = 2;
-        }};
+            final FileRecordWriter writer2 = mocked2.constructed().get(0);
+            verify(writer2).close();
 
-        service.shutdown();
+            service.shutdown();
+        }
     }
 
     /**
