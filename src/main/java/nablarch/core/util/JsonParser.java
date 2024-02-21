@@ -191,9 +191,16 @@ public final class JsonParser {
                 }
 
                 if (c == '\\') {
-                    // エスケープ
-                    isEscape = true;
+                    // バックスラッシュ
+                    if(isEscape){
+                        // エスケープされている場合はエスケープ終了
+                        isEscape = false;
+                    } else {
+                        // エスケープ開始
+                        isEscape = true;
+                    }
                     sb.append((char) c);
+
 
                 } else {
                     if (c == '\"') {
