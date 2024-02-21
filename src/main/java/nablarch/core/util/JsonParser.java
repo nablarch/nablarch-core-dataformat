@@ -441,7 +441,12 @@ public final class JsonParser {
                         StringBuffer sb = new StringBuffer();
                         while (m.find()) {
                             int codePoint = Integer.parseInt(m.group(1), 16);
-                            m.appendReplacement(sb, new String(Character.toChars(codePoint)));
+                            if(codePoint == 92){
+                                // appendReplacement は\(u005C)のみの場合、エスケープ処理をしようと後ろのエスケープ対象を探し、エラーが発生する。\\を置換文字列として渡し、appendReplacement にエスケープ処理をさせることで回避。
+                                m.appendReplacement(sb, new String("\\\\"));
+                            }else{
+                                m.appendReplacement(sb, new String(Character.toChars(codePoint)));
+                            }
                         }
                         m.appendTail(sb);
                     unescapeToken.append(sb.toString()); i = i + 5; break;
