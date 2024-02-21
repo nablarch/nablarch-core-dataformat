@@ -345,14 +345,38 @@ public class JsonParserTest {
     }
 
     /**
-     * アンエスケープ処理
+     * アンエスケープ処理（エスケープ文字が単体で存在する場合）
+     */
+    @Test
+    public void testSimpleUnescape() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("quot", "\"");
+                    put("revSol", "\\");
+                    put("sol", "/");
+                    put("bs", "\b");
+                    put("formFeed", "\f");
+                    put("lineFeed", "\n");
+                    put("carriageReturn", "\r");
+                    put("tab", "\t");
+                    put("slash", "/");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testSimpleUnescape.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * アンエスケープ処理（エスケープ文字が連続で存在する場合）
      */
     @Test
     public void testUnescape() throws Exception {
         // 期待結果Map
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
-                    put("key0", "/");
                     put("key1", "a\b a\f a\n a\r a\t");
                     put("key2", "a\\b a\\f a\\n a\\r a\\t");
                     put("key3", "a\\\b a\\\f a\\\n a\\\r a\\\t");
@@ -362,6 +386,46 @@ public class JsonParserTest {
                     put("key7", "a\\\\\" a\\\\\\ a\\\\/");
                     put("key8", "\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/");
                     put("key9", "\"\\\b\f\n\r\t");
+
+                    // \"とエスケープ文字が連続する組み合わせ
+                    put("quotQu", "\"\"");
+                    put("quotRe", "\"\\");
+                    put("quotSo", "\"/");
+                    put("quotBs", "\"\b");
+                    put("quotFo", "\"\f");
+                    put("quotLi", "\"\n");
+                    put("quotCa", "\"\r");
+                    put("quotTa", "\"\t");
+                    put("quotSl", "\"/");
+
+                    // \\とエスケープ文字が連続する組み合わせ
+                    put("revSolQu", "\\\"");
+                    put("revSolRe", "\\\\");
+                    put("revSolSo", "\\/");
+                    put("revSolBs", "\\\b");
+                    put("revSolFo", "\\\f");
+                    put("revSolLi", "\\\n");
+                    put("revSolCa", "\\\r");
+                    put("revSolTa", "\\\t");
+                    put("revSolSl", "\\/");
+
+                    // \\とエスケープ文字になりうる文字が連続する組み合わせ
+                    put("revSolb", "\\b");
+                    put("revSolf", "\\f");
+                    put("revSoln", "\\n");
+                    put("revSolr", "\\r");
+                    put("revSolt", "\\t");
+                    put("bsb", "\bb");
+
+                    put("nquotQu", "\n\"");
+                    put("nquotRe", "\n\\");
+                    put("nquotSo", "\n/");
+                    put("nquotBs", "\n\b");
+                    put("nquotFo", "\n\f");
+                    put("nquotLi", "\n\n");
+                    put("nquotCa", "\n\r");
+                    put("nquotTa", "\n\t");
+                    put("nquotSl", "\n/");
                 }};
 
         final InputStream resource = FileUtil.getResource(
@@ -385,7 +449,32 @@ public class JsonParserTest {
     }
 
     /**
-     * コードポイントアンエスケープ処理
+     * コードポイントアンエスケープ処理（uXXXXの形式のエスケープ文字単体の場合）
+     */
+    @Test
+    public void testSimpleUnescapeCodepoint() throws Exception {
+
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("unicodeQuot", "\"");
+                    put("unicodeRevSol", "\\");
+                    put("unicodeSol", "/");
+                    put("unicodeBs", "\b");
+                    put("unicodeFormFeed", "\f");
+                    put("unicodeLineFeed", "\n");
+                    put("unicodeCarriageReturn", "\r");
+                    put("unicodeTab", "\t");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testSimpleUnescapeCodepoint.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * コードポイントアンエスケープ処理（uXXXXの形式のエスケープ文字と2文字のエスケープ文字が連続で存在する場合）
      */
     @Test
     public void testUnescapeCodepoint() throws Exception {
@@ -394,10 +483,21 @@ public class JsonParserTest {
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
                     put("key1", "あいうえお\\u1234あ");
+
+                    // uXXXXの形式のエスケープ文字と2文字のエスケープ文字が連続する組み合わせ
+                    put("quotUnicodeQu", "\"\"");
+                    put("revSolUnicodeRe", "\\\\");
+                    put("unicodeQuotQu", "\"\"");
+                    put("unicodeRevSolRe", "\\\\");
+
+                    // \\とuXXXXの形式のエスケープ文字になりうる文字が連続する組み合わせ
+                    put("revSolUx", "\\u005C");
+                    put("uxRevSol", "u005C\\");
                 }};
 
-        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(
-                "{\"key1\":\"\\u3042い\\u3046え\\u304a\\\\u1234\\u3042\"}");
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testUnescapeCodepoint.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
         assertThat(result, is(expectedMap));
     }
 

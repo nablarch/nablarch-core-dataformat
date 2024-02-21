@@ -1,0 +1,9 @@
+{
+  "key1": "\u3042い\u3046え\u304a\\u1234\u3042",
+  "quotUnicodeQu": "\"\u0022",
+  "revSolUnicodeRe": "\\\u005C",
+  "unicodeQuotQu": "\u0022\"",
+  "unicodeRevSolRe": "\u005C\\",
+  "revSolUx": "\\u005C",
+  "uxRevSol": "u005C\\"
+}

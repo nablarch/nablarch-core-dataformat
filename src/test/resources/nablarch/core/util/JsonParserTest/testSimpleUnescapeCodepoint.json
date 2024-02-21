@@ -1,0 +1,10 @@
+{
+  "unicodeQuot": "\u0022",
+  "unicodeRevSol": "\u005C",
+  "unicodeSol": "\u002F",
+  "unicodeBs": "\u0008",
+  "unicodeFormFeed": "\u000C",
+  "unicodeLineFeed": "\u000A",
+  "unicodeCarriageReturn": "\u000D",
+  "unicodeTab": "\u0009"
+}
