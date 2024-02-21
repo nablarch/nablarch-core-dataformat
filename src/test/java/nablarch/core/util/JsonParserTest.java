@@ -12,7 +12,7 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import org.hamcrest.MatcherAssert;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -84,7 +84,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testParseAllPatternOfStratumJson.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        assertThat(result, is(expectedMap));
+        MatcherAssert.assertThat(result, is(expectedMap));
     }
 
     /**
@@ -151,7 +151,7 @@ public class JsonParserTest {
                 "classpath:nablarch/core/util/JsonParserTest/testAllDataType.json");
 
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(stream));
-        assertThat(result, is(expectedMap));
+        MatcherAssert.assertThat(result, is(expectedMap));
     }
 
     /**
@@ -163,7 +163,7 @@ public class JsonParserTest {
             new JsonParser().parse("{\"not_literal\":abc}");
             fail();
         } catch (IllegalArgumentException e) {
-            assertThat(e.getMessage(), e.getMessage(), containsString("found invalid token:abc"));
+            MatcherAssert.assertThat(e.getMessage(), e.getMessage(), containsString("found invalid token:abc"));
         }
     }
 
@@ -366,7 +366,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testSimpleUnescape.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        assertThat(result, is(expectedMap));
+        MatcherAssert.assertThat(result, is(expectedMap));
     }
 
     /**
@@ -431,7 +431,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testUnescape.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        assertThat(result, is(expectedMap));
+        MatcherAssert.assertThat(result, is(expectedMap));
     }
 
     /**
@@ -470,7 +470,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testSimpleUnescapeCodepoint.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        assertThat(result, is(expectedMap));
+        MatcherAssert.assertThat(result, is(expectedMap));
     }
 
     /**
@@ -498,7 +498,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testUnescapeCodepoint.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        assertThat(result, is(expectedMap));
+        MatcherAssert.assertThat(result, is(expectedMap));
     }
 
     /**
