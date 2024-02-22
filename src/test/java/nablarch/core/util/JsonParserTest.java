@@ -11,8 +11,8 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import org.hamcrest.MatcherAssert;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -84,7 +84,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testParseAllPatternOfStratumJson.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        MatcherAssert.assertThat(result, is(expectedMap));
+        assertThat(result, is(expectedMap));
     }
 
     /**
@@ -151,7 +151,7 @@ public class JsonParserTest {
                 "classpath:nablarch/core/util/JsonParserTest/testAllDataType.json");
 
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(stream));
-        MatcherAssert.assertThat(result, is(expectedMap));
+        assertThat(result, is(expectedMap));
     }
 
     /**
@@ -163,7 +163,7 @@ public class JsonParserTest {
             new JsonParser().parse("{\"not_literal\":abc}");
             fail();
         } catch (IllegalArgumentException e) {
-            MatcherAssert.assertThat(e.getMessage(), e.getMessage(), containsString("found invalid token:abc"));
+            assertThat(e.getMessage(), e.getMessage(), containsString("found invalid token:abc"));
         }
     }
 
@@ -366,7 +366,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testSingleUnescape.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        MatcherAssert.assertThat(result, is(expectedMap));
+        assertThat(result, is(expectedMap));
     }
 
     /**
@@ -446,7 +446,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testUnescape.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        MatcherAssert.assertThat(result, is(expectedMap));
+        assertThat(result, is(expectedMap));
     }
 
     /**
@@ -485,7 +485,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testUnescapeWithbfnrt.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        MatcherAssert.assertThat(result, is(expectedMap));
+        assertThat(result, is(expectedMap));
     }
 
     /**
@@ -524,7 +524,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testSingleUnescapeCodepoint.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        MatcherAssert.assertThat(result, is(expectedMap));
+        assertThat(result, is(expectedMap));
     }
 
     /**
@@ -569,7 +569,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testUnescapeCodepoint.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        MatcherAssert.assertThat(result, is(expectedMap));
+        assertThat(result, is(expectedMap));
     }
 
     /**
@@ -603,7 +603,7 @@ public class JsonParserTest {
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testUnescapeCodepointWithuxxxx.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        MatcherAssert.assertThat(result, is(expectedMap));
+        assertThat(result, is(expectedMap));
     }
 
     /**
