@@ -1,0 +1,11 @@
+{
+  "quotationMark": "\"",
+  "reverseSolidus": "\\",
+  "escapedSolidus": "\/",
+  "backspace": "\b",
+  "formFeed": "\f",
+  "lineFeed": "\n",
+  "carriageReturn": "\r",
+  "tab": "\t",
+  "unescapedSolidus": "/"
+}
