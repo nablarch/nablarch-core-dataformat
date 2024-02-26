@@ -352,14 +352,14 @@ public class JsonParserTest {
         // 期待結果Map
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
-                    put("quotationMark", "\"");
-                    put("reverseSolidus", "\\");
-                    put("escapedSolidus", "/");
-                    put("backspace", "\b");
-                    put("formFeed", "\f");
-                    put("lineFeed", "\n");
-                    put("carriageReturn", "\r");
-                    put("tab", "\t");
+                    put("quotationMark"   , "\"");
+                    put("reverseSolidus"  , "\\");
+                    put("escapedSolidus"  , "/");
+                    put("backspace"       , "\b");
+                    put("formFeed"        , "\f");
+                    put("lineFeed"        , "\n");
+                    put("carriageReturn"  , "\r");
+                    put("tab"             , "\t");
                     put("unescapedSolidus", "/");
                 }};
 
@@ -376,7 +376,7 @@ public class JsonParserTest {
     @Test
     public void testUnescape() throws Exception {
         /*
-         * ここではエスケープシーケンスが連続で存在する場合のうち、"\""と"\\"と"\n"についてのみ検証する。
+         * ここではエスケープシーケンスが連続で存在する場合のうち、"\""と"\\"についてのみ検証する。
          * 実装上、パースをおこなっている分岐は\の後"、\以外の/、b、f、n、r、tは同じ分岐で処理をしているため、
          * 一つ検証＋それぞれのエスケープシーケンスについて単体で検証済みなら他についても検証される。
          *
@@ -420,26 +420,22 @@ public class JsonParserTest {
                     put("RS_TB", "\\\t");
                     put("RS_US", "\\/");
 
-                    // "\n"とエスケープシーケンスが連続する組み合わせ
-                    put("LF_QM", "\n\"");
-                    put("LF_RS", "\n\\");
-                    put("LF_ES", "\n/");
-                    put("LF_BS", "\n\b");
-                    put("LF_FF", "\n\f");
-                    put("LF_LF", "\n\n");
-                    put("LF_CR", "\n\r");
-                    put("LF_TB", "\n\t");
-                    put("LF_US", "\n/");
-
-                    // 複数回エスケープシーケンスが存在する場合
+                    // エスケープシーケンスになりえない文字と、"\"の直後に置くとエスケープシーケンスになる文字(b,f,n,r,t)を含んだエスケープシーケンスが複数回存在する場合
                     put("multipleEscapeString1", "a\b a\f a\n a\r a\t");
-                    put("multipleUnescapeString1", "a\\b a\\f a\\n a\\r a\\t");
                     put("multipleEscapeString2", "a\\\b a\\\f a\\\n a\\\r a\\\t");
+
+                    // エスケープシーケンスになりえない文字と、エスケープシーケンス"\\"と"\"の直後に置くとエスケープシーケンスになる文字(b,f,n,r,t)が複数回存在する場合
+                    put("multipleUnescapeString1", "a\\b a\\f a\\n a\\r a\\t");
                     put("multipleUnescapeString2", "a\\\\b a\\\\f a\\\\n a\\\\r a\\\\t");
+
+                    // エスケープシーケンスになりえない文字と、"\"の直後に置くとエスケープシーケンスになる文字(b,f,n,r,t)を含まないエスケープシーケンスが複数回存在する場合
                     put("multipleEscapeSymbols1", "a\" a\\ a/");
                     put("multipleEscapeSymbols2", "a\\\" a\\\\ a\\/");
                     put("multipleEscapeSymbols3", "a\\\\\" a\\\\\\ a\\\\/");
+
+                    // エスケープシーケンスになりえない文字と全種類のエスケープシーケンスが存在する場合
                     put("multipleEscape1", "\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/");
+                    // エスケープシーケンスが複数回存在し、全てエスケープシーケンスの場合
                     put("multipleEscape2", "\"\\\b\f\n\r\t");
                 }};
 
@@ -478,7 +474,7 @@ public class JsonParserTest {
                     put("RS_t", "\\t");
 
                     // 開始位置に文字を含んだエスケープシーケンスが存在する場合に、直前に\がないb,f,n,r,tはエスケープシーケンスとしてではなく、文字として扱われることを確認する。
-                    // "\b"を代表値とし、検証できれば他の、仕様上f,n,r,tも同様に扱われるので省略する。
+                    // "\b"を代表値とし、検証できれば、仕様上f,n,r,tも同様に扱われるので省略する。
                     put("BS_b", "\bb");
                 }};
 
@@ -511,14 +507,14 @@ public class JsonParserTest {
         // 期待結果Map
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
-                    put("unicodeQuotationMark", "\"");
+                    put("unicodeQuotationMark" , "\"");
                     put("unicodeReverseSolidus", "\\");
-                    put("unicodeSolidus", "/");
-                    put("unicodeBackspace", "\b");
-                    put("unicodeFormFeed", "\f");
-                    put("unicodeLineFeed", "\n");
+                    put("unicodeSolidus"       , "/");
+                    put("unicodeBackspace"     , "\b");
+                    put("unicodeFormFeed"      , "\f");
+                    put("unicodeLineFeed"      , "\n");
                     put("unicodeCarriageReturn", "\r");
-                    put("unicodeTab", "\t");
+                    put("unicodeTab"           , "\t");
                 }};
 
         final InputStream resource = FileUtil.getResource(
