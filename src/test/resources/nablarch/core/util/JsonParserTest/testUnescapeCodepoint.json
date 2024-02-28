@@ -1,8 +1,0 @@
-{
-  "QM_UnicodeQM": "\"\u0022",
-  "RS_UnicodeRS": "\\\u005C",
-  "unicodeQM_QM": "\u0022\"",
-  "unicodeRS_RS": "\u005C\\",
-  "unicodeQM_unicodeRS": "\u0022\u005C",
-  "multipleUnicode": "\u3042い\u3046え\u304a\\u1234\u3042"
-}

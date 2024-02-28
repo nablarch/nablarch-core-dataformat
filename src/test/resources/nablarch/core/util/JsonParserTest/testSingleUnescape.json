@@ -7,5 +7,6 @@
   "lineFeed": "\n",
   "carriageReturn": "\r",
   "tab": "\t",
-  "unescapedSolidus": "/"
+  "unescapedSolidus": "/",
+  "codePoint": "\u0061"
 }
