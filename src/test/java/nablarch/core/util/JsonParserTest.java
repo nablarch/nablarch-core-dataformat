@@ -348,7 +348,7 @@ public class JsonParserTest {
      * アンエスケープ処理（エスケープシーケンスが単体で存在する場合）
      */
     @Test
-    public void testSingleUnescape() throws Exception {
+    public void エスケープシーケンスが単体で存在する場合_エスケープシーケンスとして解析される() throws Exception {
         // 期待結果Map
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
@@ -370,16 +370,87 @@ public class JsonParserTest {
     }
 
     /**
-     * アンエスケープ処理（エスケープシーケンスが連続で存在する場合）
-     * エスケープシーケンスが開始位置、終了位置に存在する場合も同時に検証もしている。
+     * コードポイントアンエスケープ処理（uXXXXの形式のエスケープシーケンス単体の場合）
      */
     @Test
-    public void testUnescape() throws Exception {
+    public void コードポイントを含むエスケープシーケンスが単体で存在する場合_エスケープシーケンスとして解析される() throws Exception {
+
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("unicodeQuotationMark" , "\"");
+                    put("unicodeReverseSolidus", "\\");
+                    put("unicodeSolidus"       , "/");
+                    put("unicodeBackspace"     , "\b");
+                    put("unicodeFormFeed"      , "\f");
+                    put("unicodeLineFeed"      , "\n");
+                    put("unicodeCarriageReturn", "\r");
+                    put("unicodeTab"           , "\t");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testSingleUnescapeCodepoint.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * アンエスケープ処理（エスケープシーケンスだけが連続で存在する場合）
+     */
+    @Test
+    public void エスケープシーケンスが連続する場合_エスケープシーケンスとして解析される() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    /*
+                     * 以下、テストケースのキーに用いてる略称
+                     * QM → quotationMark
+                     * RS → reverseSolidusj
+                     * ES → escapedSolidus
+                     * BS → backspace
+                     * FF → formFeed
+                     * LF → lineFeed
+                     * CR → carriageReturn
+                     * TB → tab
+                     * US → unescapedSolidus
+                     * */
+                    // 1文字目のエスケープシーケンスはどれでも違いはないため、代表値として固有の処理がある「/"」と「//」を使用する
+                    put("QM_QM", "\"\"");
+                    put("QM_RS", "\"\\");
+                    put("QM_ES", "\"/");
+                    put("QM_BS", "\"\b");
+                    put("QM_FF", "\"\f");
+                    put("QM_LF", "\"\n");
+                    put("QM_CR", "\"\r");
+                    put("QM_TB", "\"\t");
+                    put("QM_US", "\"/");
+
+                    put("RS_QM", "\\\"");
+                    put("RS_RS", "\\\\");
+                    put("RS_ES", "\\/");
+                    put("RS_BS", "\\\b");
+                    put("RS_FF", "\\\f");
+                    put("RS_LF", "\\\n");
+                    put("RS_CR", "\\\r");
+                    put("RS_TB", "\\\t");
+                    put("RS_US", "\\/");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testUnescape.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * コードポイントアンエスケープ処理（uXXXXの形式を含んだエスケープシーケンスとエスケープシーケンスが連続で存在する場合）
+     */
+    @Test
+    public void コードポイントを含むエスケープシーケンスが連続する場合_エスケープシーケンスとして解析される() throws Exception {
         /*
-         * ここではエスケープシーケンスが連続で存在する場合のうち、"\""と"\\"についてのみ検証する。
-         * 実装上、パースをおこなっている分岐は\の後"、\以外の/、b、f、n、r、tは同じ分岐で処理をしているため、
+         * ここではuXXXXの形式を含んだエスケープシーケンスとの組み合わせのうち、"と\とuXXXXについてのみ検証する。
+         * 実装上、パースをおこなっている分岐は\の後"、\以外は同じ分岐で処理をしているため、
          * 一つ検証＋それぞれのエスケープシーケンスについて単体で検証済みなら他についても検証される。
-         *
          * */
 
         // 期待結果Map
@@ -398,58 +469,74 @@ public class JsonParserTest {
                      * US → unescapedSolidus
                      * */
 
-                    // "\""とエスケープシーケンスが連続する組み合わせ
-                    put("QM_QM", "\"\"");
-                    put("QM_RS", "\"\\");
-                    put("QM_ES", "\"/");
-                    put("QM_BS", "\"\b");
-                    put("QM_FF", "\"\f");
-                    put("QM_LF", "\"\n");
-                    put("QM_CR", "\"\r");
-                    put("QM_TB", "\"\t");
-                    put("QM_US", "\"/");
+                    // uXXXXの形式を含んだエスケープシーケンスと2文字のエスケープシーケンスが連続する場合に、それぞれがエスケープシーケンスとして解析されることを確認する。
+                    put("QM_UnicodeQM", "\"\"");
+                    put("RS_UnicodeRS", "\\\\");
+                    put("unicodeQM_QM", "\"\"");
+                    put("unicodeRS_RS", "\\\\");
+                    put("unicodeQM_unicodeRS", "\"\\");
 
-                    // "\\"とエスケープシーケンスが連続する組み合わせ
-                    put("RS_QM", "\\\"");
-                    put("RS_RS", "\\\\");
-                    put("RS_ES", "\\/");
-                    put("RS_BS", "\\\b");
-                    put("RS_FF", "\\\f");
-                    put("RS_LF", "\\\n");
-                    put("RS_CR", "\\\r");
-                    put("RS_TB", "\\\t");
-                    put("RS_US", "\\/");
-
-                    // エスケープシーケンスになりえない文字と、"\"の直後に置くとエスケープシーケンスになる文字(b,f,n,r,t)を含んだエスケープシーケンスが複数回存在する場合
-                    put("multipleEscapeString1", "a\b a\f a\n a\r a\t");
-                    put("multipleEscapeString2", "a\\\b a\\\f a\\\n a\\\r a\\\t");
-
-                    // エスケープシーケンスになりえない文字と、エスケープシーケンス"\\"と"\"の直後に置くとエスケープシーケンスになる文字(b,f,n,r,t)が複数回存在する場合
-                    put("multipleUnescapeString1", "a\\b a\\f a\\n a\\r a\\t");
-                    put("multipleUnescapeString2", "a\\\\b a\\\\f a\\\\n a\\\\r a\\\\t");
-
-                    // エスケープシーケンスになりえない文字と、"\"の直後に置くとエスケープシーケンスになる文字(b,f,n,r,t)を含まないエスケープシーケンスが複数回存在する場合
-                    put("multipleEscapeSymbols1", "a\" a\\ a/");
-                    put("multipleEscapeSymbols2", "a\\\" a\\\\ a\\/");
-                    put("multipleEscapeSymbols3", "a\\\\\" a\\\\\\ a\\\\/");
-
-                    // エスケープシーケンスになりえない文字と全種類のエスケープシーケンスが存在する場合
-                    put("multipleEscape1", "\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/");
-                    // エスケープシーケンスが複数回存在し、全てエスケープシーケンスの場合
-                    put("multipleEscape2", "\"\\\b\f\n\r\t");
+                    // 複数回uxxxの形式を含んだエスケープシーケンスが存在する場合
+                    put("multipleUnicode", "あいうえお\\u1234あ");
                 }};
 
         final InputStream resource = FileUtil.getResource(
-                "classpath:nablarch/core/util/JsonParserTest/testUnescape.json");
+                "classpath:nablarch/core/util/JsonParserTest/testUnescapeCodepoint.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
         assertThat(result, is(expectedMap));
     }
 
     /**
-     * エスケープシーケンス単体（開始位置、終了位置）と、"\"の直後に置くとエスケープシーケンスになる文字(b,f,n,r,t)が存在する場合のアンエスケープ処理
+     * エスケープシーケンスが開始位置にあり、後ろに通常の文字が存在する場合のアンエスケープ処理
      */
     @Test
-    public void testUnescapeWithbfnrt() throws Exception {
+    public void エスケープシーケンスの後に文字がある場合_エスケープシーケンスと文字として解析されること() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("key1", "\\a");
+                }};
+
+        Map<String, ?> result = new JsonParser().parse("{\"key1\":\"\\\\a\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * エスケープシーケンスが終了位置にあり、前に通常の文字が存在する場合のアンエスケープ処理
+     */
+    @Test
+    public void 文字の後にエスケープシーケンスがある場合_エスケープシーケンスと文字として解析されること() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("key1", "a\\");
+                }};
+
+        Map<String, ?> result = new JsonParser().parse("{\"key1\":\"a\\\\\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * エスケープシーケンスが中間位置にあり、前後に通常の文字が存在する場合のアンエスケープ処理
+     */
+    @Test
+    public void 文字と文字の間にエスケープシーケンスがある場合_エスケープシーケンスと文字として解析されること() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("key1", "a\\a");
+                }};
+
+        Map<String, ?> result = new JsonParser().parse("{\"key1\":\"a\\\\a\"}");
+        assertEquals(expectedMap, result);
+    }
+
+
+    /**
+     * エスケープしたバックスラッシュと、"\"の直後に置くとエスケープシーケンスになる文字(b,f,n,r,t)が存在する場合のアンエスケープ処理
+     */
+    @Test
+    public void エスケープしたバックスラッシュと文字が組み合わせた場合_文字がエスケープシーケンスとして解析されないこと() throws Exception {
         // 期待結果Map
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
@@ -485,94 +572,10 @@ public class JsonParserTest {
     }
 
     /**
-     * アンエスケープ処理(例外処理)
+     * エスケープしたバックスラッシュと、"\"の直後に置くとエスケープシーケンスになる文字(b,f,n,r,t)が存在する場合のアンエスケープ処理
      */
     @Test
-    public void testUnescapeError() throws Exception {
-        try {
-            new JsonParser().parse("{\"key0\":\"\\a\"}");
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertTrue(e.getMessage(), e.getMessage()
-                                        .contains("found invalid json format :"));
-        }
-    }
-
-    /**
-     * コードポイントアンエスケープ処理（uXXXXの形式のエスケープシーケンス単体の場合）
-     */
-    @Test
-    public void testSingleUnescapeCodepoint() throws Exception {
-
-        // 期待結果Map
-        Map<String, Object> expectedMap =
-                new HashMap<String, Object>() {{
-                    put("unicodeQuotationMark" , "\"");
-                    put("unicodeReverseSolidus", "\\");
-                    put("unicodeSolidus"       , "/");
-                    put("unicodeBackspace"     , "\b");
-                    put("unicodeFormFeed"      , "\f");
-                    put("unicodeLineFeed"      , "\n");
-                    put("unicodeCarriageReturn", "\r");
-                    put("unicodeTab"           , "\t");
-                }};
-
-        final InputStream resource = FileUtil.getResource(
-                "classpath:nablarch/core/util/JsonParserTest/testSingleUnescapeCodepoint.json");
-        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        assertThat(result, is(expectedMap));
-    }
-
-    /**
-     * コードポイントアンエスケープ処理（uXXXXの形式を含んだエスケープシーケンスとエスケープシーケンスが連続で存在する場合）
-     * エスケープシーケンスが開始位置、終了位置に存在する場合も同時に検証している。
-     */
-    @Test
-    public void testUnescapeCodepoint() throws Exception {
-        /*
-         * ここではuXXXXの形式を含んだエスケープシーケンスとの組み合わせのうち、"と\とuXXXXについてのみ検証する。
-         * 実装上、パースをおこなっている分岐は\の後"、\以外は同じ分岐で処理をしているため、
-         * 一つ検証＋それぞれのエスケープシーケンスについて単体で検証済みなら他についても検証される。
-         * */
-
-        // 期待結果Map
-        Map<String, Object> expectedMap =
-                new HashMap<String, Object>() {{
-                    /*
-                     * 以下、テストケースのキーに用いてる略称
-                     * QM → quotationMark
-                     * RS → reverseSolidus
-                     * ES → escapedSolidus
-                     * BS → backspace
-                     * FF → formFeed
-                     * LF → lineFeed
-                     * CR → carriageReturn
-                     * TB → tab
-                     * US → unescapedSolidus
-                     * */
-
-                    // uXXXXの形式を含んだエスケープシーケンスと2文字のエスケープシーケンスが連続する組み合わせ
-                    put("QM_UnicodeQM", "\"\"");
-                    put("RS_UnicodeRS", "\\\\");
-                    put("unicodeQM_QM", "\"\"");
-                    put("unicodeRS_RS", "\\\\");
-                    put("unicodeQM_unicodeRS", "\"\\");
-
-                    // 複数回uxxxの形式を含んだエスケープシーケンスが存在する場合
-                    put("multipleUnicode", "あいうえお\\u1234あ");
-                }};
-
-        final InputStream resource = FileUtil.getResource(
-                "classpath:nablarch/core/util/JsonParserTest/testUnescapeCodepoint.json");
-        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
-        assertThat(result, is(expectedMap));
-    }
-
-    /**
-     * エスケープシーケンス単体（開始位置、終了位置）と、"\"の直後に置くとエスケープシーケンスになる文字(uXXXX形式)が存在する場合のアンエスケープ処理
-     */
-    @Test
-    public void testUnescapeCodepointwithuxxx() throws Exception {
+    public void エスケープしたバックスラッシュと文字をコードポイントで組み合わせた場合_文字がエスケープシーケンスとして解析されないこと() throws Exception {
         // 期待結果Map
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
@@ -591,15 +594,27 @@ public class JsonParserTest {
 
                     // 開始位置に"\\"が存在する場合に、uXXXXはエスケープシーケンスとしてではなく、文字として扱われることを確認する。
                     put("RS_uxxx", "\\u005C");
-
-                    // 終了位置に"\\"が存在する場合に、uXXXXはエスケープシーケンスとしてではなく、文字として扱われることを確認する。
-                    put("uxxx_RS", "u005C\\");
                 }};
 
         final InputStream resource = FileUtil.getResource(
                 "classpath:nablarch/core/util/JsonParserTest/testUnescapeCodepointWithuxxxx.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
         assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * アンエスケープ処理(例外処理)
+     * エスケープ対象外の文字をエスケープしようとした場合にパースが失敗することを確認する。
+     */
+    @Test
+    public void testUnescapeError() throws Exception {
+        try {
+            new JsonParser().parse("{\"key0\":\"\\a\"}");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage(), e.getMessage()
+                                        .contains("found invalid json format :"));
+        }
     }
 
     /**

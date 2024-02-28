@@ -16,14 +16,5 @@
   "RS_LF": "\\\n",
   "RS_CR": "\\\r",
   "RS_TB": "\\\t",
-  "RS_US": "\\/",
-  "multipleEscapeString1": "a\b a\f a\n a\r a\t",
-  "multipleEscapeString2": "a\\\b a\\\f a\\\n a\\\r a\\\t",
-  "multipleUnescapeString1": "a\\b a\\f a\\n a\\r a\\t",
-  "multipleUnescapeString2": "a\\\\b a\\\\f a\\\\n a\\\\r a\\\\t",
-  "multipleEscapeSymbols1": "a\" a\\ a/",
-  "multipleEscapeSymbols2": "a\\\" a\\\\ a\\/",
-  "multipleEscapeSymbols3": "a\\\\\" a\\\\\\ a\\\\/",
-  "multipleEscape1": "\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/",
-  "multipleEscape2": "\"\\\b\f\n\r\t"
+  "RS_US": "\\/"
 }
