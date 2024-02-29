@@ -1,9 +1,9 @@
 {
   "noWhiteSpace":"a",
-   "fullWhiteSpace"  : "a"   ,
-  	"fullTab"		:	"a"		,
+   "includeWhiteSpace"  : "a"   ,
+  	"includeTab"		:	"a"		,
 
-  "fullNewLine"
+  "includeNewLine"
   : "a"
 
 }

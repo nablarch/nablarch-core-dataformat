@@ -3,6 +3,7 @@ package nablarch.core.util;
 import org.junit.Test;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -397,7 +398,7 @@ public class JsonParserTest {
 
     /**
      * エスケープシーケンスが連続する場合、それぞれがエスケープシーケンスとして解析される。
-     * 1文字目のエスケープシーケンスはどれでも違いはないため、代表値として固有の処理がある「/"」と「//」を使用する。
+     * 1文字目のエスケープシーケンスはどれでも違いはないため、代表値として固有の処理がある「"」と「\」を使用する。
      */
     @Test
     public void testMultipleUnescape() throws Exception {
@@ -407,7 +408,7 @@ public class JsonParserTest {
                     /*
                      * 以下、テストケースのキーに用いてる略称
                      * QM → quotationMark
-                     * RS → reverseSolidusj
+                     * RS → reverseSolidus
                      * ES → escapedSolidus
                      * BS → backspace
                      * FF → formFeed
@@ -603,9 +604,9 @@ public class JsonParserTest {
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
                     put("noWhiteSpace", "a");
-                    put("fullWhiteSpace", "a");
-                    put("fullTab", "a");
-                    put("fullNewLine", "a");
+                    put("includeWhiteSpace", "a");
+                    put("includeTab", "a");
+                    put("includeNewLine", "a");
                 }};
 
         final InputStream resource = FileUtil.getResource(
@@ -728,7 +729,7 @@ public class JsonParserTest {
      * {"{":"{"}
      */
     @Test
-    public void testOnlyObjectStartValue() {
+    public void testOnlyObjectStartValue() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("{", "{");
         }};
@@ -741,7 +742,7 @@ public class JsonParserTest {
      * {"}":"}"}
      */
     @Test
-    public void testOnlyObjectEndValue() {
+    public void testOnlyObjectEndValue() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("}", "}");
         }};
@@ -754,7 +755,7 @@ public class JsonParserTest {
      * {"[":"["}
      */
     @Test
-    public void testOnlyArrayStartValue() {
+    public void testOnlyArrayStartValue() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("[", "[");
         }};
@@ -767,7 +768,7 @@ public class JsonParserTest {
      * {"]":"]"}
      */
     @Test
-    public void testOnlyArrayEndValue() {
+    public void testOnlyArrayEndValue() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("]", "]");
         }};
@@ -780,7 +781,7 @@ public class JsonParserTest {
      * {":":":"}
      */
     @Test
-    public void testOnlyColonValue() {
+    public void testOnlyColonValue() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put(":", ":");
         }};
@@ -793,7 +794,7 @@ public class JsonParserTest {
      * {"{":["{"]}
      */
     @Test
-    public void testOnlyObjectStartValueInArray() {
+    public void testOnlyObjectStartValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("{", new ArrayList<String>() {{
                 add("{");
@@ -808,7 +809,7 @@ public class JsonParserTest {
      * {"}":["}"]}
      */
     @Test
-    public void testOnlyObjectEndValueInArray() {
+    public void testOnlyObjectEndValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("}", new ArrayList<String>() {{
                 add("}");
@@ -823,7 +824,7 @@ public class JsonParserTest {
      * {"[":["["]}
      */
     @Test
-    public void testOnlyArrayStartValueInArray() {
+    public void testOnlyArrayStartValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("[", new ArrayList<String>() {{
                 add("[");
@@ -838,7 +839,7 @@ public class JsonParserTest {
      * {"]":["]"]}
      */
     @Test
-    public void testOnlyArrayEndValueInArray() {
+    public void testOnlyArrayEndValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("]", new ArrayList<String>() {{
                 add("]");
@@ -853,7 +854,7 @@ public class JsonParserTest {
      * {":":[":"]}
      */
     @Test
-    public void testOnlyColonValueInArray() {
+    public void testOnlyColonValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put(":", new ArrayList<String>() {{
                 add(":");
@@ -868,7 +869,7 @@ public class JsonParserTest {
      * {"{":{"{":"{"}}
      */
     @Test
-    public void testOnlyObjectStartValueInNestedObject() {
+    public void testOnlyObjectStartValueInNestedObject() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("{", new HashMap<String, Object>() {{
                 put("{", "{");
@@ -883,7 +884,7 @@ public class JsonParserTest {
      * {"}":{"}":"}"}}
      */
     @Test
-    public void testOnlyObjectEndValueInNestedObject() {
+    public void testOnlyObjectEndValueInNestedObject() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("}", new HashMap<String, Object>() {{
                 put("}", "}");
@@ -898,7 +899,7 @@ public class JsonParserTest {
      * {"[":{"[":"["}}
      */
     @Test
-    public void testOnlyArrayStartValueInNestedObject() {
+    public void testOnlyArrayStartValueInNestedObject() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("[", new HashMap<String, Object>() {{
                 put("[", "[");
@@ -913,7 +914,7 @@ public class JsonParserTest {
      * {"]":{"]":"]"}}
      */
     @Test
-    public void testOnlyArrayEndValueInNestedObject() {
+    public void testOnlyArrayEndValueInNestedObject() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("]", new HashMap<String, Object>() {{
                 put("]", "]");
@@ -928,7 +929,7 @@ public class JsonParserTest {
      * {":":{":":":"}}
      */
     @Test
-    public void testOnlyColonValueInNestedArray() {
+    public void testOnlyColonValueInNestedArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put(":", new HashMap<String, Object>() {{
                 put(":", ":");
