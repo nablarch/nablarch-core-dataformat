@@ -41,7 +41,7 @@ public final class JsonParser {
     private TokenType lastTokenType = null;
 
     /** トークン種別 */
-    public static enum TokenType {
+    public enum TokenType {
         /** 文字列 */
         STRING("^\"(.*)\"$") {
             /**{@inheritDoc}<br>
@@ -71,7 +71,7 @@ public final class JsonParser {
         SEPARATOR("[\\[\\]\\{\\},:]");
 
         /** トークンパターン */
-        private Pattern tokenPattern;
+        private final Pattern tokenPattern;
 
         /**
          * コンストラクタ
@@ -114,17 +114,17 @@ public final class JsonParser {
      * @param text JSON文字列
      * @return データ形式変換および階層構造変換を行った単純なMap
      */
-    public Map<String, ?> parse(String text) {
+    public Map<String, ?> parse(String text) throws IOException{
         // ルート要素の形式を確認
         checkTypeOfRootElement(text);
 
-        String token = null;
+        String token;
         reader = new StringReader(text);
 
         // 行中からパターンにマッチするトークンを取得する
         while ((token = readNextToken()) != null) {
             token = token.trim();
-            if (token.length() == 0) {
+            if (token.isEmpty()) {
                 continue;
             }
 
@@ -171,8 +171,7 @@ public final class JsonParser {
      * 次のトークンを読み込みます
      * @return 次のトークン
      */
-    private String readNextToken() {
-        try {
+    private String readNextToken() throws IOException{
             int c;
             StringBuilder sb = new StringBuilder();
             boolean isInQuote = false;
@@ -192,15 +191,10 @@ public final class JsonParser {
 
                 if (c == '\\') {
                     // バックスラッシュ
-                    if(isEscape){
-                        // エスケープされている場合はエスケープ終了
-                        isEscape = false;
-                    } else {
-                        // エスケープ開始
-                        isEscape = true;
-                    }
-                    sb.append((char) c);
+                    // エスケープが未開始の場合はエスケープを開始し、既にエスケープ中の場合はバックスラッシュをエスケープ対象として解釈し、エスケープを終了する。
+                    isEscape = !isEscape;
 
+                    sb.append((char) c);
 
                 } else {
                     if (c == '\"') {
@@ -216,7 +210,6 @@ public final class JsonParser {
 
                         } else {
                             // クォート終了
-                            isInQuote = false;
                             sb.append((char) c);
                             return sb.toString();
                         }
@@ -252,11 +245,6 @@ public final class JsonParser {
                 }
 
             }
-        } catch (IOException wontHappen) {
-            // StringReaderはclose後の操作をおこなった場合のみIOExceptionを送出する
-            // ため、この例外は発生し得ない。
-            throw new RuntimeException(wontHappen);
-        }
     }
 
     /**
@@ -264,15 +252,15 @@ public final class JsonParser {
      * @param text JSONデータ
      */
     private void checkTypeOfRootElement(String text) {
-        text = text.trim();
+        String trimmedText = text.trim();
 
         // オブジェクト形式で始まっているか確認
-        if (!text.startsWith("{")) {
+        if (!trimmedText.startsWith("{")) {
             throw new IllegalArgumentException("JSON data must starts with '{'");
         }
 
         // オブジェクト形式で終了しているか確認
-        if (!text.endsWith("}")) {
+        if (!trimmedText.endsWith("}")) {
             throw new IllegalArgumentException("JSON data must ends with '}'");
         }
     }
@@ -298,7 +286,9 @@ public final class JsonParser {
             // 不正な開始位置
             throw new IllegalArgumentException("incorrect object starting position");
         }
-        mapStack.push(currentMap);
+        if(currentMap != null){
+            mapStack.push(currentMap);
+        }
         currentMap = newMap;
     }
 
@@ -443,13 +433,13 @@ public final class JsonParser {
                             int codePoint = Integer.parseInt(m.group(1), 16);
                             if(codePoint == 92){
                                 // appendReplacement は\(u005C)のみの場合、エスケープ処理をしようと後ろのエスケープ対象を探し、エラーが発生する。\\を置換文字列として渡し、appendReplacement にエスケープ処理をさせることで回避。
-                                m.appendReplacement(sb, new String("\\\\"));
+                                m.appendReplacement(sb, "\\\\");
                             }else{
                                 m.appendReplacement(sb, new String(Character.toChars(codePoint)));
                             }
                         }
                         m.appendTail(sb);
-                    unescapeToken.append(sb.toString()); i = i + 5; break;
+                    unescapeToken.append(sb); i = i + 5; break;
                     default :
                         throw new IllegalArgumentException(
                                 "found invalid json format :" + token);
@@ -458,9 +448,8 @@ public final class JsonParser {
                 unescapeToken.append(tokenChar);
             }
         }
-        token = unescapeToken.toString();
 
-        return token;
+        return unescapeToken.toString();
     }
 
     /**
