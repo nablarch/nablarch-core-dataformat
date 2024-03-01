@@ -1,0 +1,12 @@
+{
+  "quotationMark": "a\"",
+  "reverseSolidus": "a\\",
+  "escapedSolidus": "a\/",
+  "backspace": "a\b",
+  "formFeed": "a\f",
+  "lineFeed": "a\n",
+  "carriageReturn": "a\r",
+  "tab": "a\t",
+  "unescapedSolidus": "a/",
+  "codePoint": "a\u0061"
+}
