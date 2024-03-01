@@ -286,9 +286,7 @@ public final class JsonParser {
             // 不正な開始位置
             throw new IllegalArgumentException("incorrect object starting position");
         }
-        if(currentMap != null){
-            mapStack.push(currentMap);
-        }
+        mapStack.push(currentMap);
         currentMap = newMap;
     }
 
