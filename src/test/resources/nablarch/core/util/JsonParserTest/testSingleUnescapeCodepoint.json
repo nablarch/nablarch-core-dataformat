@@ -1,0 +1,10 @@
+{
+  "unicodeQuotationMark": "\u0022",
+  "unicodeReverseSolidus": "\u005C",
+  "unicodeSolidus": "\u002F",
+  "unicodeBackspace": "\u0008",
+  "unicodeFormFeed": "\u000C",
+  "unicodeLineFeed": "\u000A",
+  "unicodeCarriageReturn": "\u000D",
+  "unicodeTab": "\u0009"
+}
