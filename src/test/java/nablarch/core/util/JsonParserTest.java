@@ -3,6 +3,7 @@ package nablarch.core.util;
 import org.junit.Test;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -11,8 +12,8 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -345,33 +346,225 @@ public class JsonParserTest {
     }
 
     /**
-     * アンエスケープ処理
+     * エスケープシーケンスが単体で存在する場合、エスケープシーケンスとして解析される
      */
     @Test
-    public void testUnescape() throws Exception {
+    public void testSingleUnescape() throws Exception {
         // 期待結果Map
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
-                    put("key0", "/");
-                    put("key1", "a\b a\f a\n a\r a\t");
-                    put("key2", "a\\b a\\f a\\n a\\r a\\t");
-                    put("key3", "a\\\b a\\\f a\\\n a\\\r a\\\t");
-                    put("key4", "a\\\\b a\\\\f a\\\\n a\\\\r a\\\\t");
-                    put("key5", "a\" a\\ a/");
-                    put("key6", "a\\\" a\\\\ a\\/");
-                    put("key7", "a\\\\\" a\\\\\\ a\\\\/");
-                    put("key8", "\"foo\" isn't \"bar\". specials: \b\r\n\f\t\\/");
-                    put("key9", "\"\\\b\f\n\r\t");
+                    put("quotationMark"   , "\"");
+                    put("reverseSolidus"  , "\\");
+                    put("escapedSolidus"  , "/");
+                    put("backspace"       , "\b");
+                    put("formFeed"        , "\f");
+                    put("lineFeed"        , "\n");
+                    put("carriageReturn"  , "\r");
+                    put("tab"             , "\t");
+                    put("unescapedSolidus", "/");
+                    put("codePoint"       , "a");
                 }};
 
         final InputStream resource = FileUtil.getResource(
-                "classpath:nablarch/core/util/JsonParserTest/testUnescape.json");
+                "classpath:nablarch/core/util/JsonParserTest/testSingleUnescape.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
         assertThat(result, is(expectedMap));
     }
 
     /**
+     * コードポイントを使用したエスケープシーケンスが単体で存在する場合、エスケープシーケンスとして解析される
+     */
+    @Test
+    public void testSingleUnescapeCodepoint() throws Exception {
+
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("unicodeQuotationMark" , "\"");
+                    put("unicodeReverseSolidus", "\\");
+                    put("unicodeSolidus"       , "/");
+                    put("unicodeBackspace"     , "\b");
+                    put("unicodeFormFeed"      , "\f");
+                    put("unicodeLineFeed"      , "\n");
+                    put("unicodeCarriageReturn", "\r");
+                    put("unicodeTab"           , "\t");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testSingleUnescapeCodepoint.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * エスケープシーケンスが連続する場合、それぞれがエスケープシーケンスとして解析される。
+     * 1文字目のエスケープシーケンスはどれでも違いはないため、代表値として固有の処理がある「"」と「\」を使用する。
+     */
+    @Test
+    public void testMultipleUnescape() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    /*
+                     * 以下、テストケースのキーに用いてる略称
+                     * QM → quotationMark
+                     * RS → reverseSolidus
+                     * ES → escapedSolidus
+                     * BS → backspace
+                     * FF → formFeed
+                     * LF → lineFeed
+                     * CR → carriageReturn
+                     * TB → tab
+                     * US → unescapedSolidus
+                     * CP → codePoint
+                     * */
+                    put("QM_QM", "\"\"");
+                    put("QM_RS", "\"\\");
+                    put("QM_ES", "\"/");
+                    put("QM_BS", "\"\b");
+                    put("QM_FF", "\"\f");
+                    put("QM_LF", "\"\n");
+                    put("QM_CR", "\"\r");
+                    put("QM_TB", "\"\t");
+                    put("QM_US", "\"/");
+                    put("QM_CP", "\"a");
+
+                    put("RS_QM", "\\\"");
+                    put("RS_RS", "\\\\");
+                    put("RS_ES", "\\/");
+                    put("RS_BS", "\\\b");
+                    put("RS_FF", "\\\f");
+                    put("RS_LF", "\\\n");
+                    put("RS_CR", "\\\r");
+                    put("RS_TB", "\\\t");
+                    put("RS_US", "\\/");
+                    put("RS_CP", "\\a");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testMultipleUnescape.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * エスケープシーケンスの後に文字がある場合、エスケープシーケンスと文字として解析されること
+     */
+    @Test
+    public void testEscapeSequenceAndChar() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("quotationMark"   , "\"a");
+                    put("reverseSolidus"  , "\\a");
+                    put("escapedSolidus"  , "/a");
+                    put("backspace"       , "\ba");
+                    put("formFeed"        , "\fa");
+                    put("lineFeed"        , "\na");
+                    put("carriageReturn"  , "\ra");
+                    put("tab"             , "\ta");
+                    put("unescapedSolidus", "/a");
+                    put("codePoint"       , "aa");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testEscapeSequenceAndChar.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * 文字の後にエスケープシーケンスがある場合、エスケープシーケンスと文字として解析されること
+     */
+    @Test
+    public void testCharAndEscapeSequence() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("quotationMark"   , "a\"");
+                    put("reverseSolidus"  , "a\\");
+                    put("escapedSolidus"  , "a/");
+                    put("backspace"       , "a\b");
+                    put("formFeed"        , "a\f");
+                    put("lineFeed"        , "a\n");
+                    put("carriageReturn"  , "a\r");
+                    put("tab"             , "a\t");
+                    put("unescapedSolidus", "a/");
+                    put("codePoint"       , "aa");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testCharAndEscapeSequence.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * 文字と文字の間にエスケープシーケンスがある場合、エスケープシーケンスと文字として解析されること
+     */
+    @Test
+    public void testCharAndEscapeSequenceAndChar() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("quotationMark"   , "a\"a");
+                    put("reverseSolidus"  , "a\\a");
+                    put("escapedSolidus"  , "a/a");
+                    put("backspace"       , "a\ba");
+                    put("formFeed"        , "a\fa");
+                    put("lineFeed"        , "a\na");
+                    put("carriageReturn"  , "a\ra");
+                    put("tab"             , "a\ta");
+                    put("unescapedSolidus", "a/a");
+                    put("codePoint"       , "aaa");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testCharAndEscapeSequenceAndChar.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+
+    /**
+     * エスケープしたバックスラッシュと文字が組み合わせた場合、文字がエスケープシーケンスとして解析されないこと
+     */
+    @Test
+    public void testUnescapeWithbfnrt() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("b", "\\b");
+                    put("f", "\\f");
+                    put("n", "\\n");
+                    put("r", "\\r");
+                    put("t", "\\t");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testUnescapeWithbfnrt.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * エスケープしたバックスラッシュとコードポイントを組み合わせた場合、エスケープシーケンスとして解析されないこと
+     */
+    @Test
+    public void testUnescapeCodepointWithuxxxx() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("uxxxx", "\\u005C");
+                }};
+
+        Map<String, ?> result = new JsonParser().parse("{\"uxxxx\":\"\\\\u005C\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
      * アンエスケープ処理(例外処理)
+     * エスケープ対象外の文字をエスケープしようとした場合にパースが失敗することを確認する。
      */
     @Test
     public void testUnescapeError() throws Exception {
@@ -382,23 +575,6 @@ public class JsonParserTest {
             assertTrue(e.getMessage(), e.getMessage()
                                         .contains("found invalid json format :"));
         }
-    }
-
-    /**
-     * コードポイントアンエスケープ処理
-     */
-    @Test
-    public void testUnescapeCodepoint() throws Exception {
-
-        // 期待結果Map
-        Map<String, Object> expectedMap =
-                new HashMap<String, Object>() {{
-                    put("key1", "あいうえお\\u1234あ");
-                }};
-
-        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(
-                "{\"key1\":\"\\u3042い\\u3046え\\u304a\\\\u1234\\u3042\"}");
-        assertThat(result, is(expectedMap));
     }
 
     /**
@@ -417,6 +593,26 @@ public class JsonParserTest {
             assertTrue(e.getMessage(), e.getMessage()
                                         .contains("found invalid unicode string :"));
         }
+    }
+
+    /**
+     * ホワイトスペースがどこに入力されていても、パースできることを確認する。
+     */
+    @Test
+    public void testWhiteSpace() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("noWhiteSpace", "a");
+                    put("includeWhiteSpace", "a");
+                    put("includeTab", "a");
+                    put("includeNewLine", "a");
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testWhiteSpace.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
     }
 
     /**
@@ -533,7 +729,7 @@ public class JsonParserTest {
      * {"{":"{"}
      */
     @Test
-    public void testOnlyObjectStartValue() {
+    public void testOnlyObjectStartValue() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("{", "{");
         }};
@@ -546,7 +742,7 @@ public class JsonParserTest {
      * {"}":"}"}
      */
     @Test
-    public void testOnlyObjectEndValue() {
+    public void testOnlyObjectEndValue() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("}", "}");
         }};
@@ -559,7 +755,7 @@ public class JsonParserTest {
      * {"[":"["}
      */
     @Test
-    public void testOnlyArrayStartValue() {
+    public void testOnlyArrayStartValue() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("[", "[");
         }};
@@ -572,7 +768,7 @@ public class JsonParserTest {
      * {"]":"]"}
      */
     @Test
-    public void testOnlyArrayEndValue() {
+    public void testOnlyArrayEndValue() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("]", "]");
         }};
@@ -585,7 +781,7 @@ public class JsonParserTest {
      * {":":":"}
      */
     @Test
-    public void testOnlyColonValue() {
+    public void testOnlyColonValue() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put(":", ":");
         }};
@@ -598,7 +794,7 @@ public class JsonParserTest {
      * {"{":["{"]}
      */
     @Test
-    public void testOnlyObjectStartValueInArray() {
+    public void testOnlyObjectStartValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("{", new ArrayList<String>() {{
                 add("{");
@@ -613,7 +809,7 @@ public class JsonParserTest {
      * {"}":["}"]}
      */
     @Test
-    public void testOnlyObjectEndValueInArray() {
+    public void testOnlyObjectEndValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("}", new ArrayList<String>() {{
                 add("}");
@@ -628,7 +824,7 @@ public class JsonParserTest {
      * {"[":["["]}
      */
     @Test
-    public void testOnlyArrayStartValueInArray() {
+    public void testOnlyArrayStartValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("[", new ArrayList<String>() {{
                 add("[");
@@ -643,7 +839,7 @@ public class JsonParserTest {
      * {"]":["]"]}
      */
     @Test
-    public void testOnlyArrayEndValueInArray() {
+    public void testOnlyArrayEndValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("]", new ArrayList<String>() {{
                 add("]");
@@ -658,7 +854,7 @@ public class JsonParserTest {
      * {":":[":"]}
      */
     @Test
-    public void testOnlyColonValueInArray() {
+    public void testOnlyColonValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put(":", new ArrayList<String>() {{
                 add(":");
@@ -673,7 +869,7 @@ public class JsonParserTest {
      * {"{":{"{":"{"}}
      */
     @Test
-    public void testOnlyObjectStartValueInNestedObject() {
+    public void testOnlyObjectStartValueInNestedObject() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("{", new HashMap<String, Object>() {{
                 put("{", "{");
@@ -688,7 +884,7 @@ public class JsonParserTest {
      * {"}":{"}":"}"}}
      */
     @Test
-    public void testOnlyObjectEndValueInNestedObject() {
+    public void testOnlyObjectEndValueInNestedObject() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("}", new HashMap<String, Object>() {{
                 put("}", "}");
@@ -703,7 +899,7 @@ public class JsonParserTest {
      * {"[":{"[":"["}}
      */
     @Test
-    public void testOnlyArrayStartValueInNestedObject() {
+    public void testOnlyArrayStartValueInNestedObject() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("[", new HashMap<String, Object>() {{
                 put("[", "[");
@@ -718,7 +914,7 @@ public class JsonParserTest {
      * {"]":{"]":"]"}}
      */
     @Test
-    public void testOnlyArrayEndValueInNestedObject() {
+    public void testOnlyArrayEndValueInNestedObject() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put("]", new HashMap<String, Object>() {{
                 put("]", "]");
@@ -733,7 +929,7 @@ public class JsonParserTest {
      * {":":{":":":"}}
      */
     @Test
-    public void testOnlyColonValueInNestedArray() {
+    public void testOnlyColonValueInNestedArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put(":", new HashMap<String, Object>() {{
                 put(":", ":");

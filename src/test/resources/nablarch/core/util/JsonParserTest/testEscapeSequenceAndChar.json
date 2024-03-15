@@ -1,0 +1,12 @@
+{
+  "quotationMark": "\"a",
+  "reverseSolidus": "\\a",
+  "escapedSolidus": "\/a",
+  "backspace": "\ba",
+  "formFeed": "\fa",
+  "lineFeed": "\na",
+  "carriageReturn": "\ra",
+  "tab": "\ta",
+  "unescapedSolidus": "/a",
+  "codePoint": "\u0061a"
+}
