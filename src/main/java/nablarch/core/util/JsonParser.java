@@ -113,8 +113,9 @@ public final class JsonParser {
      *
      * @param text JSON文字列
      * @return データ形式変換および階層構造変換を行った単純なMap
+     * @throws IOException 読み込みに伴うIO処理で問題が発生した場合
      */
-    public Map<String, ?> parse(String text) throws IOException{
+    public Map<String, ?> parse(String text) throws IOException {
         // ルート要素の形式を確認
         checkTypeOfRootElement(text);
 
@@ -170,8 +171,10 @@ public final class JsonParser {
     /**
      * 次のトークンを読み込みます
      * @return 次のトークン
+     * @throws IOException 読み込みに伴うIO処理で問題が発生した場合
+     *
      */
-    private String readNextToken() throws IOException{
+    private String readNextToken() throws IOException {
             int c;
             StringBuilder sb = new StringBuilder();
             boolean isInQuote = false;
@@ -429,10 +432,10 @@ public final class JsonParser {
                         StringBuffer sb = new StringBuffer();
                         while (m.find()) {
                             int codePoint = Integer.parseInt(m.group(1), 16);
-                            if(codePoint == 92){
+                            if (codePoint == 92) {
                                 // appendReplacement は\(u005C)のみの場合、エスケープ処理をしようと後ろのエスケープ対象を探し、エラーが発生する。\\を置換文字列として渡し、appendReplacement にエスケープ処理をさせることで回避。
                                 m.appendReplacement(sb, "\\\\");
-                            }else{
+                            } else {
                                 m.appendReplacement(sb, new String(Character.toChars(codePoint)));
                             }
                         }
