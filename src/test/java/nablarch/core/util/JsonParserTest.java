@@ -99,6 +99,7 @@ public class JsonParserTest {
             put("string_half", "value");
             put("string_wide", "バリュー");
             put("string_mix", "value バリュー");
+            put("string_surrogate", "𐎀𐎁");
             put("string_array", new ArrayList<Object>() {{
                 add("array1");
                 add("array2");
@@ -106,6 +107,7 @@ public class JsonParserTest {
             }});
             put("integer1", "123");
             put("integer2", "-123");
+            put("integer3", "0");
             put("float1", "123.456");
             put("float2", "-123.456");
             put("int_exp1", "123e10");
@@ -114,12 +116,26 @@ public class JsonParserTest {
             put("int_exp4", "-123e10");
             put("int_exp5", "-123e+10");
             put("int_exp6", "-123e-10");
+            put("int_exp7", "123E10");
+            put("int_exp8", "123E+10");
+            put("int_exp9", "123E-10");
+            put("int_exp10", "-123E10");
+            put("int_exp11", "-123E+10");
+            put("int_exp12", "-123E-10");
             put("flo_exp1", "123.456e10");
             put("flo_exp2", "123.456e+10");
             put("flo_exp3", "123.456e-10");
             put("flo_exp4", "-123.456e10");
             put("flo_exp5", "-123.456e+10");
             put("flo_exp6", "-123.456e-10");
+            put("flo_exp7", "123.456E10");
+            put("flo_exp8", "123.456E+10");
+            put("flo_exp9", "123.456E-10");
+            put("flo_exp10", "-123.456E10");
+            put("flo_exp11", "-123.456E+10");
+            put("flo_exp12", "-123.456E-10");
+            put("flo_exp13", "123.0");
+            put("flo_exp14", "-123.0");
             put("numeric_array", new ArrayList<Object>() {{
                 add("123");
                 add("456");
@@ -495,6 +511,11 @@ public class JsonParserTest {
                     put("RS_TB", "\\\t");
                     put("RS_US", "\\/");
                     put("RS_CP", "\\a");
+
+                    put("CP_1", "ナブラーク");
+                    put("CP_2", "実行基盤");
+                    put("CP_3", "훀훠");  // コードポイントの網羅率のための値で、文字自体に意味はない
+                    put("CP_4", "𐎀𐎁");  // サロゲートペア
                 }};
 
         final InputStream resource = FileUtil.getResource(
@@ -655,7 +676,7 @@ public class JsonParserTest {
      * ホワイトスペースがどこに入力されていても、パースできることを確認する。
      */
     @Test
-    public void testWhiteSpace() throws Exception {
+    public void testWhiteSpace1() throws Exception {
         // 期待結果Map
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
@@ -666,7 +687,33 @@ public class JsonParserTest {
                 }};
 
         final InputStream resource = FileUtil.getResource(
-                "classpath:nablarch/core/util/JsonParserTest/testWhiteSpace.json");
+                "classpath:nablarch/core/util/JsonParserTest/testWhiteSpace1.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * ホワイトスペースがどこに入力されていても、パースできることを確認する。
+     */
+    @Test
+    public void testWhiteSpace2() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("simpleElement", "a");
+                    put("arrayElement", new ArrayList<Object>() {{
+                        add("1");
+                        add("2");
+                        add("3");
+                    }});
+                    put("objectElement", new HashMap<String, Object>() {{
+                        put("key1", "value1");
+                        put("key2", "value2");
+                    }});
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testWhiteSpace2.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
         assertThat(result, is(expectedMap));
     }
