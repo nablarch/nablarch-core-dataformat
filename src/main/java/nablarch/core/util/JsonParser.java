@@ -308,12 +308,14 @@ public final class JsonParser {
 
         } else if (lastTokenType == TokenType.SEPARATOR
                 && ":".equals(lastToken)) {
+            // 直前の文字がセパレータで、:の場合は値がない
             throw new IllegalArgumentException("incorrect object ending position");
 
         } else if (lastTokenType != TokenType.SEPARATOR
                 || (!"]".equals(lastToken)
                 && !"}".equals(lastToken)
                 && !"{".equals(lastToken))) {
+            // セパレータではない場合、またはセパレータの場合はオブジェクトと配列の終了、空オブジェクトまでを値として扱う
             currentMap.put(currentKey, lastToken);
         }
 
@@ -343,12 +345,14 @@ public final class JsonParser {
         if (lastTokenType != TokenType.SEPARATOR
                 || (!"}".equals(lastToken) && !"[".equals(lastToken))
         ) {
+            // セパレータ以外、またはセパレータの場合はオブジェクトの終了か空配列のみを許可
             if (currentList == null) {
                 throw new IllegalArgumentException("array end detected, but not started");
             } else {
                 currentList.add(lastToken);
             }
         }
+
         currentList = pop(listStack);
     }
 
@@ -372,6 +376,7 @@ public final class JsonParser {
         }
         if (lastTokenType == TokenType.SEPARATOR && ("[".equals(lastToken) || "{".equals(lastToken)
                 || ",".equals(lastToken) || ":".equals(lastToken))) {
+            // ], } 以外のセパレータの場合、値がないのでエラーとする
             throw new IllegalArgumentException("value is requires");
         }
         if (currentList != null && currentKey == null) {
