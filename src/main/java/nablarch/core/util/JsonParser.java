@@ -276,19 +276,25 @@ public final class JsonParser {
         if (lastToken == null) {
             // 何も無い (一番最初)
             rootMap = newMap;
-        } else if (":".equals(lastToken)) {
-            // 値の要素がオブジェクトのパターン
-            currentMap.put(currentKey, newMap);
-        } else if ("[".equals(lastToken)) {
-            // 配列の要素がオブジェクトのパターン
-            currentList.add(newMap);
-        } else if (",".equals(lastToken)) {
-            // 配列の要素で２つ目以降のパターン
-            currentList.add(newMap);
+        } else if (lastTokenType == TokenType.SEPARATOR) {
+            if (":".equals(lastToken)) {
+                // 値の要素がオブジェクトのパターン
+                currentMap.put(currentKey, newMap);
+            } else if ("[".equals(lastToken)) {
+                // 配列の要素がオブジェクトのパターン
+                currentList.add(newMap);
+            } else if (",".equals(lastToken)) {
+                // 配列の要素で２つ目以降のパターン
+                currentList.add(newMap);
+            } else {
+                // 不正な開始位置
+                throw new IllegalArgumentException("incorrect object starting position");
+            }
         } else {
             // 不正な開始位置
             throw new IllegalArgumentException("incorrect object starting position");
         }
+
         mapStack.push(currentMap);
         currentMap = newMap;
     }
@@ -302,12 +308,14 @@ public final class JsonParser {
 
         } else if (lastTokenType == TokenType.SEPARATOR
                 && ":".equals(lastToken)) {
+            // 直前の文字がセパレータで、:の場合は値がない
             throw new IllegalArgumentException("incorrect object ending position");
 
         } else if (lastTokenType != TokenType.SEPARATOR
                 || (!"]".equals(lastToken)
                 && !"}".equals(lastToken)
                 && !"{".equals(lastToken))) {
+            // セパレータではない場合、またはセパレータの場合はオブジェクトと配列の終了、空オブジェクトまでを値として扱う
             currentMap.put(currentKey, lastToken);
         }
 
@@ -319,7 +327,7 @@ public final class JsonParser {
      * 配列開始時の処理です。
      */
     private void onStartArray() {
-        if (":".equals(lastToken)) {
+        if (lastTokenType == TokenType.SEPARATOR && ":".equals(lastToken)) {
             List<Object> newList = new ArrayList<Object>();
             currentMap.put(currentKey, newList);
             listStack.push(currentList);
@@ -337,12 +345,14 @@ public final class JsonParser {
         if (lastTokenType != TokenType.SEPARATOR
                 || (!"}".equals(lastToken) && !"[".equals(lastToken))
         ) {
+            // セパレータ以外、またはセパレータの場合はオブジェクトの終了か空配列のみを許可
             if (currentList == null) {
                 throw new IllegalArgumentException("array end detected, but not started");
             } else {
                 currentList.add(lastToken);
             }
         }
+
         currentList = pop(listStack);
     }
 
@@ -360,12 +370,13 @@ public final class JsonParser {
      * 項目セパレータ検出時の処理です。
      */
     private void onItemSeparator() {
-        if ("]".equals(lastToken) || "}".equals(lastToken)) {
+        if (lastTokenType == TokenType.SEPARATOR && ("]".equals(lastToken) || "}".equals(lastToken))) {
             // オブジェクト、配列の終了処理内で必要な処理は完了しているので何もしない。
             return;
         }
-        if ("[".equals(lastToken) || "{".equals(lastToken)
-                || ",".equals(lastToken) || ":".equals(lastToken)) {
+        if (lastTokenType == TokenType.SEPARATOR && ("[".equals(lastToken) || "{".equals(lastToken)
+                || ",".equals(lastToken) || ":".equals(lastToken))) {
+            // ], } 以外のセパレータの場合、値がないのでエラーとする
             throw new IllegalArgumentException("value is requires");
         }
         if (currentList != null && currentKey == null) {
