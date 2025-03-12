@@ -308,6 +308,11 @@ public class JsonParserTest {
         }
     }
 
+    /**
+     * 配列の開始位置が不正
+     * 汎用データフォーマットでは配列の前に":"（キー）を置く必要があるが、{@link JsonParser}では
+     * セパレータの種類を見ているためそのバリエーションのテスト
+     */
     @Test
     public void testInvalidArrayStart2() throws Exception {
 
@@ -376,7 +381,7 @@ public class JsonParserTest {
     }
 
     /**
-     * 値が存在しない
+     * 値が存在しない（セパレータ":"で終了し、","が続く）
      */
     @Test
     public void testNoValue1() throws Exception {
@@ -390,7 +395,7 @@ public class JsonParserTest {
     }
 
     /**
-     * 値が存在しない
+     * 値が存在しない（セパレータ","で終了し、さらに","が続く）
      */
     @Test
     public void testNoValue2() throws Exception {
@@ -404,7 +409,7 @@ public class JsonParserTest {
     }
 
     /**
-     * 値が存在しない
+     * 値が存在しない（キーも値も存在せず、","が続く）
      */
     @Test
     public void testNoValue3() throws Exception {
@@ -674,6 +679,8 @@ public class JsonParserTest {
 
     /**
      * ホワイトスペースがどこに入力されていても、パースできることを確認する。
+     * ここではシンプルなキーと値の組み合わせに対して、キーと値や大元のオブジェクト内のホワイトスペースの
+     * バリエーションを入力、パースできることを確認する。
      */
     @Test
     public void testWhiteSpace1() throws Exception {
@@ -694,6 +701,8 @@ public class JsonParserTest {
 
     /**
      * ホワイトスペースがどこに入力されていても、パースできることを確認する。
+     * ここでは配列やオブジェクトを含むオブジェクトに対して、ホワイトスペースの
+     * バリエーションを入力、パースできることを確認する。
      */
     @Test
     public void testWhiteSpace2() throws Exception {
