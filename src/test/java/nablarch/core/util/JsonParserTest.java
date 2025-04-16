@@ -99,6 +99,7 @@ public class JsonParserTest {
             put("string_half", "value");
             put("string_wide", "バリュー");
             put("string_mix", "value バリュー");
+            put("string_surrogate", "𐎀𐎁");
             put("string_array", new ArrayList<Object>() {{
                 add("array1");
                 add("array2");
@@ -106,6 +107,7 @@ public class JsonParserTest {
             }});
             put("integer1", "123");
             put("integer2", "-123");
+            put("integer3", "0");
             put("float1", "123.456");
             put("float2", "-123.456");
             put("int_exp1", "123e10");
@@ -114,12 +116,26 @@ public class JsonParserTest {
             put("int_exp4", "-123e10");
             put("int_exp5", "-123e+10");
             put("int_exp6", "-123e-10");
+            put("int_exp7", "123E10");
+            put("int_exp8", "123E+10");
+            put("int_exp9", "123E-10");
+            put("int_exp10", "-123E10");
+            put("int_exp11", "-123E+10");
+            put("int_exp12", "-123E-10");
             put("flo_exp1", "123.456e10");
             put("flo_exp2", "123.456e+10");
             put("flo_exp3", "123.456e-10");
             put("flo_exp4", "-123.456e10");
             put("flo_exp5", "-123.456e+10");
             put("flo_exp6", "-123.456e-10");
+            put("flo_exp7", "123.456E10");
+            put("flo_exp8", "123.456E+10");
+            put("flo_exp9", "123.456E-10");
+            put("flo_exp10", "-123.456E10");
+            put("flo_exp11", "-123.456E+10");
+            put("flo_exp12", "-123.456E-10");
+            put("flo_exp13", "123.0");
+            put("flo_exp14", "-123.0");
             put("numeric_array", new ArrayList<Object>() {{
                 add("123");
                 add("456");
@@ -201,10 +217,26 @@ public class JsonParserTest {
      * オブジェクトの開始位置が不正
      */
     @Test
-    public void testInvalidObjectStart() throws Exception {
+    public void testInvalidObjectStart1() throws Exception {
 
         try {
             new JsonParser().parse("{{\"key\", \"value\"}}");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage(), e.getMessage()
+                                        .contains("incorrect object starting position"));
+        }
+    }
+
+    /**
+     * オブジェクトの開始位置が不正
+     * セパレータ(,)がなくオブジェクトが開始する
+     */
+    @Test
+    public void testInvalidObjectStart2() throws Exception {
+
+        try {
+            new JsonParser().parse("{\"key\": \"value\" {\"key\": \"value\"}}");
             fail();
         } catch (IllegalArgumentException e) {
             assertTrue(e.getMessage(), e.getMessage()
@@ -277,6 +309,23 @@ public class JsonParserTest {
     }
 
     /**
+     * 配列の開始位置が不正
+     * 汎用データフォーマットでは配列の前に":"（キー）を置く必要があるが、{@link JsonParser}では
+     * セパレータの種類を見ているためそのバリエーションのテスト
+     */
+    @Test
+    public void testInvalidArrayStart2() throws Exception {
+
+        try {
+            new JsonParser().parse("{\"test\"[\"key\", \"value\"]}");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage(), e.getMessage()
+                                        .contains("array is need start after :"));
+        }
+    }
+
+    /**
      * 配列の終了位置が不正
      */
     @Test
@@ -332,12 +381,40 @@ public class JsonParserTest {
     }
 
     /**
-     * 値が存在しない
+     * 値が存在しない（セパレータ":"で終了し、","が続く）
      */
     @Test
-    public void testNoValue() throws Exception {
+    public void testNoValue1() throws Exception {
         try {
             new JsonParser().parse("{\"key1\":, \"key2\":\"value2\"}");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage(), e.getMessage()
+                                        .contains("value is requires"));
+        }
+    }
+
+    /**
+     * 値が存在しない（セパレータ","で終了し、さらに","が続く）
+     */
+    @Test
+    public void testNoValue2() throws Exception {
+        try {
+            new JsonParser().parse("{\"key1\",, \"key2\":\"value2\"}");
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage(), e.getMessage()
+                                        .contains("value is requires"));
+        }
+    }
+
+    /**
+     * 値が存在しない（キーも値も存在せず、","が続く）
+     */
+    @Test
+    public void testNoValue3() throws Exception {
+        try {
+            new JsonParser().parse("{, \"key2\":\"value2\"}");
             fail();
         } catch (IllegalArgumentException e) {
             assertTrue(e.getMessage(), e.getMessage()
@@ -439,6 +516,11 @@ public class JsonParserTest {
                     put("RS_TB", "\\\t");
                     put("RS_US", "\\/");
                     put("RS_CP", "\\a");
+
+                    put("CP_1", "ナブラーク");
+                    put("CP_2", "実行基盤");
+                    put("CP_3", "훀훠");  // コードポイントの網羅率のための値で、文字自体に意味はない
+                    put("CP_4", "𐎀𐎁");  // サロゲートペア（ u10380、u10381 ）
                 }};
 
         final InputStream resource = FileUtil.getResource(
@@ -597,9 +679,11 @@ public class JsonParserTest {
 
     /**
      * ホワイトスペースがどこに入力されていても、パースできることを確認する。
+     * ここではシンプルなキーと値の組み合わせに対して、キーと値や大元のオブジェクト内のホワイトスペースの
+     * バリエーションを入力、パースできることを確認する。
      */
     @Test
-    public void testWhiteSpace() throws Exception {
+    public void testWhiteSpace1() throws Exception {
         // 期待結果Map
         Map<String, Object> expectedMap =
                 new HashMap<String, Object>() {{
@@ -610,7 +694,35 @@ public class JsonParserTest {
                 }};
 
         final InputStream resource = FileUtil.getResource(
-                "classpath:nablarch/core/util/JsonParserTest/testWhiteSpace.json");
+                "classpath:nablarch/core/util/JsonParserTest/testWhiteSpace1.json");
+        Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
+        assertThat(result, is(expectedMap));
+    }
+
+    /**
+     * ホワイトスペースがどこに入力されていても、パースできることを確認する。
+     * ここでは配列やオブジェクトを含むオブジェクトに対して、ホワイトスペースの
+     * バリエーションを入力、パースできることを確認する。
+     */
+    @Test
+    public void testWhiteSpace2() throws Exception {
+        // 期待結果Map
+        Map<String, Object> expectedMap =
+                new HashMap<String, Object>() {{
+                    put("simpleElement", "a");
+                    put("arrayElement", new ArrayList<Object>() {{
+                        add("1");
+                        add("2");
+                        add("3");
+                    }});
+                    put("objectElement", new HashMap<String, Object>() {{
+                        put("key1", "value1");
+                        put("key2", "value2");
+                    }});
+                }};
+
+        final InputStream resource = FileUtil.getResource(
+                "classpath:nablarch/core/util/JsonParserTest/testWhiteSpace2.json");
         Map<String, Object> result = (Map<String, Object>) new JsonParser().parse(readAll(resource));
         assertThat(result, is(expectedMap));
     }
@@ -752,6 +864,20 @@ public class JsonParserTest {
 
     /**
      * セパレータだけを値にもつ場合のテスト
+     * {"{":"{", "}":"}"}
+     */
+    @Test
+    public void testOnlyObjectValue() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("{", "{");
+            put("}", "}");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"{\":\"{\", \"}\":\"}\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ場合のテスト
      * {"[":"["}
      */
     @Test
@@ -778,6 +904,20 @@ public class JsonParserTest {
 
     /**
      * セパレータだけを値にもつ場合のテスト
+     * {"[":"[", "]":"]"}
+     */
+    @Test
+    public void testOnlyArrayValue() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("[", "[");
+            put("]", "]");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"[\":\"[\", \"]\":\"]\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ場合のテスト
      * {":":":"}
      */
     @Test
@@ -786,6 +926,47 @@ public class JsonParserTest {
             put(":", ":");
         }};
         Map<String, ?> result = new JsonParser().parse("{\":\":\":\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもち、後続の要素がある場合のテスト
+     * {":":":", "key":"value"}
+     */
+    @Test
+    public void testColonWithOtherValue() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put(":", ":");
+            put("key", "value");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\":\":\":\", \"key\":\"value\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ場合のテスト
+     * {",":","}
+     */
+    @Test
+    public void testOnlyCommaValue() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put(",", ",");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\",\":\",\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ場合のテスト
+     * {":":":",",":","}
+     */
+    @Test
+    public void testOnlyColonCommaValue() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put(":", ":");
+            put(",", ",");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\":\":\":\",\",\":\",\"}");
         assertEquals(expectedMap, result);
     }
 
@@ -821,6 +1002,30 @@ public class JsonParserTest {
 
     /**
      * セパレータだけを値にもつ配列のテスト
+     * {"{":["{", "}", "{", "}"], "}": ["{", "}", "{", "}"]}
+     */
+    @Test
+    public void testOnlyObjectValueInArray() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("{", new ArrayList<String>() {{
+                add("{");
+                add("}");
+                add("{");
+                add("}");
+            }});
+            put("}", new ArrayList<String>() {{
+                add("{");
+                add("}");
+                add("{");
+                add("}");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"{\":[\"{\", \"}\", \"{\", \"}\"], \"}\": [\"{\", \"}\", \"{\", \"}\"]}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ配列のテスト
      * {"[":["["]}
      */
     @Test
@@ -851,16 +1056,65 @@ public class JsonParserTest {
 
     /**
      * セパレータだけを値にもつ配列のテスト
-     * {":":[":"]}
+     * {"[":["[", "]"], "]":["[", "]"]}
+     */
+    @Test
+    public void testOnlyArrayValueInArray1() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("[", new ArrayList<String>() {{
+                add("[");
+                add("]");
+            }});
+            put("]", new ArrayList<String>() {{
+                add("[");
+                add("]");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"[\":[\"[\", \"]\"], \"]\":[\"[\", \"]\"]}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ配列のテスト
+     * {"[":[",",":","{","}","[","]"], "]":[",",":","{","}","[","]"]}
+     */
+    @Test
+    public void testOnlyArrayValueInArray2() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("[", new ArrayList<String>() {{
+                add(",");
+                add(":");
+                add("{");
+                add("}");
+                add("[");
+                add("]");
+            }});
+            put("]", new ArrayList<String>() {{
+                add(",");
+                add(":");
+                add("{");
+                add("}");
+                add("[");
+                add("]");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"[\":[\",\",\":\",\"{\",\"}\",\"[\",\"]\"], \"]\":[\",\",\":\",\"{\",\"}\",\"[\",\"]\"]}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ配列のテスト
+     * {":":[":", ":"]}
      */
     @Test
     public void testOnlyColonValueInArray() throws IOException {
         HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
             put(":", new ArrayList<String>() {{
                 add(":");
+                add(":");
             }});
         }};
-        Map<String, ?> result = new JsonParser().parse("{\":\":[\":\"]}");
+        Map<String, ?> result = new JsonParser().parse("{\":\":[\":\", \":\"]}");
         assertEquals(expectedMap, result);
     }
 
@@ -896,6 +1150,46 @@ public class JsonParserTest {
 
     /**
      * セパレータだけを値にもつ子オブジェクトのテスト
+     * {"{":{"{":"{", "}":"}"}, "}":{"{":"{", "}":"}"}}
+     */
+    @Test
+    public void testOnlyObjectValueInNestedObject1() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("{", new HashMap<String, Object>() {{
+                put("{", "{");
+                put("}", "}");
+            }});
+            put("}", new HashMap<String, Object>() {{
+                put("{", "{");
+                put("}", "}");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"{\":{\"{\":\"{\", \"}\":\"}\"}, \"}\":{\"{\":\"{\", \"}\":\"}\"}}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ子オブジェクトのテスト
+     * {"{":{"}":"}", "{":"{"}, "}":{"}":"}", "{":"{"}}
+     */
+    @Test
+    public void testOnlyObjectValueInNestedObject2() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("{", new HashMap<String, Object>() {{
+                put("}", "}");
+                put("{", "{");
+            }});
+            put("}", new HashMap<String, Object>() {{
+                put("}", "}");
+                put("{", "{");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"{\":{\"{\":\"{\", \"}\":\"}\"}, \"}\":{\"{\":\"{\", \"}\":\"}\"}}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ子オブジェクトのテスト
      * {"[":{"[":"["}}
      */
     @Test
@@ -926,6 +1220,26 @@ public class JsonParserTest {
 
     /**
      * セパレータだけを値にもつ子オブジェクトのテスト
+     * {"[":{"[":"[", "]":"]"}, "]":{"[":"[", "]":"]"}}
+     */
+    @Test
+    public void testOnlyArrayValueInNestedObject() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put("[", new HashMap<String, Object>() {{
+                put("[", "[");
+                put("]", "]");
+            }});
+            put("]", new HashMap<String, Object>() {{
+                put("[", "[");
+                put("]", "]");
+            }});
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\"[\":{\"[\":\"[\", \"]\":\"]\"}, \"]\":{\"[\":\"[\", \"]\":\"]\"}}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ子オブジェクトのテスト
      * {":":{":":":"}}
      */
     @Test
@@ -936,6 +1250,40 @@ public class JsonParserTest {
             }});
         }};
         Map<String, ?> result = new JsonParser().parse("{\":\":{\":\":\":\"}}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ子オブジェクトと、後続の要素がある場合のテスト
+     * {":":{":":":", "key":"value"}, "key":"value"}
+     */
+    @Test
+    public void testOnlyColonValueInNestedArrayWithOther1() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put(":", new HashMap<String, Object>() {{
+                put(":", ":");
+                put("key", "value");
+            }});
+            put("key", "value");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\":\":{\":\":\":\", \"key\":\"value\"}, \"key\":\"value\"}");
+        assertEquals(expectedMap, result);
+    }
+
+    /**
+     * セパレータだけを値にもつ子オブジェクトと、後続の要素がある場合のテスト
+     * {":":{":":":", ",":","}, "key":"value"}
+     */
+    @Test
+    public void testOnlyColonValueInNestedArrayWithOther2() throws IOException {
+        HashMap<String, Object> expectedMap = new HashMap<String, Object>() {{
+            put(":", new HashMap<String, Object>() {{
+                put(":", ":");
+                put(",", ",");
+            }});
+            put("key", "value");
+        }};
+        Map<String, ?> result = new JsonParser().parse("{\":\":{\":\":\":\", \",\":\",\"}, \"key\":\"value\"}");
         assertEquals(expectedMap, result);
     }
 
